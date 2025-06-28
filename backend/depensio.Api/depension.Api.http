@@ -1,0 +1,6 @@
+@depension.Api_HostAddress = http://localhost:5101
+
+GET {{depension.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
