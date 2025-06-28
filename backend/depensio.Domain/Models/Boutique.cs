@@ -1,7 +1,7 @@
 ﻿namespace depensio.Domain.Models;
 
 public class Boutique : Entity<Guid>
-{­
+{
     public string Name { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public Guid OwnerId { get; set; }
