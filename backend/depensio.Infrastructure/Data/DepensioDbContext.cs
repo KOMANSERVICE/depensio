@@ -16,4 +16,8 @@ public class DepensioDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UsersBoutique> UsersBoutiques => Set<UsersBoutique>();
     public DbSet<Boutique> Boutiques => Set<Boutique>();
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+    }
 }
