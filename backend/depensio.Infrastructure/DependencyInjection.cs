@@ -38,16 +38,13 @@ public static class DependencyInjection
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();
         var connectionString = vaultSecretProvider.GetSecretAsync(configuration.GetConnectionString("DataBase")!).Result;
 
-        // 3. Configure EF Core with Vault connection string
-        var serverVersion = new MySqlServerVersion(MySqlServerVersion.LatestSupportedServerVersion);
-
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            options.UseMySql(connectionString, serverVersion)
-                .EnableSensitiveDataLogging()
-                .EnableDetailedErrors()
-                .LogTo(Console.WriteLine, LogLevel.Information);
+            options.UseNpgsql(connectionString);
+                //.EnableSensitiveDataLogging()
+                //.EnableDetailedErrors()
+                //.LogTo(Console.WriteLine, LogLevel.Information);
         });
 
 

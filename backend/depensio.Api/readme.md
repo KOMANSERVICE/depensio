@@ -7,10 +7,10 @@ dotnet tool install --global dotnet-ef
 # commande de migration
 dotnet ef migrations add InitialCreate --project backend/depensio.Infrastructure  --startup-project backend/depensio.Api --output-dir Data/Migrations
 
-dotnet ef database update  --project depensio.Infrastructure  --startup-project depensio.Api
+dotnet ef database update  --project backend/depensio.Infrastructure  --startup-project backend/depensio.Api
 
 # Generer un script SQL pour la migration
-dotnet ef migrations script  --project depensio.Infrasturcture  --startup-project depensio.Api  --output ./deploiementsql/deploy-20260606.sql  --idempotent
+dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startup-project backend/depensio.Api  --output ./deploiementsql/deploy-20260606.sql  --idempotent
 
 
 ## Configuration des secrets
@@ -42,7 +42,7 @@ vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
 
-vault kv put secret/depensio DataBase="Server=localhost;user=root;password=;database=DepenseDB"
+vault kv put secret/depensio DataBase="Host=localhost;Port=5436;Database=depensioDB;Username=testRoot;Password=1234"
 
 
 # Definir les variable d'environement sur powershell
@@ -58,9 +58,7 @@ vault write -f auth/approle/role/my-role/secret-id // reccuperer la valeur de se
 docker exec -it {Container ID} bash
 
 # Connexion a la BD line de command
-mysql -h <h�te> -u <utilisateur> -p <base_de_donn�es>
-mysql -h depensioDB -u root -p
+psql -h depensioDB -p 5432 -U testRoot -d depensioDB -W
 
-USE depensioDB
-SHOW TABLES;
-SHOW DATABASES; 
+\dn       -- liste les schémas
+\dt *.*   -- liste toutes les tables dans tous les schémas 

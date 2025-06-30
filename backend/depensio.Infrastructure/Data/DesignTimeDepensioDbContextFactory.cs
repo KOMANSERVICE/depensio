@@ -33,7 +33,7 @@ public class DesignTimeDepensioDbContextFactory : IDesignTimeDbContextFactory<De
             var connectionString = secret.Data.Data["DataBase"].ToString();
 
             var optionsBuilder = new DbContextOptionsBuilder<DepensioDbContext>();
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            optionsBuilder.UseNpgsql(connectionString);
 
             return new DepensioDbContext(optionsBuilder.Options);
 

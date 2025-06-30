@@ -20,39 +20,16 @@ services:
     
   depensioDB:
     container_name: depensioDB
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: depensioDB
-      MYSQL_USER: testRoot
-      MYSQL_PASSWORD: 1234
     restart: always
+    environment:
+      POSTGRES_DB: depensioDB
+      POSTGRES_USER: testRoot
+      POSTGRES_PASSWORD: 1234
     ports:
-      - "3336:3306"
+      - "5436:5432"
     volumes:
-      - mysql_depensio:/var/lib/mysql
-
-  # ef-migrator:
-  #   container_name: ef-migrator
-  #   depends_on:
-  #     - depensioVault
-  #     - depensioDB
-  #   image: mcr.microsoft.com/dotnet/sdk:8.0
-  #   volumes:
-  #     - .:/src
-  #     - ./vault/shared:/vault/shared
-  #   working_dir: /src
-  #   env_file:
-  #     - ./vault/shared/vault-env.export
-  #   environment:
-  #     - ConnectionStrings__Database=DataBase
-  #     - Vault__Uri=http://depensioVault:8200
-  #   entrypoint: >
-  #     sh -c '
-  #       export PATH="/root/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin" &&
-  #       dotnet tool install --global dotnet-ef &&
-  #       dotnet ef migrations add InitialCreate --project backend/depensio.Infrastructure --startup-project backend/depensio.Api --output-dir Data/Migration'
-                
-
+      - pgdata_depensio:/var/lib/postgresql/data
+      
   depensio.api:
     depends_on:
       - depensioVault

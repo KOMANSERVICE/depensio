@@ -25,7 +25,7 @@ vault policy write depensio-policy /vault/policies/depensio-policy.hcl
 vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl=1h token_max_ttl=4h
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
-vault kv put secret/depensio DataBase="Server=depensioDB;user=testRoot;password=1234;database=depensioDB"
+vault kv put secret/depensio DataBase="Host=depensioDB;Database=depensioDB;Username=testRoot;Password=1234"
 
 # 4️⃣ Export dans le volume partagé
 ROLE_ID=$(vault read -field=role_id auth/approle/role/my-role/role-id)
