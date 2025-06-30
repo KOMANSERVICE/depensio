@@ -21,7 +21,7 @@ public class VaultSecretProvider : ISecureSecretProvider
             mountPoint: "secret"
         );
 
-        return secret.Data.Data[key]?.ToString() 
+         return secret.Data.Data[key]?.ToString() 
             ?? throw new KeyNotFoundException($"Key '{key}' not found in Vault path");
     }
 }

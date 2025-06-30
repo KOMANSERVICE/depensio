@@ -7,11 +7,19 @@ services:
 
   depensioVault:
     image: hashicorp/vault:1.13.3
-    
+
+  # ef-migrator:
+  #   image: mcr.microsoft.com/dotnet/sdk:8.0    
 
   depensio.web:
     image: ${DOCKER_REGISTRY-}depensioweb
     build:
       context: .
       dockerfile: frontend/depensio.Web/Dockerfile
+      
+  depensioDB:
+    image: mysql
+
+volumes:
+  mysql_depensio:
 

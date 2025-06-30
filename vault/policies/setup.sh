@@ -6,7 +6,7 @@ vault server -dev -dev-root-token-id=root-token &
 VAULT_PID=$!
 
 # 2️⃣ Attend que l’API Vault soit disponible
-export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_ADDR=http://127.0.0.1:8201
 export VAULT_TOKEN=root-token
 
 echo "⏳ Attente de Vault..."
@@ -25,7 +25,7 @@ vault policy write depensio-policy /vault/policies/depensio-policy.hcl
 vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl=1h token_max_ttl=4h
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
-vault kv put secret/depensio DataBase="Server=localhost;user=root;password=;database=DepenseDB"
+vault kv put secret/depensio DataBase="Server=depensioDB;user=testRoot;password=1234;database=depensioDB"
 
 # 4️⃣ Export dans le volume partagé
 ROLE_ID=$(vault read -field=role_id auth/approle/role/my-role/role-id)

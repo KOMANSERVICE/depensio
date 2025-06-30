@@ -1,6 +1,8 @@
 ﻿using depensio.Application.Interfaces;
+using depensio.Domain.Models;
 using depensio.Infrastructure.Data;
 using depensio.Infrastructure.Security;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -42,11 +44,16 @@ public static class DependencyInjection
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            options.UseMySql(connectionString, serverVersion);
-                //.EnableSensitiveDataLogging()
-                //.EnableDetailedErrors()
-                //.LogTo(Console.WriteLine, LogLevel.Information);
+            options.UseMySql(connectionString, serverVersion)
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors()
+                .LogTo(Console.WriteLine, LogLevel.Information);
         });
+
+
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<DepensioDbContext>()
+            .AddDefaultTokenProviders();
 
         return services;        
     }

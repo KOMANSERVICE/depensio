@@ -1,4 +1,5 @@
 using depensio.Infrastructure;
+using depensio.Infrastructure.Data.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -18,6 +19,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    await app.InitialiseDatabaseAsync();
     app.UseSwagger();
     app.UseSwaggerUI();
 }

@@ -25,6 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Web.Client", "fron
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingBlocks", "backend\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj", "{8E598E9E-8BC6-431B-AF05-7DF209809A4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +71,10 @@ Global
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E598E9E-8BC6-431B-AF05-7DF209809A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E598E9E-8BC6-431B-AF05-7DF209809A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E598E9E-8BC6-431B-AF05-7DF209809A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E598E9E-8BC6-431B-AF05-7DF209809A4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,6 +88,8 @@ Global
 		{0E56350A-19F0-AC59-9021-F801DF74E27C} = {9A7A2E25-F85F-439E-B67E-3D5C5C7E75A4}
 		{5C335C92-F9E7-81CB-1970-484687198C1B} = {9A7A2E25-F85F-439E-B67E-3D5C5C7E75A4}
 		{2414B08D-51B0-12EE-1021-1010FE7A1A3F} = {9A7A2E25-F85F-439E-B67E-3D5C5C7E75A4}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {5F1E8A73-29FC-4D33-BB67-5CB7D8654DF2}
+		{8E598E9E-8BC6-431B-AF05-7DF209809A4B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3E07E593-70B8-470C-9DAC-47E2E4F81695}

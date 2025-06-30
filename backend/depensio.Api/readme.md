@@ -1,11 +1,11 @@
-
+﻿
 ## Configuration de la migration
 
 # Installation de ef
 dotnet tool install --global dotnet-ef
 
 # commande de migration
-dotnet ef migrations add InitialCreate --project depensio.Infrastructure  --startup-project depensio.Api --output-dir Data/Migrations
+dotnet ef migrations add InitialCreate --project backend/depensio.Infrastructure  --startup-project backend/depensio.Api --output-dir Data/Migrations
 
 dotnet ef database update  --project depensio.Infrastructure  --startup-project depensio.Api
 
@@ -54,3 +54,13 @@ vault read auth/approle/role/my-role/role-id // reccuperer la valeur de role-id
 vault write -f auth/approle/role/my-role/secret-id // reccuperer la valeur de secret-id
 [System.Environment]::SetEnvironmentVariable("Vault__SecretId", "yyy", "User")
 
+# Se connecter au container de bd
+docker exec -it {Container ID} bash
+
+# Connexion a la BD line de command
+mysql -h <h�te> -u <utilisateur> -p <base_de_donn�es>
+mysql -h depensioDB -u root -p
+
+USE depensioDB
+SHOW TABLES;
+SHOW DATABASES; 
