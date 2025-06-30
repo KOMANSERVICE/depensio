@@ -1,0 +1,56 @@
+services:
+  depensioVault:
+    container_name: depensioVault
+    image: hashicorp/vault:1.13.3
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root-token
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    volumes:
+      - ./vault/policies:/vault/policies:ro
+      - ./vault/shared:/vault/shared
+    cap_add:
+      - IPC_LOCK
+    command: /bin/sh -c "
+      vault server -dev -dev-root-token-id=root-token &
+      sleep 2 &&
+      /vault/policies/setup.sh &&
+      wait"
+    entrypoint: /vault/policies/setup.sh
+
+  depensio.api:
+    depends_on:
+      - depensioVault
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__Database=DataBase
+      - Vault__Uri=http://depensioVault:8200
+    ports:
+      - "8080"
+      - "8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ./vault/shared:/vault/shared
+    env_file:
+      - ./vault/shared/vault-env.export
+
+
+  depensio.web:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+    ports:
+      - "8080"
+      - "8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

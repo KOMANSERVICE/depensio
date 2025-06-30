@@ -1,0 +1,17 @@
+services:
+  depensio.api:
+    image: ${DOCKER_REGISTRY-}depensioapi
+    build:
+      context: .
+      dockerfile: backend/depensio.Api/Dockerfile
+
+  depensioVault:
+    image: hashicorp/vault:1.13.3
+    
+
+  depensio.web:
+    image: ${DOCKER_REGISTRY-}depensioweb
+    build:
+      context: .
+      dockerfile: frontend/depensio.Web/Dockerfile
+

@@ -20,7 +20,9 @@ dotnet ef migrations script  --project depensio.Infrasturcture  --startup-projec
 docker compose down // facultative
 docker compose up -d // facultative
 
-docker exec -it depensio-vault-1 /bin/sh
+docker exec -it depensioVault /bin/sh
+cat /etc/environment | grep Vault__
+printenv | grep Vault__
 export VAULT_ADDR="http://127.0.0.1:8200"
 vault status
 vault login "root-token"
@@ -30,7 +32,9 @@ vault login "root-token"
 # Ajout de secret
 vault auth enable approle
 
+creer le fichier vault-env.export dans le repertoire /vault/shared/
 creer le fichier depensio-policy.hcl dans le repertoire /vault/policies/
+creer le fichier setup.sh dans le repertoire /vault/policies/
 
 vault policy write depensio-policy /vault/policies/depensio-policy.hcl
 vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl=1h token_max_ttl=4h
