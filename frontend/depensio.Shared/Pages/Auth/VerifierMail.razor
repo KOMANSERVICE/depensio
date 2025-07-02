@@ -1,0 +1,63 @@
+@page "/verifier-mail/{userId}"
+@using Refit
+@layout SecondaryLayout
+@inject IAuthService _auth
+
+@* 
+<LoadingComponent IsLoad="@isLoad" /> *@
+<h3>Vérification de mail</h3>
+
+<div>@message</div>
+
+@code {
+    [Parameter]
+    public string? userId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Code { get; set; }
+
+    private bool isLoad = false;
+
+    private VerifyMailDTO? verifyMail { get; set; }
+
+    protected override void OnInitialized()
+    {
+        isLoad = true;
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        { 
+            await VerifMail();
+            StateHasChanged(); // Demander un nouveau rendu pour mettre à jour l'UI
+
+        }
+
+    }
+
+    private string message = "";
+
+    private async Task VerifMail()
+    {
+        try
+        {
+
+            verifyMail = new VerifyMailDTO(userId!, Code!.Replace(" ", "+"));
+            var isVerify = await _auth.VerifyMail(new Models.VerifyMailRequest(verifyMail));
+            if (isVerify.Result)
+            {
+                message = "Verification success";
+            }
+        }
+        catch (ApiException e)
+        {
+            message = "Verification fail";
+        }
+        finally
+        {
+            isLoad = false;
+        }
+    }
+}

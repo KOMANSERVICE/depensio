@@ -1,3 +1,4 @@
+using depensio.Shared;
 using depensio.Shared.Services;
 using depensio.Web.Components;
 using depensio.Web.Services;
@@ -9,7 +10,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 // Add device-specific services used by the depensio.Shared project
-builder.Services.AddSingleton<IFormFactor, FormFactor>();
+builder.Services.AddSingleton<IFormFactor, FormFactor>()
+                .AddHttpClientFactoryServices(builder.Configuration);
 
 var app = builder.Build();
 

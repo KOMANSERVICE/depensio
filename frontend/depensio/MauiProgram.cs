@@ -1,4 +1,5 @@
 ﻿using depensio.Services;
+using depensio.Shared;
 using depensio.Shared.Services;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +18,8 @@ namespace depensio
                 });
 
             // Add device-specific services used by the depensio.Shared project
-            builder.Services.AddSingleton<IFormFactor, FormFactor>();
+            builder.Services.AddSingleton<IFormFactor, FormFactor>()
+                .AddHttpClientFactoryServices(builder.Configuration);
 
             builder.Services.AddMauiBlazorWebView();
 

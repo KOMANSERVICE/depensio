@@ -1,0 +1,79 @@
+
+
+<div class="bg-white-300 pt-44 pb-24">
+    <div class="max-w-screen-xl w-full mx-auto px-6 sm:px-8 lg:px-16 grid grid-rows-6 sm:grid-rows-1 grid-flow-row sm:grid-flow-col grid-cols-3 sm:grid-cols-12 gap-4">
+
+        <!-- Branding & Description -->
+        <div class="row-span-2 sm:col-span-4 col-start-1 col-end-4 sm:col-end-5 flex flex-col items-start">
+            <img src="assets/Logo.svg" alt="LaslesVPN" class="h-8 w-auto mb-6" />
+            <p class="mb-4">
+                <strong class="font-medium">LaslesVPN</strong> is a private virtual network that has unique features and high security.
+            </p>
+            <div class="flex w-full mt-2 mb-8 -mx-2">
+                <div class="mx-2 bg-white-500 rounded-full flex items-center justify-center p-2 shadow-md">
+                    <img src="assets/Icon/facebook.svg" class="h-6 w-6" alt="Facebook" />
+                </div>
+                <div class="mx-2 bg-white-500 rounded-full flex items-center justify-center p-2 shadow-md">
+                    <img src="assets/Icon/twitter.svg" class="h-6 w-6" alt="Twitter" />
+                </div>
+                <div class="mx-2 bg-white-500 rounded-full flex items-center justify-center p-2 shadow-md">
+                    <img src="assets/Icon/instagram.svg" class="h-6 w-6" alt="Instagram" />
+                </div>
+            </div>
+            <p class="text-gray-400">©@CurrentYear - LaslesVPN</p>
+        </div>
+
+        <!-- Product -->
+        <div class="row-span-2 sm:col-span-2 sm:col-start-7 sm:col-end-9 flex flex-col">
+            <p class="text-black-600 mb-4 font-medium text-lg">Product</p>
+            <ul class="text-black-500">
+                @foreach (var item in ProductLinks)
+                {
+                    <li class="my-2 hover:text-orange-500 cursor-pointer transition-all">@item</li>
+                }
+            </ul>
+        </div>
+
+        <!-- Engage -->
+        <div class="row-span-2 sm:col-span-2 sm:col-start-9 sm:col-end-11 flex flex-col">
+            <p class="text-black-600 mb-4 font-medium text-lg">Engage</p>
+            <ul class="text-black-500">
+                @foreach (var item in EngageLinks)
+                {
+                    <li class="my-2 hover:text-orange-500 cursor-pointer transition-all">@item</li>
+                }
+            </ul>
+        </div>
+
+        <!-- Earn Money -->
+        <div class="row-span-2 sm:col-span-2 sm:col-start-11 sm:col-end-13 flex flex-col">
+            <p class="text-black-600 mb-4 font-medium text-lg">Earn Money</p>
+            <ul class="text-black-500">
+                @foreach (var item in EarnMoneyLinks)
+                {
+                    <li class="my-2 hover:text-orange-500 cursor-pointer transition-all">@item</li>
+                }
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+@code {
+    private readonly int CurrentYear = DateTime.Now.Year;
+
+    private readonly string[] ProductLinks = new[]
+    {
+        "Download", "Pricing", "Locations", "Server", "Countries", "Blog"
+    };
+
+    private readonly string[] EngageLinks = new[]
+    {
+        "LaslesVPN ?", "FAQ", "Tutorials", "About Us", "Privacy Policy", "Terms of Service"
+    };
+
+    private readonly string[] EarnMoneyLinks = new[]
+    {
+        "Affiliate", "Become Partner"
+    };
+}

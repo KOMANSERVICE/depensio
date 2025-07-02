@@ -19,6 +19,7 @@ dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startu
 
 docker compose down // facultative
 docker compose up -d // facultative
+vault kv get -format=json secret/depensio
 
 docker exec -it depensioVault /bin/sh
 cat /etc/environment | grep Vault__
@@ -42,7 +43,7 @@ vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
 
-vault kv put secret/depensio DataBase="Host=localhost;Port=5436;Database=depensioDB;Username=testRoot;Password=1234"
+vault kv put secret/depensio DataBase="Host=localhost;Port=5436;Database=Database;Username=Username;Password=Password"
 
 
 # Definir les variable d'environement sur powershell
@@ -60,5 +61,7 @@ docker exec -it {Container ID} bash
 # Connexion a la BD line de command
 psql -h depensioDB -p 5432 -U testRoot -d depensioDB -W
 
-\dn       -- liste les schémas
-\dt *.*   -- liste toutes les tables dans tous les schémas 
+\dn   -- liste les schémas
+\dt   -- liste toutes les tables 
+
+SELECT * FROM "TABLE";

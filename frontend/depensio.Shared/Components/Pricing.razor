@@ -1,0 +1,175 @@
+﻿@inject IJSRuntime JS
+
+
+<div class="bg-gradient-to-b from-white-300 to-white-500 w-full py-14" id="pricing">
+    <div class="max-w-screen-xl mx-auto flex flex-col w-full text-center justify-center">
+
+        <div class="max-w-7xl mx-auto text-center">
+            <h3 class="text-2xl sm:text-3xl lg:text-4xl font-medium text-black-600 leading-relaxed">
+                Choose Your Plan
+            </h3>
+            <p class="leading-normal w-10/12 sm:w-7/12 lg:w-6/12 mx-auto my-2 text-center">
+                Let's choose the package that is best for you and explore it happily and cheerfully.
+            </p>
+
+            <!-- Toggle (mocked) -->
+            <div class="inline-flex items-center mb-10 space-x-2 bg-gray-100 rounded-full p-1">
+                <button @onclick="() => SetBillingCycle(BillingCycle.Monthly)"
+                        class="@GetToggleButtonClass(BillingCycle.Monthly)">
+                    Monthly
+                </button>
+                <button @onclick="() => SetBillingCycle(BillingCycle.Annually)"
+                        class="@GetToggleButtonClass(BillingCycle.Annually)">
+                    Annually
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Pricing Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            @foreach (var plan in Plans)
+            {
+                <div class="@GetCardClasses(plan)">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-lg font-semibold text-gray-900">@plan.Title</h3>
+                        @if (plan.IsPopular)
+                        {
+                            <span class="text-xs text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full font-medium">Most popular</span>
+                        }
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">@plan.Description</p>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">$@plan.Price<span class="text-base font-normal text-gray-500">/month</span></div>
+                    <a href="#" class="@GetButtonClasses(plan)">Buy plan</a>
+                    <ul class="mt-6 space-y-2 text-sm text-gray-700">
+                        @foreach (var feature in plan.Features)
+                        {
+                            <li class="flex items-start space-x-2">
+                                <span class="text-indigo-600 mt-0.5">✔️</span>
+                                <span>@feature</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+
+        <WhyChooseUs />
+
+        <!-- Testimonial Section -->
+        <div class="flex flex-col w-full my-16" id="testimoni">
+
+            <!-- Subscribe CTA -->
+            <div class="relative w-full mt-16">
+                <div class="absolute rounded-xl py-8 sm:py-14 px-6 sm:px-12 lg:px-16 w-full flex flex-col sm:flex-row justify-between items-center z-10 bg-white-500">
+                    <div class="flex flex-col text-left w-10/12 sm:w-7/12 lg:w-5/12 mb-6 sm:mb-0">
+                        <h5 class="text-black-600 text-xl sm:text-2xl lg:text-3xl leading-relaxed font-medium">
+                            Subscribe Now for <br /> Get Special Features!
+                        </h5>
+                        <p>Let's subscribe with us and find the fun.</p>
+                    </div>
+                    <button class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg shadow">
+                        Get Started
+                    </button>
+                </div>
+                <div class="absolute bg-black-600 opacity-5 w-11/12 rounded-lg h-60 sm:h-56 top-0 mt-8 mx-auto left-0 right-0" style="filter: blur(114px);">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@code {
+    private enum BillingCycle
+    {
+        Monthly,
+        Annually
+    }
+
+    private BillingCycle Billing = BillingCycle.Monthly;
+
+    public class Plan
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public int Price { get; set; }
+        public bool IsPopular { get; set; } = false;
+        public List<string> Features { get; set; } = new();
+    }
+
+    private List<Plan> Plans = new()
+    {
+        new Plan
+        {
+            Title = "Hobby",
+            Description = "The essentials to provide your best work for clients.",
+            Price = 19,
+            Features = new() { "5 products", "Up to 1,000 subscribers", "Basic analytics" }
+        },
+        new Plan
+        {
+            Title = "Freelancer",
+            Description = "The essentials to provide your best work for clients.",
+            Price = 29,
+            Features = new() { "5 products", "Up to 1,000 subscribers", "Basic analytics", "48-hour support response time" }
+        },
+        new Plan
+        {
+            Title = "Startup",
+            Description = "A plan that scales with your rapidly growing business.",
+            Price = 59,
+            IsPopular = true,
+            Features = new() { "25 products", "Up to 10,000 subscribers", "Advanced analytics", "24-hour support response time", "Marketing automations" }
+        },
+        new Plan
+        {
+            Title = "Enterprise",
+            Description = "Dedicated support and infrastructure for your company.",
+            Price = 99,
+            Features = new() { "Unlimited products", "Unlimited subscribers", "Advanced analytics", "1-hour, dedicated support response time", "Marketing automations", "Custom reporting tools" }
+        }
+    };
+
+    private string GetCardClasses(Plan plan) =>
+        plan.IsPopular
+            ? "border-2 border-indigo-600 rounded-xl p-6 shadow-lg bg-white"
+            : "border border-gray-200 rounded-xl p-6 bg-white";
+
+    private string GetButtonClasses(Plan plan) =>
+        plan.IsPopular
+            ? "mt-4 block w-full text-white bg-indigo-600 hover:bg-indigo-700 font-semibold py-2 rounded-md text-center"
+            : "mt-4 block w-full text-indigo-600 hover:bg-indigo-700 hover:text-white font-semibold py-2 border border-indigo-600 rounded-md text-center";
+
+    private void SetBillingCycle(BillingCycle cycle)
+    {
+        Billing = cycle;
+    }
+
+    private string GetToggleButtonClass(BillingCycle cycle) =>
+       Billing == cycle
+           ? "px-4 py-1 text-sm font-medium text-white bg-indigo-600 rounded-full"
+           : "px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-full";
+
+
+
+
+    private class PricingPlan
+    {
+        public string Name { get; set; } = "";
+        public string Price { get; set; } = "";
+        public string Image { get; set; } = "";
+        public List<string> Features { get; set; } = new();
+    }
+
+    private List<string> PartnerLogos = new()
+    {
+        "/assets/Icon/amazon.png",
+        "/assets/Icon/netflix.png",
+        "/assets/Icon/reddit.png",
+        "/assets/Icon/discord.png",
+        "/assets/Icon/spotify.png"
+    };
+
+}

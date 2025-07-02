@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 *vault-env.export
+*setup.*.sh

@@ -1,0 +1,10 @@
+@if (!string.IsNullOrEmpty(ErrorValue))
+{
+    <div class="idr-error">@ErrorValue</div>
+}
+
+@code {
+
+    [Parameter]
+    public string? ErrorValue { get; set; }
+}

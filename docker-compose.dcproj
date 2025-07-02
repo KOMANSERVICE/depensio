@@ -10,10 +10,12 @@
     <DockerServiceName>depensio.api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="depensio-policy.hcl" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="setup.sh" />
   </ItemGroup>
 </Project>
