@@ -1,0 +1,89 @@
+services:
+  depensioVault:
+    image: hashicorp/vault:1.13.3
+    container_name: depensioVault
+    ports:
+      - "8201:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root-token
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8201"
+    volumes:
+      - ./vault/policies:/vault/policies:ro
+      - ./vault/shared:/vault/shared
+    cap_add:
+      - IPC_LOCK
+    command: /bin/sh -c "
+      vault server -dev -dev-root-token-id=root-token &
+      sleep 2 &&
+      /vault/policies/setup.deploy.sh &&
+      wait"
+    entrypoint: /vault/policies/setup.deploy.sh
+    
+  depensioDB:
+    image: postgres:15
+    container_name: depensioDB
+    restart: always
+    environment:
+      POSTGRES_DB: depensioDB
+      POSTGRES_USER: testRoot
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5436:5432"
+    volumes:
+      - pgdata_depensio:/var/lib/postgresql/data
+            
+  depensio.web:
+    image: ${DOCKER_REGISTRY-}depensioweb
+    build:
+      context: .
+      dockerfile: frontend/depensio.Web/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Poduction
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ApiSettings__Uri=https://depensio.api:9102
+    ports:
+      - "9001:8080"
+      - "9002:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  depensio.api:
+    image: ${DOCKER_REGISTRY-}depensioapi
+    build:
+      context: .
+      dockerfile: backend/Depensio.Api/Dockerfile
+    depends_on:
+      - depensioVault
+      - depensioDB
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Poduction
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081      
+      - ConnectionStrings__Database=DataBase
+      - Vault__Uri=http://depensioVault:8201
+      - MailConfig__FromMailId=noreplytest@depensio.com
+      - MailConfig__FromMailIdPassword=FromMailIdPassword
+      - MailConfig__FromMailName=depensio
+      - MailConfig__Host=mail.depensio.com
+      - MailConfig__Ports=25
+      - JWT__ValidAudience=User
+      - JWT__ValidIssuer=https://localhost:9002
+      - JWT__Secret=Secret
+    ports:
+      - "9101:8080"
+      - "9102:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ./vault/shared:/vault/shared
+    env_file:
+      - ./vault/shared/vault-env.export
+      
+volumes:
+  pgdata_depensio:
