@@ -2,14 +2,14 @@
 using depensio.Domain.Models;
 using depensio.Infrastructure.Data;
 using depensio.Infrastructure.Security;
+using depensio.Infrastructure.Services;
+using IDR.SendMail;
+using IDR.SendMail.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using VaultSharp;
-using VaultSharp.V1.AuthMethods.AppRole;
 
 
 namespace depensio.Infrastructure;
@@ -33,10 +33,10 @@ public static class DependencyInjection
         );
 
 
-        // 2. Build ServiceProvider TEMPORARILY to resolve Vault
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();
         var connectionString = vaultSecretProvider.GetSecretAsync(configuration.GetConnectionString("DataBase")!).Result;
+        var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(configuration["MailConfig:FromMailIdPassword"]!).Result;
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
@@ -51,6 +51,35 @@ public static class DependencyInjection
         services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<DepensioDbContext>()
             .AddDefaultTokenProviders();
+
+
+
+        services.Configure<IdentityOptions>(options =>
+        {
+            // Default Password settings.
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequiredLength = 6;
+        });
+
+        services.AddEmailServices((options) =>
+        {
+            options.FromMailId = configuration["MailConfig:FromMailId"];
+            options.FromMailIdPassword = fromMailIdPassword;
+            options.FromMailName = configuration["MailConfig:FromMailName"];
+            options.Host = configuration["MailConfig:Host"];
+            options.Ports = int.Parse(configuration["MailConfig:Ports"]!);
+            options.IsBodyHtml = true;
+            options.EnableSsl = true;
+        });
+
+        services.AddScoped<IKeyManagementService, KeyManagementService>();
+        services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddTransient<ISendMailService, SendMailService>();
+        services.AddTransient<IEmailService, EmailService>();
+        
 
         return services;        
     }

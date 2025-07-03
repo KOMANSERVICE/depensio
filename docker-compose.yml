@@ -1,9 +1,5 @@
 services:
-  depensio.api:
-    image: ${DOCKER_REGISTRY-}depensioapi
-    build:
-      context: .
-      dockerfile: backend/depensio.Api/Dockerfile
+
 
   depensioVault:
     image: hashicorp/vault:1.13.3
@@ -17,6 +13,13 @@ services:
   depensioDB:
     image: postgres:15
 
+  depensio.api:
+    image: ${DOCKER_REGISTRY-}depensioapi
+    build:
+      context: .
+      dockerfile: backend/Depensio.Api/Dockerfile
+
 volumes:
   pgdata_depensio:
+
 

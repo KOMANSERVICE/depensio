@@ -1,0 +1,59 @@
+﻿@inject IJSRuntime JS
+
+<div class="max-w-screen-xl mt-8 mb-6 sm:mt-14 sm:mb-14 px-6 sm:px-8 lg:px-16 mx-auto" id="feature">
+    <div class="grid grid-flow-row sm:grid-flow-col grid-cols-1 sm:grid-cols-2 gap-8 py-8 my-12">
+
+        <!-- Illustration -->
+        <div class="flex w-full justify-end">
+            <div class="h-full w-full p-4">
+                <img src="/assets/Illustration2.png"
+                     alt="VPN Illustration"
+                     class="w-full h-auto rounded-lg" />
+            </div>
+        </div>
+
+        <!-- Feature List -->
+        <div class="flex flex-col items-end justify-center ml-auto w-full lg:w-9/12">
+            <h3 class="text-3xl lg:text-4xl font-medium leading-relaxed text-black-600">
+                We Provide Many Features You Can Use
+            </h3>
+            <p class="my-2 text-black-500">
+                You can explore the features that we provide with fun and have their
+                own functions each feature.
+            </p>
+            <ul class="text-black-500 self-start list-inside ml-8 space-y-2">
+                @foreach (var item in Features)
+                {
+                    <li @onmouseover="() => AnimateFeature(item)"
+                        class="relative pl-4 before:content-['✔️'] before:absolute before:left-0 before:text-orange-500 transition-transform transform hover:scale-105">
+                        @item
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<string> Features = new()
+    {
+        "Powerfull online protection.",
+        "Internet without borders.",
+        "Supercharged VPN",
+        "No specific time limits."
+    };
+
+    private void AnimateFeature(string feature)
+    {
+        // 🧠 Optionnel : animation JS ou log debug
+        Console.WriteLine($"Hovered: {feature}");
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await JS.InvokeVoidAsync("observeFadeIn", "feature");
+    //     }
+    // }
+}

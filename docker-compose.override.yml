@@ -14,9 +14,9 @@ services:
     command: /bin/sh -c "
       vault server -dev -dev-root-token-id=root-token &
       sleep 2 &&
-      /vault/policies/setup.sh &&
+      /vault/policies/setup.deploy.sh &&
       wait"
-    entrypoint: /vault/policies/setup.sh
+    entrypoint: /vault/policies/setup.deploy.sh
     
   depensioDB:
     container_name: depensioDB
@@ -30,6 +30,23 @@ services:
     volumes:
       - pgdata_depensio:/var/lib/postgresql/data
       
+
+
+  depensio.web:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ApiSettings__Uri=https://depensio.api:9102
+    ports:
+      - "9001:8080"
+      - "9002:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
   depensio.api:
     depends_on:
       - depensioVault
@@ -37,12 +54,20 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_HTTPS_PORTS=8081      
       - ConnectionStrings__Database=DataBase
       - Vault__Uri=http://depensioVault:8201
+      - MailConfig__FromMailId=noreplytest@depensio.com
+      - MailConfig__FromMailIdPassword=FromMailIdPassword
+      - MailConfig__FromMailName=depensio
+      - MailConfig__Host=mail.depensio.com
+      - MailConfig__Ports=25
+      - JWT__ValidAudience=User
+      - JWT__ValidIssuer=https://localhost:9002
+      - JWT__Secret=Secret
     ports:
-      - "8080"
-      - "8081"
+      - "9101:8080"
+      - "9102:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
@@ -51,18 +76,3 @@ services:
       - ./vault/shared:/vault/shared
     env_file:
       - ./vault/shared/vault-env.export
-
-
-  depensio.web:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-    ports:
-      - "8080"
-      - "8081"
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
-      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

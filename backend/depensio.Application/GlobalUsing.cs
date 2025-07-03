@@ -1,0 +1,9 @@
+﻿global using BuildingBlocks.CQRS;
+global using FluentValidation;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.EntityFrameworkCore;
+global using depensio.Domain.Models;
+global using IDR.SendMail;
+global using BuildingBlocks.Exceptions;
+global using depensio.Application.Auth.DTOs;
