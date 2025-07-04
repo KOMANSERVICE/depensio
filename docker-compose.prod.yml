@@ -15,9 +15,9 @@ services:
     command: /bin/sh -c "
       vault server -dev -dev-root-token-id=root-token &
       sleep 2 &&
-      /vault/policies/setup.deploy.sh &&
+      /home/vault/shared/setup.deploy.sh &&
       wait"
-    entrypoint: /vault/policies/setup.deploy.sh
+    entrypoint: /home/vault/shared/setup.deploy.sh
     
   depensioDB:
     image: postgres:15
@@ -55,7 +55,7 @@ services:
     image: ${DOCKER_REGISTRY-}depensioapi
     build:
       context: .
-      dockerfile: backend/Depensio.Api/Dockerfile
+      dockerfile: backend/depensio.Api/Dockerfile
     depends_on:
       - depensioVault
       - depensioDB
