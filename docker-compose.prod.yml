@@ -15,9 +15,9 @@ services:
     command: /bin/sh -c "
       vault server -dev -dev-root-token-id=root-token &
       sleep 2 &&
-      /vault/shared/setup.deploy.sh &&
+      /vault/policies/setup.deploy.sh &&
       wait"
-    entrypoint: /vault/shared/setup.deploy.sh
+    entrypoint: /vault/policies/setup.deploy.sh
     
   depensioDB:
     image: postgres:15
