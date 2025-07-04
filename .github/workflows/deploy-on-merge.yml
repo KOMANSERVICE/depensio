@@ -34,6 +34,8 @@ jobs:
             cho "➡️ Copie de fichier"
             cp /home/vault/shared/setup.deploy.sh /home/depensio/vault/policies
             cp /home/vault/shared/vault-depensio-env.export /home/depensio/vault/shared
+            chmod +x /home/depensio/vault/policies/setup.deploy.sh
+            chmod +x /home/depensio/vault/shared/vault-depensio-env.export
             echo "➡️ Passage au dossier projet"
             cd /home/depensio
             echo "📦 Pull du nouveau contenu"
