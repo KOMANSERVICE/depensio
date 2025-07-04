@@ -32,6 +32,7 @@ jobs:
           port: 22
           script: |
             cho "➡️ Copie de fichier"
+            mkdir /home/depensio/vault/shared
             cp /home/vault/shared/setup.deploy.sh /home/depensio/vault/policies
             cp /home/vault/shared/vault-depensio-env.export /home/depensio/vault/shared
             chmod +x /home/depensio/vault/policies/setup.deploy.sh
