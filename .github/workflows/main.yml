@@ -1,0 +1,43 @@
+name: 🚀 Deploy on Main PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v3
+
+      - name: 🏷️ Create release tag
+        run: |
+          TAG=release-$(date +'%Y%m%d-%H%M')
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag $TAG
+          git push origin $TAG
+
+      - name: 🚀 Deploy to Production Server via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cho "➡️ Copie de fichier"
+            cp /home/vault/shared/setup.deploy.sh /home/depensio/vault/policies
+            cp /home/vault/shared/vault-depensio-env.export /home/depensio/vault/shared
+            echo "➡️ Passage au dossier projet"
+            cd /home/depensio
+            echo "📦 Pull du nouveau contenu"
+            git pull origin main
+            echo "♻️ Rebuild & redeploy"
+            docker compose -f docker-compose.prod.yml down -v || true
+            docker compose -f docker-compose.prod.yml up -d --build
