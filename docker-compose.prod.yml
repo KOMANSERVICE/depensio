@@ -9,15 +9,15 @@ services:
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8201"
     volumes:
       - ./vault/policies:/vault/policies:ro
-      - /home/vault/shared:/vault/shared
+      - ./vault/shared:/vault/shared
     cap_add:
       - IPC_LOCK
     command: /bin/sh -c "
       vault server -dev -dev-root-token-id=root-token &
       sleep 2 &&
-      /home/vault/shared/setup.deploy.sh &&
+      /vault/shared/setup.deploy.sh &&
       wait"
-    entrypoint: /home/vault/shared/setup.deploy.sh
+    entrypoint: /vault/shared/setup.deploy.sh
     
   depensioDB:
     image: postgres:15
@@ -81,9 +81,9 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - /home/vault/shared:/vault/shared
+      - ./vault/shared:/vault/shared
     env_file:
-      - /home/vault/shared/vault-depensio-env.export
+      - ./vault/shared/vault-depensio-env.export
       
 volumes:
   pgdata_depensio:
