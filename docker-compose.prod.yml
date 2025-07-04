@@ -42,11 +42,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
       - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ApiSettings__Uri=https://depensio.api:9102
+      - ApiSettings__Uri=http://depensio.api:9101
     ports:
       - "9001:8080"
-      - "9002:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
@@ -64,8 +62,7 @@ services:
       - depensioDB
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081      
+      - ASPNETCORE_HTTP_PORTS=8080   
       - ConnectionStrings__Database=DataBase
       - Vault__Uri=http://depensioVault:8201
       - MailConfig__FromMailId=noreplytest@depensio.com
@@ -74,11 +71,10 @@ services:
       - MailConfig__Host=mail.depensio.com
       - MailConfig__Ports=25
       - JWT__ValidAudience=User
-      - JWT__ValidIssuer=https://localhost:9002
+      - JWT__ValidIssuer=http://localhost:9001
       - JWT__Secret=Secret
     ports:
       - "9101:8080"
-      - "9102:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
