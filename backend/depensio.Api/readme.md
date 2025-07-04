@@ -143,5 +143,11 @@ sudo ufw disable
 # Vérifier les règles
 sudo ufw status
 
+# Supprimer un dossier 
+sudo rm -rf depensio
 
+
+# Cloner le projet depensio
+Cloner le projet depensio depuis GitHub avec un token d'accès personnel
+git clone https://<USERNAME>:<TOKEN>@github.com/KOMANSERVICE/depensio.git
 

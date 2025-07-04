@@ -9,7 +9,7 @@ services:
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8201"
     volumes:
       - ./vault/policies:/vault/policies:ro
-      - ./vault/shared:/vault/shared
+      - /home/vault/shared:/vault/shared
     cap_add:
       - IPC_LOCK
     command: /bin/sh -c "
@@ -81,9 +81,9 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ./vault/shared:/vault/shared
+      - /home/vault/shared:/vault/shared
     env_file:
-      - ./vault/shared/vault-env.export
+      - /home/vault/shared/vault-depensio-env.export
       
 volumes:
   pgdata_depensio:
