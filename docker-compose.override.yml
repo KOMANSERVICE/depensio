@@ -85,4 +85,5 @@ services:
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ./vault/shared:/app/vault/shared:ro
+      - ./vault/shared:/app/depensio/depensio/backend/depensio.Api/vault/shared:ro
 
