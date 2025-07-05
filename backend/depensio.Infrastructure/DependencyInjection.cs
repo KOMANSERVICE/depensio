@@ -1,6 +1,7 @@
 ﻿using depensio.Application.Interfaces;
 using depensio.Domain.Models;
 using depensio.Infrastructure.Data;
+using depensio.Infrastructure.Models;
 using depensio.Infrastructure.Security;
 using depensio.Infrastructure.Services;
 using IDR.SendMail;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 
 namespace depensio.Infrastructure;
@@ -21,14 +23,14 @@ public static class DependencyInjection
     {
 
         var vaultUri = configuration["Vault:Uri"];
-        var roleId = configuration["Vault:RoleId"];
-        var secretId = configuration["Vault:SecretId"];
+        var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "vault/shared/vault-depensio-env.json");
+        VaultSecretsConfig vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(File.ReadAllText(jsonPath))!;
 
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
                 vaultUri: vaultUri!,
-                roleId: roleId!,
-                secretId: secretId!
+                roleId: vaultSecrets.Vault__RoleId,
+                secretId: vaultSecrets.Vault__SecretId
             )
         );
 
