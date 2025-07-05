@@ -362,5 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-*vault-env.export
+*vault-depensio-env.*
 *setup.*.sh

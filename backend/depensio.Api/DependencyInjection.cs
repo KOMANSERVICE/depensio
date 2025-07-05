@@ -94,6 +94,7 @@ public static class DependencyInjection
         //        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
         //    });
 
+        app.UseHttpsRedirection();
         app.UseCors(MyAllowSpecificOrigins);
         app.UseAuthentication();
         app.UseAuthorization();

@@ -13,12 +13,12 @@ services:
       - ./vault/shared:/vault/shared
     cap_add:
       - IPC_LOCK
-    command: /bin/sh -c "
-      vault server -dev -dev-root-token-id=root-token &
-      sleep 2 &&
-      /vault/policies/setup.deploy.sh &&
-      wait"
     entrypoint: /vault/policies/setup.deploy.sh
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8201/v1/sys/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     
   depensioDB:
     image: postgres:15
@@ -31,7 +31,12 @@ services:
     ports:
       - "5436:5432"
     volumes:
-      - pgdata_depensio:/var/lib/postgresql/data
+      - pgdata_depensio:/var/lib/postgresql/data 
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "testRoot"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
             
   depensio.web:
     image: ${DOCKER_REGISTRY-}depensioweb
@@ -40,18 +45,19 @@ services:
       context: .
       dockerfile: frontend/depensio.Web/Dockerfile
     environment:
-      - ASPNETCORE_ENVIRONMENT=Poduction
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ApiSettings__Uri=https://depensio.api:9102
+      - ApiSettings__Uri=http://depensio.api:9101
     ports:
       - "9001:8080"
-      - "9002:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      depensio.api:
+        condition: service_started
 
   depensio.api:
     image: ${DOCKER_REGISTRY-}depensioapi
@@ -60,12 +66,13 @@ services:
       context: .
       dockerfile: backend/depensio.Api/Dockerfile
     depends_on:
-      - depensioVault
-      - depensioDB
+      depensioVault:
+        condition: service_healthy
+      depensioDB:
+        condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081      
+      - ASPNETCORE_HTTP_PORTS=8080   
       - ConnectionStrings__Database=DataBase
       - Vault__Uri=http://depensioVault:8201
       - MailConfig__FromMailId=noreplytest@depensio.com
@@ -74,19 +81,16 @@ services:
       - MailConfig__Host=mail.depensio.com
       - MailConfig__Ports=25
       - JWT__ValidAudience=User
-      - JWT__ValidIssuer=https://localhost:9002
+      - JWT__ValidIssuer=http://localhost:9001
       - JWT__Secret=Secret
     ports:
       - "9101:8080"
-      - "9102:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ./vault/shared:/vault/shared
-    env_file:
-      - ./vault/shared/vault-depensio-env.export
+      - ./vault/shared:/app/vault/shared:ro
       
 volumes:
   pgdata_depensio:

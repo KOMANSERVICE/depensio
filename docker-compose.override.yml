@@ -1,6 +1,7 @@
 services:
   depensioVault:
     container_name: depensioVault
+    restart: always
     ports:
       - "8201:8200"
     environment:
@@ -11,13 +12,13 @@ services:
       - ./vault/shared:/vault/shared
     cap_add:
       - IPC_LOCK
-    command: /bin/sh -c "
-      vault server -dev -dev-root-token-id=root-token &
-      sleep 2 &&
-      /vault/policies/setup.deploy.sh &&
-      wait"
     entrypoint: /vault/policies/setup.deploy.sh
-    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8201/v1/sys/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+          
   depensioDB:
     container_name: depensioDB
     restart: always
@@ -28,9 +29,12 @@ services:
     ports:
       - "5436:5432"
     volumes:
-      - pgdata_depensio:/var/lib/postgresql/data
-      
-
+      - pgdata_depensio:/var/lib/postgresql/data  
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "testRoot"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
 
   depensio.web:
     environment:
@@ -38,6 +42,7 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ApiSettings__Uri=https://depensio.api:9102
+    restart: always
     ports:
       - "9001:8080"
       - "9002:8081"
@@ -46,11 +51,17 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      depensio.api:
+        condition: service_started
 
   depensio.api:
     depends_on:
-      - depensioVault
-      - depensioDB
+      depensioVault:
+        condition: service_healthy
+      depensioDB:
+        condition: service_healthy
+    restart: always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -73,6 +84,5 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ./vault/shared:/vault/shared
-    env_file:
-      - ./vault/shared/vault-env.export
+      - ./vault/shared:/app/vault/shared:ro
+

@@ -26,67 +26,52 @@ vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
 
-vault kv put secret/depensio DataBase=""
-vault kv put secret/depensio FromMailIdPassword=""
-vault kv put secret/depensio Secret=""
+vault kv put secret/depensio \
+  Secret="secret" \
+  DataBase="DataBase" \
+  FromMailIdPassword="FromMailIdPassword" \
+  KEY='{
+  "v1": "",
+  "v2": ""
+}'
 
 # 4️⃣ Export dans le volume partagé
 ROLE_ID=$(vault read -field=role_id auth/approle/role/my-role/role-id)
 SECRET_ID=$(vault write -field=secret_id -f auth/approle/role/my-role/secret-id)
 
-echo "Vault__Uri=$VAULT_ADDR" > /vault/shared/vault-env.export
-echo "Vault__RoleId=$ROLE_ID" >> /vault/shared/vault-env.export
-echo "Vault__SecretId=$SECRET_ID" >> /vault/shared/vault-env.export
+JSON_PATH="/vault/shared/vault-depensio-env.json"
 
-cat /vault/shared/vault-env.export
+# ✅ Création du fichier s'il n'existe pas
+if [ ! -f "$JSON_PATH" ]; then
+  echo "📄 Création du fichier $JSON_PATH"
+  touch "$JSON_PATH"
+  chmod +x  "$JSON_PATH"
+fi
 
+cat <<EOF > /vault/shared/vault-depensio-env.json
+{
+  "Vault__Uri": "$VAULT_ADDR",
+  "Vault__RoleId": "$ROLE_ID",
+  "Vault__SecretId": "$SECRET_ID"
+}
+EOF
+
+cat /vault/shared/vault-depensio-env.json
+
+# 🔧 Installer curl si manquant (Alpine Linux)
+if ! command -v curl >/dev/null 2>&1; then
+  echo "📦 curl non trouvé, installation..."
+  apk add --no-cache curl
+fi
+
+echo "⏳ Attente de Vault..."
+
+until curl -k --silent $VAULT_ADDR/v1/sys/health | grep '"initialized":true' >/dev/null; do
+  echo "⏳ Vault pas encore prêt..."
+  sleep 1
+done
+
+echo "✅ Vault est prêt !"
 # 5️⃣ Garde le serveur Vault actif (attente du process)
 wait $VAULT_PID
 
-
-# #!/bin/sh
-# set -euxo pipefail
-
-# # 1️⃣ Démarre Vault en background
-# # vault server -dev -dev-root-token-id=root-token &
-
-# # # 2️⃣ Patiente le temps que l'API Vault soit prête
-# # until vault status >/dev/null 2>&1; do
-# #   echo "Attente du démarrage de Vault…" 
-# #   sleep 1
-# # done
-# export VAULT_ADDR=http://127.0.0.1:8200
-# export VAULT_TOKEN=root-token
-
-# # 3️⃣ Initialise Vault : auth, policy, AppRole, secret
-# # vault login "root-token"
-# vault auth enable approle
-# vault policy write depensio-policy /vault/policies/depensio-policy.hcl
-
-# vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl=1h token_max_ttl=4h
-
-# vault write -f auth/approle/role/my-role/secret-id
-# vault read auth/approle/role/my-role/role-id
-
-# vault kv put secret/depensio DataBase="Server=localhost;user=root;password=;database=DepenseDB"
-
-# # Récupère la valeur du secret
-# ROLE_ID=$(vault read -field=role_id auth/approle/role/my-role/role-id)
-# SECRET_ID=$(vault write -field=secret_id -f auth/approle/role/my-role/secret-id)
-
-# # 🧠 Rends la variable persistante dans le conteneur
-# # Correction ici : écriture du premier echo avec >, puis >> pour append
-# echo "Vault__Uri=http://127.0.0.1:8200" > /vault/shared/vault-env.export
-# echo "Vault__RoleId=$ROLE_ID" >> /vault/shared/vault-env.export
-# echo "Vault__SecretId=$SECRET_ID" >> /vault/shared/vault-env.export
-
-# # ✅ Export immédiat aussi pour ce shell
-# export Vault__Uri=http://127.0.0.1:8200
-# export Vault__RoleId=$ROLE_ID
-# export Vault__SecretId=$SECRET_ID
-
-# # Optionnel : affichage des valeurs pour debug
-# cat /vault/shared/vault-env.export
-
-# # 4️⃣ Garde Vault en fonctionnement (foreground)
-# wait
