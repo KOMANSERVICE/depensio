@@ -47,8 +47,7 @@ services:
       depensioDB:
         condition: service_healthy
     volumes:
-      - .:/src
-      - ./vault/shared:/vault/shared
+      - ./vault/shared:/app/vault/shared:ro
     working_dir: /src
     entrypoint: sh -c "
       echo '? Attente des secrets Vault...' &&
