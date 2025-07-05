@@ -37,7 +37,26 @@ services:
       interval: 30s
       timeout: 15s
       retries: 10
-            
+    
+  ef-migrator:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: ef-migrator
+    depends_on:
+      depensioVault:
+        condition: service_healthy
+      depensioDB:
+        condition: service_healthy
+    volumes:
+      - .:/src
+      - ./vault/shared:/vault/shared
+    working_dir: /src
+    entrypoint: sh -c "
+      echo '? Attente des secrets Vault...' &&
+      until [ -f /vault/shared/vault-depensio-env.json ]; do sleep 1; done &&
+      dotnet tool install --global dotnet-ef &&
+      export PATH=$PATH:/root/.dotnet/tools &&
+      dotnet ef database update --project backend/depensio.Infrastructure --startup-project backend/depensio.Api"
+
   depensio.web:
     image: ${DOCKER_REGISTRY-}depensioweb
     restart: always
@@ -47,7 +66,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
-      - ApiSettings__Uri=http://depensio.api:9101
+      - ApiSettings__Uri=https://apidemo.depensio.com
     ports:
       - "9001:8080"
     volumes:
@@ -66,10 +85,8 @@ services:
       context: .
       dockerfile: backend/depensio.Api/Dockerfile
     depends_on:
-      depensioVault:
-        condition: service_healthy
-      depensioDB:
-        condition: service_healthy
+      ef-migrator:
+        condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
       - ASPNETCORE_HTTP_PORTS=8080   
@@ -81,7 +98,7 @@ services:
       - MailConfig__Host=mail.depensio.com
       - MailConfig__Ports=25
       - JWT__ValidAudience=User
-      - JWT__ValidIssuer=http://localhost:9001
+      - JWT__ValidIssuer=https://demo.depensio.com
       - JWT__Secret=Secret
     ports:
       - "9101:8080"
