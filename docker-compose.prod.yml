@@ -47,12 +47,12 @@ services:
       depensioDB:
         condition: service_healthy
     volumes:
-      - ./vault/shared:/vault/shared:ro
+      - ./vault/shared:/app/vault/shared:ro
       - .:/src
     working_dir: /src
     entrypoint: sh -c "
       echo '? Attente des secrets Vault...' &&
-      until [ -f /vault/shared/vault-depensio-env.json ]; do sleep 1; done &&
+      until [ -f /app/vault/shared/vault-depensio-env.json ]; do sleep 1; done &&
       dotnet tool install --global dotnet-ef &&
       export PATH=$PATH:/root/.dotnet/tools &&
       dotnet ef database update --project backend/depensio.Infrastructure --startup-project backend/depensio.Api"
