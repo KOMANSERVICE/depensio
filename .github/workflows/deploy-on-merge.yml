@@ -14,15 +14,6 @@ jobs:
       - name: ⬇️ Checkout
         uses: actions/checkout@v3
 
-      - name: 🏷️ Create release tag
-        run: |
-          TAG=release-$(date +'%Y%m%d-%H%M')
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git tag $TAG
-          git push origin $TAG
-
       - name: 🚀 Deploy to Production Server via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -34,9 +25,7 @@ jobs:
             cho "➡️ Copie de fichier"
             mkdir /home/depensio/vault/shared
             cp /home/vault/shared/setup.deploy.sh /home/depensio/vault/policies
-            cp /home/vault/shared/vault-depensio-env.export /home/depensio/vault/shared
             chmod +x /home/depensio/vault/policies/setup.deploy.sh
-            chmod +x /home/depensio/vault/shared/vault-depensio-env.export
             echo "➡️ Passage au dossier projet"
             cd /home/depensio
             echo "📦 Pull du nouveau contenu"
