@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using depensio.Infrastructure.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods.AppRole;
 
@@ -12,19 +14,12 @@ public class DesignTimeDepensioDbContextFactory : IDesignTimeDbContextFactory<De
     {
         try
         {
-            // Chargement de la configuration
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true)
-                .AddEnvironmentVariables()
-                .Build();
+            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "vault/shared/vault-depensio-env.json");
+            var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(File.ReadAllText(jsonPath))!;
 
-            var vaultUri = config["Vault:Uri"];
-            var roleId = config["Vault:RoleId"];
-            var secretId = config["Vault:SecretId"];
 
-            var authMethod = new AppRoleAuthMethodInfo(roleId, secretId);
-            var settings = new VaultClientSettings(vaultUri, authMethod);
+            var authMethod = new AppRoleAuthMethodInfo(vaultSecrets.Vault__RoleId, vaultSecrets.Vault__SecretId);
+            var settings = new VaultClientSettings(vaultSecrets.Vault__Uri, authMethod);
             var client = new VaultClient(settings);
 
             var secret = client.V1.Secrets.KeyValue.V2.ReadSecretAsync(path: "depensio",
