@@ -2,7 +2,7 @@
 
 namespace Depensio.API.Endpoints.Auth;
 
-public record SignInRequest(SignInDTO SignIn);
+public record SignInRequest(SignInDTO Signin);
 public record SignInResponse(string Token);
 
 public class SignIn : ICarterModule

@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using depensio.Application.Interfaces;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -8,13 +9,14 @@ namespace depensio.Application.Auth.Queries.SignIn;
 public class SignInHandler(
         SignInManager<ApplicationUser> _signInManager,
         IConfiguration _configuration,
-        UserManager<ApplicationUser> _userManager
+        UserManager<ApplicationUser> _userManager,
+        ISecureSecretProvider _secureSecretProvider
     )    
     : IQueryHandler<SignInQuery, SignInResult>
 {
     public async Task<SignInResult> Handle(SignInQuery query, CancellationToken cancellationToken)
     {
-        var signIn = query.SignIn;
+        var signIn = query.Signin;
 
         var result = await _signInManager.PasswordSignInAsync(signIn.Email, signIn.Password, true, false);
         if (!result.Succeeded)
@@ -50,7 +52,7 @@ public class SignInHandler(
 
     private string GetToken(List<Claim> authClains)
     {
-        var authSigninkey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]!));
+        var authSigninkey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_secureSecretProvider.GetSecretAsync(_configuration["JWT:Secret"]!).Result));
 
         var token = new JwtSecurityToken(
             issuer: _configuration["JWT:ValidIssuer"],

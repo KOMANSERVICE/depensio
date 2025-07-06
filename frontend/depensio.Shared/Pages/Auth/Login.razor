@@ -1,4 +1,7 @@
 @page "/login"
+@inject NavigationManager NavManager
+@inject IAuthService _authService;
+
 @layout SecondaryLayout
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50">
@@ -10,14 +13,19 @@
     </div>
     <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
         <h2 class="text-2xl font-bold text-center mb-6">Sign in to your account</h2>
-        <form>
+        <EditForm EditContext="@editContext" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
             <div class="mb-4">
                 <label class="block text-gray-700 mb-1" for="email">Email address</label>
-                <input id="email" type="email" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-            </div>
+                <InputText @bind-Value="loginModel.Email" id="email" type="email" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <ValidationMessage For="@(() => loginModel.Email)" />
+                </div>
             <div class="mb-4">
                 <label class="block text-gray-700 mb-1" for="password">Password</label>
-                <input id="password" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <InputText @bind-Value="loginModel.Password" id="password" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <ValidationMessage For="@(() => loginModel.Password)" /> 
             </div>
             <div class="flex items-center justify-between mb-6">
                 <label class="flex items-center">
@@ -27,7 +35,7 @@
                 <a href="#" class="text-indigo-600 hover:underline text-sm">Forgot password?</a>
             </div>
             <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded font-semibold hover:bg-indigo-700 transition">Sign in</button>
-        </form>
+        </EditForm>
         <div class="flex items-center my-6">
             <div class="flex-grow border-t"></div>
             <span class="mx-4 text-gray-400">Or continue with</span>
@@ -49,3 +57,64 @@
         <a href="#" class="text-indigo-600 font-semibold hover:underline">Start a 14 day free trial</a>
     </div>
 </div>
+
+
+@code {
+    private SignInDTO loginModel = new();
+    private ErrorMessage errorMessage = new();
+
+    private EditContext editContext;
+    private ValidationMessageStore messageStore;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(loginModel);
+        messageStore = new ValidationMessageStore(editContext);
+
+        editContext.OnValidationRequested += (s, e) => messageStore.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            var response = await _authService.SignIn(new SignInRequest(loginModel));
+            if (!string.IsNullOrWhiteSpace(response.Token))
+            {
+                NavManager.NavigateTo("listboutique");
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    messageStore.Add(new FieldIdentifier(loginModel, string.Empty), errorResult.Detail);
+                    editContext.NotifyValidationStateChanged();
+                }                
+            }
+            catch
+            {
+                messageStore.Add(new FieldIdentifier(loginModel, string.Empty), "Une erreur est survenue.");
+                editContext.NotifyValidationStateChanged();
+            }
+        }
+    }
+
+    // Exemple de modèle d'erreur API
+    // private class ErrorMessage
+    // {
+    //     public List<string>? Errors { get; set; }
+    // }
+    // catch (ApiException ex)
+    // {
+    //     errorMessage = JsonSerializer.Deserialize<ErrorMessage>(ex.Content);
+    // }
+}

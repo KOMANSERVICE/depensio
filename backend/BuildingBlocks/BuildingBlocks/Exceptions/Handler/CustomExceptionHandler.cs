@@ -17,7 +17,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger)
         {
             InternalServerException => 
             (
-                "Internal serveur error",
+                "Une erreur technique est survenu",
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError
             ),
@@ -41,7 +41,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger)
             ),
             _ =>
             (
-                "Internal serveur error",
+                "Une erreur technique est survenu",
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError
             ),

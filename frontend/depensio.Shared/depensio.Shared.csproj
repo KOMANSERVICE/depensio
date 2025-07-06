@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Errors\" />
+    <Folder Include="Pages\Boutique\" />
   </ItemGroup>
 
 </Project>
