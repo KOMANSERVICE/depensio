@@ -16,15 +16,27 @@ public class SignInHandler(
 {
     public async Task<SignInResult> Handle(SignInQuery query, CancellationToken cancellationToken)
     {
-        var signIn = query.Signin;
+        var signIn = query.Signin;        
 
         var result = await _signInManager.PasswordSignInAsync(signIn.Email, signIn.Password, true, false);
         if (!result.Succeeded)
         {
-            throw new BadRequestException($"SignIn : Connection fail");
+            throw new BadRequestException($"Email ou mot de passe incorrect");
         }
+        var user = await _userManager.FindByNameAsync(signIn.Email);
 
-        return new SignInResult(await GenerateTokenAsync(signIn));
+        var isConfirm = await _userManager.IsEmailConfirmedAsync(user);
+        if (!isConfirm)
+            throw new UnauthorizedException("Email non confirmé. Veuillez vérifier votre boîte mail.");
+
+
+        if (user.LockoutEnabled)
+            throw new UnauthorizedException("Le compte est désactivé. Contactez l’administrateur.");
+
+
+        var token = await GenerateTokenAsync(signIn);
+
+        return new SignInResult(token);
     }
 
     private async Task<string> GenerateTokenAsync(SignInDTO signIn)

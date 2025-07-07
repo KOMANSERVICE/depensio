@@ -115,7 +115,7 @@
 
                 foreach (var validationErrors in errorResult?.ValidationErrors ?? Enumerable.Empty<ValidationError>())
                 {
-                    messageStore.Add(new FieldIdentifier(registerModel, string.Empty), validationErrors.ErrorMessage);
+                    messageStore.Add(new FieldIdentifier(registerModel, validationErrors.PropertyName.GetFieldName()), validationErrors.ErrorMessage);
                     editContext.NotifyValidationStateChanged();
                 }
 

@@ -23,6 +23,7 @@ public class SignIn : ICarterModule
         .WithName("SignIn")
         .Produces<SignInResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .WithSummary("SignIn")
         .WithDescription("SignIn");
     }
