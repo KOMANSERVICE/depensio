@@ -67,6 +67,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
       - ApiSettings__Uri=https://apidemo.depensio.com
+      - JWT__ValidAudience=depensio.web
+      - JWT__ValidIssuer=depensio.client
+      - JWT__Secret=SuperSecureKeyThatMatchesClientAndServer
     ports:
       - "9001:8080"
     volumes:
