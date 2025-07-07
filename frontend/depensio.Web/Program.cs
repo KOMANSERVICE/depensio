@@ -2,7 +2,10 @@ using depensio.Shared;
 using depensio.Shared.Services;
 using depensio.Web.Components;
 using depensio.Web.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,20 @@ builder.Services.AddSingleton<IFormFactor, FormFactor>()
 builder.Services.AddScoped<ProtectedLocalStorage>();
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = "depensio.web",
+            ValidAudience = "depensio.client",
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes("SuperSecureKeyThatMatchesClientAndServer"))
+        };
+    });
 
 var app = builder.Build();
 
@@ -36,6 +53,8 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+app.UseAuthentication(); // ?? obligatoire
+app.UseAuthorization();
 
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
