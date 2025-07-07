@@ -21,6 +21,10 @@ builder.Services.AddScoped<ProtectedLocalStorage>();
 
 builder.Services.AddAuthorization();
 
+var JWTValidIssuer = builder.Configuration["JWT:ValidIssuer"];
+var JWTValidAudience = builder.Configuration["JWT:ValidAudience"];
+var JWTSecret = builder.Configuration["JWT:Secret"];
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -28,10 +32,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuer = true,
             ValidateAudience = true,
-            ValidIssuer = "depensio.web",
-            ValidAudience = "depensio.client",
+            ValidIssuer = JWTValidIssuer,
+            ValidAudience = JWTValidAudience,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("SuperSecureKeyThatMatchesClientAndServer"))
+                Encoding.UTF8.GetBytes(JWTSecret!))
         };
     });
 
