@@ -1,8 +1,8 @@
 ﻿@inject IJSRuntime JS
 
 
-<div class="bg-gradient-to-b from-white-300 to-white-500 w-full py-14" id="pricing">
-    <div class="max-w-screen-xl mx-auto flex flex-col w-full text-center justify-center">
+<div class="w-full bg-white border-b border-gray-200 sm:py-2 dark:bg-gray-800 dark:border-gray-700" id="pricing">
+    <div class="container pt-24 md:pt-32 mx-auto">
 
         <div class="max-w-7xl mx-auto text-center">
             <h3 class="text-2xl sm:text-3xl lg:text-4xl font-medium text-black-600 leading-relaxed">
@@ -35,17 +35,17 @@
                         <h3 class="text-lg font-semibold text-gray-900">@plan.Title</h3>
                         @if (plan.IsPopular)
                         {
-                            <span class="text-xs text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full font-medium">Most popular</span>
+                            <span class="text-xs text-primary-800 bg-primary-300 px-2 py-0.5 rounded-full font-medium">Most popular</span>
                         }
                     </div>
                     <p class="text-sm text-gray-500 mb-4">@plan.Description</p>
-                    <div class="text-3xl font-bold text-gray-900 mb-1">$@plan.Price<span class="text-base font-normal text-gray-500">/month</span></div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">@plan.Price FCFA<span class="text-base font-normal text-gray-500">/month</span></div>
                     <a href="#" class="@GetButtonClasses(plan)">Buy plan</a>
                     <ul class="mt-6 space-y-2 text-sm text-gray-700">
                         @foreach (var feature in plan.Features)
                         {
                             <li class="flex items-start space-x-2">
-                                <span class="text-indigo-600 mt-0.5">✔️</span>
+                                <span class="text-primary-700 mt-0.5">✔️</span>
                                 <span>@feature</span>
                             </li>
                         }
@@ -56,7 +56,7 @@
 
         <WhyChooseUs />
 
-        <!-- Testimonial Section -->
+      @*   <!-- Testimonial Section -->
         <div class="flex flex-col w-full my-16" id="testimoni">
 
             <!-- Subscribe CTA -->
@@ -76,7 +76,7 @@
                 </div>
             </div>
         </div>
-
+ *@
     </div>
 </div>
 
@@ -103,23 +103,23 @@
     {
         new Plan
         {
-            Title = "Hobby",
+            Title = "Gratuit",
             Description = "The essentials to provide your best work for clients.",
-            Price = 19,
+            Price = 0,
             Features = new() { "5 products", "Up to 1,000 subscribers", "Basic analytics" }
         },
         new Plan
         {
             Title = "Freelancer",
             Description = "The essentials to provide your best work for clients.",
-            Price = 29,
+            Price = 5000,
             Features = new() { "5 products", "Up to 1,000 subscribers", "Basic analytics", "48-hour support response time" }
         },
         new Plan
         {
             Title = "Startup",
             Description = "A plan that scales with your rapidly growing business.",
-            Price = 59,
+            Price = 10000,
             IsPopular = true,
             Features = new() { "25 products", "Up to 10,000 subscribers", "Advanced analytics", "24-hour support response time", "Marketing automations" }
         },
@@ -127,20 +127,20 @@
         {
             Title = "Enterprise",
             Description = "Dedicated support and infrastructure for your company.",
-            Price = 99,
+            Price = 15000,
             Features = new() { "Unlimited products", "Unlimited subscribers", "Advanced analytics", "1-hour, dedicated support response time", "Marketing automations", "Custom reporting tools" }
         }
     };
 
     private string GetCardClasses(Plan plan) =>
         plan.IsPopular
-            ? "border-2 border-indigo-600 rounded-xl p-6 shadow-lg bg-white"
+            ? "border-2 border-primary-700 rounded-xl p-6 shadow-lg bg-white"
             : "border border-gray-200 rounded-xl p-6 bg-white";
 
     private string GetButtonClasses(Plan plan) =>
         plan.IsPopular
-            ? "mt-4 block w-full text-white bg-indigo-600 hover:bg-indigo-700 font-semibold py-2 rounded-md text-center"
-            : "mt-4 block w-full text-indigo-600 hover:bg-indigo-700 hover:text-white font-semibold py-2 border border-indigo-600 rounded-md text-center";
+            ? "mt-4 block w-full text-white bg-primary-700 hover:bg-primary-800 font-semibold py-2 rounded-md text-center"
+            : "mt-4 block w-full text-primary-700 hover:bg-primary-800 hover:text-white font-semibold py-2 border border-primary-700 rounded-md text-center";
 
     private void SetBillingCycle(BillingCycle cycle)
     {
@@ -149,7 +149,7 @@
 
     private string GetToggleButtonClass(BillingCycle cycle) =>
        Billing == cycle
-           ? "px-4 py-1 text-sm font-medium text-white bg-indigo-600 rounded-full"
+           ? "px-4 py-1 text-sm font-medium text-white bg-primary-700 rounded-full"
            : "px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-full";
 
 
