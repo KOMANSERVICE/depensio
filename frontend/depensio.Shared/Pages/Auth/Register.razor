@@ -3,7 +3,9 @@
 @inject IAuthHttpService _authService;
 @layout SecondaryLayout
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+<LoadingComponent IsLoad="@isLoad" />
+
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-50  pt-24 md:pt-32 ">
     <div class="mb-8">
         <!-- Logo SVG ou image -->
         <svg class="mx-auto h-12 w-12 text-primary-500" fill="none" viewBox="0 0 48 48">
@@ -79,6 +81,7 @@
 </div>
 
 @code {
+    private bool isLoad = false;
     private SignUpDTO registerModel = new();
     private ErrorMessage errorMessage = new();
 
@@ -96,6 +99,7 @@
 
     private async Task HandleRegister()
     {
+        isLoad = true;
         try
         {
             var response = await _authService.SignUp(new SignUpRequest(registerModel));
@@ -126,6 +130,10 @@
                 messageStore.Add(new FieldIdentifier(registerModel, string.Empty), "Une erreur est survenue.");
                 editContext.NotifyValidationStateChanged();
             }
+        }
+        finally
+        {
+            isLoad = false;
         }
     }
 

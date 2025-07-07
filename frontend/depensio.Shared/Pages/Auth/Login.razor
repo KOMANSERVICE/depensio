@@ -1,8 +1,9 @@
 @page "/login"
 @inject NavigationManager NavManager
 @inject IAuthService _authService;
-
 @layout SecondaryLayout
+
+<LoadingComponent IsLoad="@isLoad" />
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50">
     <div class="mb-8">
@@ -60,6 +61,7 @@
 
 
 @code {
+    private bool isLoad = false;
     private SignInDTO loginModel = new();
     private ErrorMessage errorMessage = new();
 
@@ -77,6 +79,7 @@
 
     private async Task HandleLogin()
     {
+        isLoad = true;
         try
         {
             var isConnected = await _authService.SignInAsync(new SignInRequest(loginModel));
@@ -105,6 +108,10 @@
                 messageStore.Add(new FieldIdentifier(loginModel, string.Empty), "Une erreur est survenue.");
                 editContext.NotifyValidationStateChanged();
             }
+        }
+        finally
+        {
+            isLoad = false;
         }
     }
 
