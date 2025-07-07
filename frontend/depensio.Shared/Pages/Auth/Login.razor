@@ -79,8 +79,8 @@
     {
         try
         {
-            var response = await _authService.SignIn(new SignInRequest(loginModel));
-            if (!string.IsNullOrWhiteSpace(response.Token))
+            var isConnected = await _authService.SignInAsync(new SignInRequest(loginModel));
+            if (isConnected)
             {
                 NavManager.NavigateTo("listboutique");
             }

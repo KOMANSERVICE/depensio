@@ -7,6 +7,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 // Add device-specific services used by the depensio.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>()
+                .AddSingleton<IStorageService, SecureStorageService>()
                 .AddHttpClientFactoryServices(builder.Configuration);
+
+builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();

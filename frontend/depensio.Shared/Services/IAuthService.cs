@@ -6,10 +6,7 @@ namespace depensio.Shared.Services;
 
 public interface IAuthService
 {
-    [Post("/signup")]
-    Task<SignUpResponse> SignUp(SignUpRequest request);
-    [Post("/signin")]
-    Task<SignInResponse> SignIn(SignInRequest request);
-    [Post("/verifymail")]
-    Task<VerifyMailResponse> VerifyMail(VerifyMailRequest request);
+    Task<bool> SignInAsync(SignInRequest request);
+    Task LogoutAsync();
+    Task<string?> GetTokenAsync();
 }

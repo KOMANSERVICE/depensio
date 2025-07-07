@@ -2,6 +2,7 @@ using depensio.Shared;
 using depensio.Shared.Services;
 using depensio.Web.Components;
 using depensio.Web.Services;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,11 @@ builder.Services.AddRazorComponents()
 
 // Add device-specific services used by the depensio.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>()
+                .AddScoped<IStorageService, SecureStorageService>()
                 .AddHttpClientFactoryServices(builder.Configuration);
+builder.Services.AddScoped<ProtectedLocalStorage>();
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

@@ -1,4 +1,7 @@
 @page "/listboutique"
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Liste des boutiques</PageTitle>
 
