@@ -12,7 +12,10 @@ public class VerifyMailHandler(
         var user = await _userManager.FindByIdAsync(verifyMail.Id);         
         var result = await _userManager.ConfirmEmailAsync(user!, verifyMail.Code);
 
-        if (result.Succeeded) return new VerifyMailResult(true);
+        if (result.Succeeded){
+            await _userManager.SetLockoutEnabledAsync(user!,false);
+            return new VerifyMailResult(true); 
+        }
 
         throw new BadRequestException("Vérification fail");
     }

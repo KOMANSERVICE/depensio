@@ -42,6 +42,9 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ApiSettings__Uri=https://depensio.api:9102
+      - JWT__ValidAudience=depensio.web
+      - JWT__ValidIssuer=depensio.client
+      - JWT__Secret=SuperSecureKeyThatMatchesClientAndServer
     restart: always
     ports:
       - "9001:8080"

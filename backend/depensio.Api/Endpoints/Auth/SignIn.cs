@@ -2,7 +2,7 @@
 
 namespace Depensio.API.Endpoints.Auth;
 
-public record SignInRequest(SignInDTO SignIn);
+public record SignInRequest(SignInDTO Signin);
 public record SignInResponse(string Token);
 
 public class SignIn : ICarterModule
@@ -23,6 +23,7 @@ public class SignIn : ICarterModule
         .WithName("SignIn")
         .Produces<SignInResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .WithSummary("SignIn")
         .WithDescription("SignIn");
     }

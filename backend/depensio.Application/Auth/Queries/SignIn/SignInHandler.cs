@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using depensio.Application.Interfaces;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -8,21 +9,34 @@ namespace depensio.Application.Auth.Queries.SignIn;
 public class SignInHandler(
         SignInManager<ApplicationUser> _signInManager,
         IConfiguration _configuration,
-        UserManager<ApplicationUser> _userManager
+        UserManager<ApplicationUser> _userManager,
+        ISecureSecretProvider _secureSecretProvider
     )    
     : IQueryHandler<SignInQuery, SignInResult>
 {
     public async Task<SignInResult> Handle(SignInQuery query, CancellationToken cancellationToken)
     {
-        var signIn = query.SignIn;
+        var signIn = query.Signin;        
 
         var result = await _signInManager.PasswordSignInAsync(signIn.Email, signIn.Password, true, false);
         if (!result.Succeeded)
         {
-            throw new BadRequestException($"SignIn : Connection fail");
+            throw new BadRequestException($"Email ou mot de passe incorrect");
         }
+        var user = await _userManager.FindByNameAsync(signIn.Email);
 
-        return new SignInResult(await GenerateTokenAsync(signIn));
+        var isConfirm = await _userManager.IsEmailConfirmedAsync(user);
+        if (!isConfirm)
+            throw new UnauthorizedException("Email non confirmé. Veuillez vérifier votre boîte mail.");
+
+
+        if (user.LockoutEnabled)
+            throw new UnauthorizedException("Le compte est désactivé. Contactez l’administrateur.");
+
+
+        var token = await GenerateTokenAsync(signIn);
+
+        return new SignInResult(token);
     }
 
     private async Task<string> GenerateTokenAsync(SignInDTO signIn)
@@ -50,7 +64,7 @@ public class SignInHandler(
 
     private string GetToken(List<Claim> authClains)
     {
-        var authSigninkey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]!));
+        var authSigninkey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_secureSecretProvider.GetSecretAsync(_configuration["JWT:Secret"]!).Result));
 
         var token = new JwtSecurityToken(
             issuer: _configuration["JWT:ValidIssuer"],

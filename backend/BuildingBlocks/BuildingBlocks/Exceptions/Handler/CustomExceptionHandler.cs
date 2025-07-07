@@ -15,9 +15,15 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger)
 
         (string Detail, string Title, int StatusCode) details = exception switch
         {
+            UnauthorizedException =>
+            (
+                exception.Message,
+                exception.GetType().Name,
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized
+            ),
             InternalServerException => 
             (
-                "Internal serveur error",
+                "Une erreur technique est survenu",
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError
             ),
@@ -41,7 +47,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger)
             ),
             _ =>
             (
-                "Internal serveur error",
+                "Une erreur technique est survenu",
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError
             ),

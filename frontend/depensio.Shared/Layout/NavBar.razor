@@ -1,4 +1,5 @@
 @inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthStateProvider
 
 <header class="@HeaderClass">
     <nav class="max-w-screen-xl px-6 sm:px-8 lg:px-16 mx-auto grid grid-flow-col py-3 sm:py-4">
@@ -20,15 +21,30 @@
             }
         </ul>
 
+
         <!-- Right Action Buttons -->
-        <div class="col-start-10 col-end-12 font-medium flex justify-end items-center">
-            <NavLink href="login" class="text-black-600 mx-2 sm:mx-4 capitalize tracking-wide hover:text-orange-500 transition-all">
-                Sign In
-            </NavLink>
-            <NavLink href="register"  class="px-4 py-2 border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-500 hover:text-white transition-all">
-                Sign Up
-            </NavLink>
-        </div>
+        <CascadingAuthenticationState>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="col-start-10 col-end-12 font-medium flex justify-end items-center">
+                    <NavLink href="login" class="text-black-600 mx-2 sm:mx-4 capitalize tracking-wide hover:text-orange-500 transition-all">
+                        Log out
+                    </NavLink>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="col-start-10 col-end-12 font-medium flex justify-end items-center">
+                    <NavLink href="login" class="text-black-600 mx-2 sm:mx-4 capitalize tracking-wide hover:text-orange-500 transition-all">
+                        Sign In
+                    </NavLink>
+                    <NavLink href="register" class="px-4 py-2 border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-500 hover:text-white transition-all">
+                        Sign Up
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+        </CascadingAuthenticationState>
     </nav>
 </header>
 

@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using depensio.Shared;
 using depensio.Shared.Services;
 using depensio.Web.Client.Services;
@@ -7,6 +8,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 // Add device-specific services used by the depensio.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>()
+                .AddScoped<IStorageService, SecureStorageService>()
                 .AddHttpClientFactoryServices(builder.Configuration);
+
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();

@@ -10,8 +10,8 @@ public class EncryptionService(IKeyManagementService _keyManagementService) : IE
     public string Encrypt(string plainText)
     {
         string keyVersion = _keyManagementService.GetLastKeyVerdion();
-        if (string.IsNullOrEmpty(plainText)) throw new ArgumentNullException("key"); 
-        if(string.IsNullOrEmpty(keyVersion)) throw new ArgumentNullException("key"); 
+        if (string.IsNullOrEmpty(plainText)) return "";
+        if (string.IsNullOrEmpty(keyVersion)) throw new ArgumentNullException("keyVersion"); 
         
         string key = _keyManagementService.GetKey(keyVersion);
         byte[] keyBytes = Convert.FromBase64String(key);
@@ -41,7 +41,7 @@ public class EncryptionService(IKeyManagementService _keyManagementService) : IE
 
     public string Decrypt(string cipherText)
     {
-        if (string.IsNullOrEmpty(cipherText)) throw new ArgumentNullException("cipherText");
+        if (string.IsNullOrEmpty(cipherText)) return "";
 
         byte[] fullCipher = Convert.FromBase64String(cipherText);
         using (var ms = new MemoryStream(fullCipher))

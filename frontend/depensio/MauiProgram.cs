@@ -19,6 +19,7 @@ namespace depensio
 
             // Add device-specific services used by the depensio.Shared project
             builder.Services.AddSingleton<IFormFactor, FormFactor>()
+                .AddScoped<IStorageService, SecureStorageService>()
                 .AddHttpClientFactoryServices(builder.Configuration);
 
             builder.Services.AddMauiBlazorWebView();
