@@ -9,5 +9,5 @@ public class UsersBoutique : Entity<UsersBoutiqueId>
     //public string Role { get; set; }
 
     //public ApplicationUser ApplicationUser { get; set; }
-    public Boutique Boutique { get; set; } = new Boutique();
+    public Boutique Boutique { get; set; }
 }

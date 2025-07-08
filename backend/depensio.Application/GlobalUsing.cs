@@ -7,3 +7,6 @@ global using depensio.Domain.Models;
 global using IDR.SendMail;
 global using BuildingBlocks.Exceptions;
 global using depensio.Application.Auth.DTOs;
+global using depensio.Application.Boutiques.DTOs;
+global using depensio.Application.Data;
+global using depensio.Application.Interfaces;

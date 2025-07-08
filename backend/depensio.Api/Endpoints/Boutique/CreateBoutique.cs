@@ -14,7 +14,7 @@ public class CreateBoutique : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
 
-        app.MapPost("/CreateBoutique", async (CreateBoutiqueRequest request, ISender sender) =>
+        app.MapPost("/boutique", async (CreateBoutiqueRequest request, ISender sender) =>
         {
             var command = request.Adapt<CreateBoutiqueCommand>();
 
@@ -22,7 +22,7 @@ public class CreateBoutique : ICarterModule
 
             var response = result.Adapt<CreateBoutiqueResponse>();
 
-            return Results.Created($"/CreateBoutique/{response.Id}", response);
+            return Results.Created($"/boutique/{response.Id}", response);
         })
         .WithName("CreateBoutique")
         .Produces<CreateBoutiqueResponse>(StatusCodes.Status201Created)

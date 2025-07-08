@@ -1,4 +1,5 @@
-﻿using depensio.Domain.Models;
+﻿using depensio.Application.Data;
+using depensio.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -6,7 +7,7 @@ using System.Reflection;
 
 namespace depensio.Infrastructure.Data;
 
-public class DepensioDbContext : IdentityDbContext<ApplicationUser>
+public class DepensioDbContext : IdentityDbContext<ApplicationUser>, IDepensioDbContext
 {
 
     public DepensioDbContext(DbContextOptions<DepensioDbContext> options)

@@ -1,4 +1,5 @@
-﻿using depensio.Application.Interfaces;
+﻿using depensio.Application.Data;
+using depensio.Application.Interfaces;
 using depensio.Domain.Models;
 using depensio.Infrastructure.Data;
 using depensio.Infrastructure.Data.Interceptors;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(configuration["MailConfig:FromMailIdPassword"]!).Result;
 
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<IDepensioDbContext, DepensioDbContext>();
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {

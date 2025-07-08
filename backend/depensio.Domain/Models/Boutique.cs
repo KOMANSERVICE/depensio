@@ -10,7 +10,7 @@ public class Boutique : Entity<BoutiqueId>
     public string PublicLink { get; set; } = string.Empty;
     public bool IsPublic { get; set; } = false;
 
-    public ICollection<UsersBoutique> UsersBoutiques { get; set; } = new List<UsersBoutique>();
+    public ICollection<UsersBoutique> UsersBoutiques { get; set; }
     //public ICollection<Subscription> Subscriptions { get; set; }
     //public ICollection<LoyaltyReward> LoyaltyRewards { get; set; }
     //public ICollection<Product> Products { get; set; }
