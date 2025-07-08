@@ -1,14 +1,16 @@
-﻿namespace depensio.Domain.Models;
+﻿using depensio.Domain.ValueObjects;
 
-public class Boutique : Entity<Guid>
+namespace depensio.Domain.Models;
+
+public class Boutique : Entity<BoutiqueId>
 {
     public string Name { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public Guid OwnerId { get; set; }
     public string PublicLink { get; set; } = string.Empty;
-    public bool IsPublic { get; set; }
+    public bool IsPublic { get; set; } = false;
 
-    public ICollection<UsersBoutique> UsersBoutiques { get; set; } = default!;
+    public ICollection<UsersBoutique> UsersBoutiques { get; set; } = new List<UsersBoutique>();
     //public ICollection<Subscription> Subscriptions { get; set; }
     //public ICollection<LoyaltyReward> LoyaltyRewards { get; set; }
     //public ICollection<Product> Products { get; set; }

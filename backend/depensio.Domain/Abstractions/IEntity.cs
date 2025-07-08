@@ -1,12 +1,12 @@
 ﻿
 namespace depensio.Domain.Abstractions;
 
-internal interface IEntity<T> : IEntity
+public interface IEntity<T> : IEntity
 {
     public T Id { get; set; }
 }
 
-internal interface IEntity
+public interface IEntity
 {
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

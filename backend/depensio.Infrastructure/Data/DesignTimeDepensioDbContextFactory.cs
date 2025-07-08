@@ -14,9 +14,11 @@ public class DesignTimeDepensioDbContextFactory : IDesignTimeDbContextFactory<De
     {
         try
         {
-            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "vault/shared/vault-depensio-env.json");
-            var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(File.ReadAllText(jsonPath))!;
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
 
+            var vaultSecrets = LoadVaultSecrets(configuration);
 
             var authMethod = new AppRoleAuthMethodInfo(vaultSecrets.Vault__RoleId, vaultSecrets.Vault__SecretId);
             var settings = new VaultClientSettings(vaultSecrets.Vault__Uri, authMethod);
@@ -40,4 +42,30 @@ public class DesignTimeDepensioDbContextFactory : IDesignTimeDbContextFactory<De
             throw;
         }
     }
+    private VaultSecretsConfig LoadVaultSecrets(IConfiguration configuration)
+    {
+        var uri = configuration["Vault:Uri"]!;
+        var roleId = configuration["Vault:RoleId"]!;
+        var secretId = configuration["Vault:SecretId"]!;
+        if (!string.IsNullOrWhiteSpace(uri) && !string.IsNullOrWhiteSpace(roleId) && !string.IsNullOrWhiteSpace(secretId))
+        {
+            return new VaultSecretsConfig
+            {
+                Vault__Uri = uri,
+                Vault__RoleId = roleId,
+                Vault__SecretId = secretId
+            };
+        }
+
+        // Fallback: lecture du JSON en local
+        var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "vault/shared/vault-depensio-env.json");
+        jsonPath = jsonPath.Replace(@"backend\depensio.Api\", "");
+        if (!File.Exists(jsonPath))
+            throw new FileNotFoundException($"Vault secrets file not found at: {jsonPath}");
+
+        var json = File.ReadAllText(jsonPath);
+        return JsonSerializer.Deserialize<VaultSecretsConfig>(json)
+            ?? throw new InvalidOperationException("Vault secrets JSON is invalid.");
+    }
+
 }

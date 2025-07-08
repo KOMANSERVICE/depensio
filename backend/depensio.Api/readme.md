@@ -12,7 +12,9 @@ dotnet ef database update  --project backend/depensio.Infrastructure  --startup-
 # Generer un script SQL pour la migration
 dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startup-project backend/depensio.Api  --output ./deploiementsql/deploy-20260606.sql  --idempotent
 
-
+# Remove migration
+dotnet ef migrations remove  --project backend/depensio.Infrastructure   --startup-project backend/depensio.Api
+docker compose exec depensio.api dotnet ef migrations remove  --project backend/depensio.Infrastructure   --startup-project backend/depensio.Api
 ## Configuration des secrets
 
 # Voir les logs en direct 
@@ -47,7 +49,9 @@ vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
 
-vault kv put secret/depensio DataBase="Host=localhost;Port=5436;Database=Database;Username=Username;Password=Password"
+vault kv put secret/depensio \
+DataBase="Host=localhost;Port=5436;Database=Database;Username=Username;Password=Password" \
+ FromMailIdPassword=""
 
 
 # Definir les variable d'environement sur powershell
