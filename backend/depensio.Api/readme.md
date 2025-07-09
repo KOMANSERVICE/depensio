@@ -22,6 +22,9 @@ docker logs -f <nom_du_conteneur>
 
 # Se connecter a HashiCorp Vault sur docker 
 
+docker compose -f docker-compose.prod.yml down -v || true
+docker compose -f docker-compose.prod.yml up -d --build
+
 docker compose down // facultative
 docker compose build --no-cache // facultative
 docker compose up -d // facultative

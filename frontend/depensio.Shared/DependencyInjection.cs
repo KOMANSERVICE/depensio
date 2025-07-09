@@ -22,6 +22,10 @@ public static class DependencyInjection
         services.AddRefitClient<IAuthHttpService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri));
 
+        services.AddRefitClient<IBoutiqueService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<JwtAuthorizationHandler>();
+
         return services;
     }
 

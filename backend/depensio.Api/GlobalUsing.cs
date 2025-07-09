@@ -4,4 +4,5 @@ global using MediatR;
 global using FluentValidation;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.Tokens;
-global using depensio.Application.Auth.DTOs;
+global using depensio.Application.UserCases.Auth.DTOs;
+global using BuildingBlocks.Responses;
