@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <Folder Include="Components\Errors\" />
+    <Folder Include="Pages\Dashboards\" />
+    <Folder Include="Pages\Produits\Components\" />
   </ItemGroup>
 
 </Project>

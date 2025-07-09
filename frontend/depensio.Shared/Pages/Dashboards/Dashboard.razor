@@ -1,68 +1,10 @@
-@page "/listboutique"
-@using depensio.Shared.Pages.Boutique.Components
-@using depensio.Shared.Pages.Boutique.Model
+@page "/dashboard/{boutiqueId:guid}"
 @inherits FlowbitePage
-@layout SecondaryLayout
-@inject IBoutiqueService _boutiqueService;
+@layout MainLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
-<PageTitle>Liste des boutiques</PageTitle>
 
-
-
-<div class="px-4 pt-6 2xl:px-0">
+<div class="px-4 pt-6">
     <div class="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-        <!-- Main widget -->
-        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex-shrink-0">
-                    <h3 class="text-xl font-bold leading-none text-gray-900 sm:text-2xl dark:text-white">Liste de mes boutiques</h3>
-                </div>
-                <div class="flex items-center justify-end flex-1 text-base font-medium text-green-500 dark:text-green-400">
-                    
-                </div>
-            </div>
-            <!-- Body -->
-            <div class="flex flex-wrap items-center justify-start  pt-3 mt-4 border-t border-gray-200 sm:pt-6 dark:border-gray-700">
-                @foreach(var boutique in boutiques.Data.Boutiques)
-                {
-                    <CardBoutique Boutique="@boutique" />
-                }
-                
-            </div>
-
-        </div>
-        <!--Tabs widget -->
-        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex-shrink-0">
-                    <h3 class="text-xl font-bold leading-none text-gray-900 sm:text-2xl dark:text-white">Ajouter une boutique</h3>
-                   @*  <h3 class="text-base font-light text-gray-500 dark:text-gray-400">Sales this week</h3 *@
-                </div>
-                <div class="flex items-center justify-end flex-1 text-base font-medium text-green-500 dark:text-green-400">
-                   @*  12.5%
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                              d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
-                              clip-rule="evenodd"></path>
-                    </svg> *@
-                </div>
-            </div>
-            <!-- Body -->
-            <div class="flex items-center justify-between pt-3 mt-4 border-t border-gray-200 sm:pt-6 dark:border-gray-700">
-                <CreateBoutiqueComponent OnAfterSave="async ()=>{
-                     boutiques = await _boutiqueService.GetBoutiqueByUser();
-                }" />
-            </div>
-                        
-        </div>
-    </div>
-
-
-
-
-    <div class="grid gap-4 mt-4 xl:grid-cols-2 2xl:grid-cols-3">
         <!-- Main widget -->
         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
             <div class="flex items-center justify-between mb-4">
@@ -742,7 +684,6 @@
                                 </li>
                             </ul>
                         </div>
-
                     </footer>
                     <p class="mb-4 text-gray-900 dark:text-white">
                         Hi <a href="#" class="font-medium hover:underline text-primary-600 dark:text-primary-500">josephh</a> Sure, just let me know whean you are available and we can speak.
@@ -874,7 +815,7 @@
                 </div>
             </div>
             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-                <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
                     <div>
                         <h3 class="text-base font-normal text-gray-500 dark:text-gray-400">Traffic by device</h3>
                         <span class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl dark:text-white">Desktop</span>
@@ -1498,19 +1439,8 @@
     </div>
 </div>
 
-
-
-
+                
 @code {
-
-    private BaseResponse<GetBoutiqueByUserResponse> boutiques;
-
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        boutiques = await _boutiqueService.GetBoutiqueByUser();
-
-    }
-
+    [Parameter]
+    public Guid? boutiqueId { get; set; }
 }

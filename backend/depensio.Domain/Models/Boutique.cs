@@ -13,7 +13,7 @@ public class Boutique : Entity<BoutiqueId>
     public ICollection<UsersBoutique> UsersBoutiques { get; set; }
     //public ICollection<Subscription> Subscriptions { get; set; }
     //public ICollection<LoyaltyReward> LoyaltyRewards { get; set; }
-    //public ICollection<Product> Products { get; set; }
+    public ICollection<Product> Products { get; set; }
     //public ICollection<StockLocation> StockLocations { get; set; }
     //public ICollection<Sale> Sales { get; set; }
     //public ICollection<Purchase> Purchases { get; set; }

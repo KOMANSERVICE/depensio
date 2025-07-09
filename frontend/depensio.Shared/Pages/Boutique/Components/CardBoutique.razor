@@ -1,6 +1,10 @@
 @using depensio.Shared.Pages.Boutique.Model
 
-<div>@boutique.Name</div>
+<NavLink 
+    class="h-[50px] w-[50px] rounded-full border-2 text-white ml-4 bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium  text-sm p-5 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+         href="@($"/dashboard/{boutique.Id}")">
+    @boutique.Name
+</NavLink>
 
 @code {
     [Parameter]

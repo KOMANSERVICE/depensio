@@ -1,23 +1,36 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavManager
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+<NavBarDashboard />
+
+<div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
+
+    <Sidebar boutiqueId="@boutiqueId" />
+
+    <div id="main-content" class="relative w-full h-full overflow-y-auto bg-gray-50 lg:ml-64 dark:bg-gray-900">
+        <main>
+            @Body
+        </main>
+        <FooterDashboard />
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+@code {
+    private Guid boutiqueId;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(NavManager.Uri);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        var index = Array.IndexOf(segments, "dashboard");
+        if (segments.Length > 0)
+        {
+            if (Guid.TryParse(segments[segments.Length -1], out var id))
+            {
+                boutiqueId = id;
+            }
+        }
+    }
+}

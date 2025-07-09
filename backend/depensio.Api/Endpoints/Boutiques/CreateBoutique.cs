@@ -5,7 +5,6 @@ using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Boutique;
 
-
 public record CreateBoutiqueRequest(BoutiqueDTO Boutique);
 public record CreateBoutiqueResponse(Guid Id);
 
