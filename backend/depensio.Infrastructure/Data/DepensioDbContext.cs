@@ -17,6 +17,7 @@ public class DepensioDbContext : IdentityDbContext<ApplicationUser>, IDepensioDb
 
     public DbSet<UsersBoutique> UsersBoutiques => Set<UsersBoutique>();
     public DbSet<Boutique> Boutiques => Set<Boutique>();
+    public DbSet<Product> Products => Set<Product>();
     //public DbSet<Subscription> Subscription => Set<Subscription>();
     //public DbSet<Plan> Plan => Set<Plan>();
 

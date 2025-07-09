@@ -4,4 +4,5 @@ public interface IDepensioDbContext
 {
     DbSet<UsersBoutique> UsersBoutiques { get; }
     DbSet<Boutique> Boutiques { get; }
+    DbSet<Product> Products { get; }
 }

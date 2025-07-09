@@ -1,0 +1,11 @@
+@page "/caisse/{boutiqueId:guid}"
+@inherits FlowbitePage
+@layout MainLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+
+
+@code {
+    [Parameter]
+    public Guid? boutiqueId { get; set; }
+}
