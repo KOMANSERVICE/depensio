@@ -1,0 +1,32 @@
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
+
+<CascadingAuthenticationState>
+    <header>
+        <NavBar />
+    </header>
+
+
+    <div class="flex pt-16 overflow-hidden">
+        <div id="main-content" class="relative w-full max-w-screen-2xl mx-auto h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            <main>
+                @Body
+            </main>
+        </div>
+    </div>
+
+    <Footer />
+
+    @code {
+        private bool isLoggedIn;
+
+        protected override async Task OnInitializedAsync()
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            isLoggedIn = authState.User.Identity?.IsAuthenticated ?? false;
+        }
+    }
+
+
+
+</CascadingAuthenticationState>

@@ -233,7 +233,6 @@ namespace depensio.Infrastructure.Data.Migrations
             modelBuilder.Entity("depensio.Domain.Models.Boutique", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -296,9 +295,8 @@ namespace depensio.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -363,7 +361,7 @@ namespace depensio.Infrastructure.Data.Migrations
                     b.HasOne("depensio.Domain.Models.Boutique", "Boutique")
                         .WithMany("UsersBoutiques")
                         .HasForeignKey("BoutiqueId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Boutique");

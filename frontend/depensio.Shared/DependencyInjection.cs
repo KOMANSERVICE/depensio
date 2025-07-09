@@ -16,6 +16,7 @@ public static class DependencyInjection
 
 
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IFlowbiteService, FlowbiteService>();
 
         var uri = configuration["ApiSettings:Uri"]!;
         services.AddRefitClient<IAuthHttpService>()
