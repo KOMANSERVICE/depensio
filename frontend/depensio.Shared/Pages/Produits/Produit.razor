@@ -1,7 +1,9 @@
 @page "/produit/{boutiqueId:guid}"
 @using depensio.Shared.Pages.Produits.Components
+@using depensio.Shared.Pages.Produits.Models
 @inherits FlowbitePage
 @layout MainLayout
+@inject IProductService _productService
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
@@ -136,19 +138,19 @@
                             </th>
                             <th scope="col"
                                 class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                Biography
+                                Prix d'achat
                             </th>
                             <th scope="col"
                                 class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                Position
+                                Prix de vente
                             </th>
                             <th scope="col"
                                 class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                Country
+                                Stock
                             </th>
                             <th scope="col"
                                 class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                Status
+                                Code bar
                             </th>
                             <th scope="col"
                                 class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
@@ -157,7 +159,8 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-
+                        @foreach(var Product in products.Data.Products)
+                        {
                         <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
                             <td class="w-4 p-4">
                                 <div class="flex items-center">
@@ -171,7 +174,7 @@
                                      alt="{{ .name }} avatar">
                                 <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
                                     <div class="text-base font-semibold text-gray-900 dark:text-white">
-                                        {{ .name }}
+                                        @Product.Name
                                     </div>
                                     <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
                                         {{ .email }}
@@ -179,21 +182,20 @@
                                 </div>
                             </td>
                             <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                {{ .biography }}
+                                @Product.CostPrice
                             </td>
                             <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{
-                                .position }}
+                               @Product.Price
                             </td>
                             <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{
-                                .country }}
+                                @Product.Stock
                             </td>
                             <td class="p-4 text-base font-normal text-gray-900 whitespace-nowrap dark:text-white">
-                                <div class="flex items-center">
+                               @Product.Barcode
+                                @*  <div class="flex items-center">
                                     {{ if eq .status "Active" }} <div class="h-2.5 w-2.5 rounded-full bg-green-400 mr-2"></div> {{ else }} <div class="h-2.5 w-2.5 rounded-full bg-red-500 mr-2"></div> {{ end }} {{ .status
                                     }}
-                                </div>
+                                </div> *@
                             </td>
                             <td class="p-4 space-x-2 whitespace-nowrap">
                                 <button type="button" data-modal-target="edit-user-modal"
@@ -223,6 +225,8 @@
                             </td>
                         </tr>
 
+                        }
+                       
                     </tbody>
                 </table>
             </div>
@@ -275,7 +279,7 @@
 </div>
 
 <!-- Edit User Modal -->
-<div class="fixed left-0 right-0 z-50 items-center justify-center hidden overflow-x-hidden overflow-y-auto top-4 md:inset-0 h-modal sm:h-full"
+<div class="absolute left-0 right-0 z-50 items-center justify-center hidden overflow-x-hidden overflow-y-auto top-4 md:inset-0 h-modal sm:h-full"
      id="edit-user-modal">
     <div class="relative w-full h-full max-w-2xl px-4 md:h-auto">
         <!-- Modal content -->
@@ -369,7 +373,7 @@
 </div>
 
 <!-- Add User Modal -->
-<div class="fixed left-0 right-0 z-50 items-center justify-center hidden overflow-x-hidden overflow-y-auto top-4 md:inset-0 h-modal sm:h-full"
+<div class="absolute left-0 right-0 z-50 items-center justify-center hidden overflow-x-hidden overflow-y-auto top-4 md:inset-0 h-modal sm:h-full"
      id="add-user-modal">
     <div class="relative w-full h-full max-w-2xl px-4 md:h-auto">
         <!-- Modal content -->
@@ -391,7 +395,10 @@
             </div>
             <!-- Modal body -->
             <div class="p-6 space-y-6">
-                <CreateProduitComponent />
+                <CreateProduitComponent BoutiqueId="@boutiqueId"
+                                        OnAfterSave="async ()=>{
+                                            products = await _productService.GetProductsByUserAsync(boutiqueId);
+                                        }" />
             </div>
         </div>
     </div>
@@ -443,5 +450,15 @@
 
 @code {
     [Parameter]
-    public Guid? boutiqueId { get; set; }
+    public Guid boutiqueId { get; set; }
+
+    private BaseResponse<GetProductByUserResponse> products;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await _productService.GetProductsByUserAsync(boutiqueId);
+
+    }
 }

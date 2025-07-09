@@ -10,7 +10,7 @@ public class GetProductByUser : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/products/{boutiqueId}", async (Guid boutiqueId, ISender sender) =>
+        app.MapGet("/product/{boutiqueId}", async (Guid boutiqueId, ISender sender) =>
         {
             var result = await sender.Send(new GetProductByUserQuery(boutiqueId));
 
@@ -20,7 +20,7 @@ public class GetProductByUser : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetProductByUser")
-       .Produces<GetProductByUserResponse>(StatusCodes.Status200OK)
+       .Produces<BaseResponse<GetProductByUserResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)
        .WithSummary("GetProductByUser By Product Id")
