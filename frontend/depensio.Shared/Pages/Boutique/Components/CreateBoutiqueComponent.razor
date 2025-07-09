@@ -6,6 +6,9 @@
 <div class="relative w-full h-full max-w-2xl px-4 md:h-auto">
 
     <EditForm EditContext="@editContext" OnValidSubmit="HandleCreateBoutique">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
         <div class="grid grid-cols-6 gap-6">
             <div class="col-span-6 sm:col-span-3">
                 <label for="first-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Libellé</label>
