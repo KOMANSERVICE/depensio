@@ -1,9 +1,11 @@
-﻿namespace depensio.Domain.Models;
+﻿using depensio.Domain.ValueObjects;
 
-public class SaleItem : Entity<Guid>
+namespace depensio.Domain.Models;
+
+public class SaleItem : Entity<SaleItemId>
 {
-    public Guid SaleId { get; set; }
-    public Guid ProductId { get; set; }
+    public SaleId SaleId { get; set; }
+    public ProductId ProductId { get; set; }
     public int Quantity { get; set; }
     public decimal Price { get; set; }
 

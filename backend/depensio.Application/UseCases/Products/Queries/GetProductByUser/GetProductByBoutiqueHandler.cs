@@ -1,21 +1,21 @@
 ﻿using depensio.Application.UseCases.Products.DTOs;
 using depensio.Domain.ValueObjects;
 
-namespace depensio.Application.UseCases.Products.Queries.GetProductByUser;
+namespace depensio.Application.UseCases.Products.Queries.GetProductByBoutique;
 
 
-public class GetProductByUserHandler(
+public class GetProductByBoutiqueHandler(
     IDepensioDbContext dbContext,
     IUserContextService _userContextService)
-    : IQueryHandler<GetProductByUserQuery, GetProductByUserResult>
+    : IQueryHandler<GetProductByBoutiqueQuery, GetProductByBoutiqueResult>
 {
-    public async Task<GetProductByUserResult> Handle(GetProductByUserQuery request, CancellationToken cancellationToken)
+    public async Task<GetProductByBoutiqueResult> Handle(GetProductByBoutiqueQuery request, CancellationToken cancellationToken)
     {
 
         var userId = _userContextService.GetUserId();
 
         //var userProduct = await dbContext.Boutiques
-        //    .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId) && b.UsersBoutiques.Any(ub => ub.UserId == userId))
+        //    .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId) && b.BoutiquesBoutiques.Any(ub => ub.BoutiqueId == userId))
         //    .Select(b => new ProductDTO(
         //        b.Products.,
         //        b.Name,
@@ -40,6 +40,6 @@ public class GetProductByUserHandler(
             .ToListAsync();
 
 
-        return new GetProductByUserResult(products);
+        return new GetProductByBoutiqueResult(products);
     }
 }

@@ -56,6 +56,12 @@ public static class DependencyInjection
             });
 
             options.OperationFilter<SecurityRequirementsOperationFilter>();
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Depensio API", Version = "v1" });
+            options.DocInclusionPredicate((docName, apiDesc) =>
+            {
+                var groupName = apiDesc.GroupName ?? string.Empty;
+                return docName == "v1" || groupName == docName;
+            });
         });
         services.AddAuthorization();
         services.AddAuthentication(option =>

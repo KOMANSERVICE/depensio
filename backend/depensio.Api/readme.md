@@ -38,6 +38,10 @@ vault status
 vault login "root-token"
 
 
+# si vous voulez un token périodique
+token_period = "60m"
+token_explicit_max_ttl = "0"        # forçant une **durée illimitée**, sans renouvellement automatique
+orphan = true                       # optionnel pour rendre le token indépendant
 
 # Ajout de secret
 vault auth enable approle
@@ -47,7 +51,7 @@ creer le fichier depensio-policy.hcl dans le repertoire /vault/policies/
 creer le fichier setup.sh dans le repertoire /vault/policies/
 
 vault policy write depensio-policy /vault/policies/depensio-policy.hcl
-vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl=1h token_max_ttl=4h
+vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl=1h token_max_ttl=4h token_explicit_max_ttl=0 token_period=60m  orphan=true
 
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id

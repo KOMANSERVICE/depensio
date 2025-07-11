@@ -1,30 +1,30 @@
 ﻿using depensio.Application.UseCases.Products.DTOs;
-using depensio.Application.UseCases.Products.Queries.GetProductByUser;
+using depensio.Application.UseCases.Products.Queries.GetProductByBoutique;
 using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Products;
 
-public record GetProductByUserResponse(IEnumerable<ProductDTO> Products);
+public record GetProductByBoutiqueResponse(IEnumerable<ProductDTO> Products);
 
-public class GetProductByUser : ICarterModule
+public class GetProductByBoutique : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/product/{boutiqueId}", async (Guid boutiqueId, ISender sender) =>
         {
-            var result = await sender.Send(new GetProductByUserQuery(boutiqueId));
+            var result = await sender.Send(new GetProductByBoutiqueQuery(boutiqueId));
 
-            var response = result.Adapt<GetProductByUserResponse>();
+            var response = result.Adapt<GetProductByBoutiqueResponse>();
             var baseResponse = ResponseFactory.Success(response, "Liste des produire récuperés avec succès", StatusCodes.Status200OK);
 
             return Results.Ok(baseResponse);
         })
-       .WithName("GetProductByUser")
-       .Produces<BaseResponse<GetProductByUserResponse>>(StatusCodes.Status200OK)
+       .WithName("GetProductByBoutique")
+       .Produces<BaseResponse<GetProductByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)
-       .WithSummary("GetProductByUser By Product Id")
-       .WithDescription("GetProductByUser By Product Id")
+       .WithSummary("GetProductByBoutique By Product Id")
+       .WithDescription("GetProductByBoutique By Product Id")
         .RequireAuthorization();
     }
 }
