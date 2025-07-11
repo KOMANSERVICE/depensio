@@ -33,7 +33,7 @@ services:
     volumes:
       - pgdata_depensio:/var/lib/postgresql/data 
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "depensioDB"]
+      test: ["CMD", "pg_isready", "-U", "testRoot"]
       interval: 30s
       timeout: 15s
       retries: 10
