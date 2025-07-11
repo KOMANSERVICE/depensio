@@ -107,11 +107,22 @@ sudo ln -s /etc/nginx/sites-available/vename.com /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 
+# deinstaller
 
-Activer le HTTPS avec Let’s Encrypt
+sudo apt remove nginx nginx-common
+sudo apt purge nginx nginx-common
+sudo apt autoremove
+
+# Liste des site 
+ls -l /etc/nginx/sites-enabled/
+ls -l /etc/nginx/sites-available/
+
+# Activer le HTTPS avec Let’s Encrypt
 sudo apt install certbot python3-certbot-nginx
 sudo certbot --nginx -d vename.com -d www.vename.com
 
+
+sudo certbot delete --cert-name demo.depensio.com
 
 # Étapes pour corriger
 
@@ -138,10 +149,10 @@ sudo apt install ufw -y
 sudo ufw allow OpenSSH
 
 # Autoriser port 80 (HTTP), 443 (HTTPS), 3000 (si Next.js en dev)
-sudo ufw allow 80
-sudo ufw allow 443
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
 sudo ufw allow OpenSSH
-sudo ufw allow 22
+sudo ufw allow 22/tcp
 
 # Activer le pare-feu
 sudo ufw enable
