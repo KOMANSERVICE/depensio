@@ -61,6 +61,7 @@ public class CreateSaleHandler(
             {
                 Id = SaleItemId.Of(Guid.NewGuid()),
                 ProductId = ProductId.Of(i.ProductId),
+                Price = i.Price,
                 Quantity = i.Quantity,
                 SaleId = saleId
             }).ToList(),

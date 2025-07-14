@@ -6,4 +6,5 @@ public record SaleDTO
     Guid BoutiqueId,     
     string Title,
     string Description,
+    decimal TotalPrice,
     IEnumerable<SaleItemDTO> Items);

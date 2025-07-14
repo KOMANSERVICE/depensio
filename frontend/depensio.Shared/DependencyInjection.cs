@@ -29,7 +29,12 @@ public static class DependencyInjection
         services.AddRefitClient<IProductService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
-        
+
+
+        services.AddRefitClient<ISaleService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<JwtAuthorizationHandler>();
+
 
         return services;
     }
