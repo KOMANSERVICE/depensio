@@ -454,8 +454,6 @@
 
     private BaseResponse<GetProductByUserResponse> products;
 
-
-
     protected override async Task OnInitializedAsync()
     {
         products = await _productService.GetProductsByUserAsync(boutiqueId);

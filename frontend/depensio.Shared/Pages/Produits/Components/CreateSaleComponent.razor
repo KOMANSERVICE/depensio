@@ -1,0 +1,247 @@
+@using depensio.Shared.Pages.Produits.Models
+@inject ISaleService _saleService;
+
+<LoadingComponent IsLoad="@isLoad" />
+
+<EditForm EditContext="@editContext" OnValidSubmit="HandleCreateProduit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="grid grid-cols-6 gap-6">
+        <div class="col-span-6 sm:col-span-3">
+            <label for="titre"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Titre</label>
+            <InputText type="text" @bind-Value="sale.Title" name="titre" id="titre"
+                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                       placeholder="Achet de fiin de mois" />
+            <ValidationMessage For="@(() => sale.Title)" />
+        </div>
+        @* <div class="col-span-6 sm:col-span-3">
+            <label for="description"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+            <InputText type="text" @bind-Value="sale.Description" name="description" id="description"
+                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                       placeholder="Green" />
+            <ValidationMessage For="@(() => sale.Description)" />
+        </div>
+        <div class="col-span-6 sm:col-span-3">
+            <label for="total"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+            <InputNumber @bind-Value="sale.TotalPrice" type="number" name="total" id="total"
+                         class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                         placeholder="example@company.com" />
+            <ValidationMessage For="@(() => sale.TotalPrice)" />
+        </div> *@
+
+
+        <div class="col-span-6">
+            <label for="description"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+            <InputTextArea id="description" @bind-Value="sale.Description" rows="4"
+                      class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                      placeholder="Descripotion de l'achat"></InputTextArea>
+        </div>
+        <div class="col-span-6 flex gap-2 justify-center items-center">
+            <label for="total"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label> :
+            <span>@sale.TotalPrice FCFA</span>
+        </div>
+        <div class="col-span-6 flex gap-2">
+            <select @bind="saleItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                <option selected="">Choix de produit</option>
+                @foreach (var prod in products)
+                {
+                    <option value="@prod.Id">@prod.Name</option>
+                }                
+            </select>
+            <input  @bind="saleItem.Price" type="number" name="position" id="position"
+                   class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                   placeholder="e.g. Prix d'achat'">
+            <input @bind="saleItem.Quantity" type="number" name="position" id="position"
+                   class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                   placeholder="e.g. Quantité">
+            <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                    type="button" @onclick="AddItem">
+                <svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                          d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                          clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="col-span-6">
+            <div class="overflow-x-auto">
+                <div class="inline-block min-w-full align-middle">
+                    <div class="overflow-hidden shadow">
+                        <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="p-4">
+                                        <div class="flex items-center">
+                                            <input id="checkbox-all" aria-describedby="checkbox-1" type="checkbox"
+                                                   class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
+                                            <label for="checkbox-all" class="sr-only">checkbox</label>
+                                        </div>
+                                    </th>
+                                    <th scope="col"
+                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                        Produit
+                                    </th>
+                                    <th scope="col"
+                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                        Prix
+                                    </th>
+                                    <th scope="col"
+                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                        Quantité
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                                @foreach (var item in sale.Items)
+                                {
+                                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <td class="w-4 p-4">
+                                            <div class="flex items-center">
+                                                <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
+                                                       class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
+                                                <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
+                                            </div>
+                                        </td>
+                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                                            @item.ProductId
+                                        </td>
+                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                                            @item.Price FCFA
+                                        </td>
+                                        <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                            @item.Quantity
+                                        </td>
+                                    </tr>
+
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal footer -->
+    <div class="items-center p-6 border-t border-gray-200 rounded-b dark:border-gray-700">
+        <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                type="submit">
+            Enregistrer
+        </button>
+    </div>
+</EditForm>
+
+
+
+@code {
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnAfterSave { get; set; }
+
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    [Parameter]
+    public IEnumerable<Product> products { get; set; }
+     
+    
+    private bool isLoad = false;
+    private Sale sale = new();
+    private SaleItem saleItem = new();
+    private ErrorMessage errorMessage = new();
+
+    private EditContext editContext;
+    private ValidationMessageStore messageStore;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(sale);
+        messageStore = new ValidationMessageStore(editContext);
+
+        editContext.OnValidationRequested += (s, e) => messageStore.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+    }
+
+    private async Task HandleCreateProduit()
+    {
+        isLoad = true;
+        try
+        {
+            sale.BoutiqueId = BoutiqueId; // Set the boutique ID for the product
+            var result = await _saleService.CreateSaleAsync(new CreateSaleRequest(sale));
+            if (result.Success)
+            {
+                messageStore.Clear();
+                editContext.NotifyValidationStateChanged();
+                sale = new(); // Reset the boutique object
+                await OnAfterSave.InvokeAsync(null); // Notify parent component
+            }
+
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
+                    editContext.NotifyValidationStateChanged();
+                }
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
+                    editContext.NotifyValidationStateChanged();
+                }
+            }
+            catch
+            {
+                messageStore.Add(new FieldIdentifier(sale, string.Empty), "Une erreur est survenue.");
+                editContext.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            isLoad = false;
+        }
+    }
+
+    private void AddItem()
+    {
+        if (saleItem.ProductId == Guid.Empty || saleItem.Quantity <= 0 || saleItem.Price <= 0)
+            return;
+
+        bool alreadyExists = sale.Items.Any(i => i.ProductId == saleItem.ProductId);
+
+        if (alreadyExists)
+        {
+            // Option : afficher un message d'erreur, toast, etc.
+            Console.WriteLine("Produit déjà ajouté.");
+            return;
+        }
+
+        sale.Items.Add(new()
+        {
+            ProductId = saleItem.ProductId,
+            Price = saleItem.Price,
+            Quantity = saleItem.Quantity
+        });
+
+        sale.TotalPrice = sale.Items.Sum(x => x.Price * x.Quantity);
+
+        saleItem = new();
+    }
+
+}
