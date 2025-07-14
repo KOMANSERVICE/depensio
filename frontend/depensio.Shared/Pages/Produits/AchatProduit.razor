@@ -4,6 +4,7 @@
 @inherits FlowbitePage
 @layout MainLayout
 @inject ISaleService _saleService
+@inject IProductService _productService
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
@@ -379,10 +380,12 @@
             </div>
             <!-- Modal body -->
             <div class="p-6 space-y-6">
-                <CreateProduitComponent BoutiqueId="@boutiqueId"
-                                        OnAfterSave="async ()=>{
-                                            sales = await _saleService.GetSaleByBoutiqueAsync(boutiqueId);
-                                        }" />
+                <CreateSaleComponent 
+                    BoutiqueId="@boutiqueId"
+                    products="@products.Data.Products"
+                    OnAfterSave="async ()=>{
+                        sales = await _saleService.GetSaleByBoutiqueAsync(boutiqueId);
+                    }" />
             </div>
         </div>
     </div>
@@ -437,9 +440,11 @@
     public Guid boutiqueId { get; set; }
 
     private BaseResponse<GetSaleByBoutiqueResponse> sales;
+     private BaseResponse<GetProductByUserResponse> products;
 
     protected override async Task OnInitializedAsync()
     {
         sales = await _saleService.GetSaleByBoutiqueAsync(boutiqueId);
+        products = await _productService.GetProductsByUserAsync(boutiqueId);
     }
 }

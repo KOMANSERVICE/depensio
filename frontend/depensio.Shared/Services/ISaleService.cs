@@ -8,7 +8,7 @@ public interface ISaleService
 {
 
     [Post("/sale")]
-    Task<BaseResponse<CreateProductResponse>> CreateSaleAsync(CreateProductRequest request);
+    Task<BaseResponse<CreateSaleResponse>> CreateSaleAsync(CreateSaleRequest request);
     [Get("/sale/{boutiqueId}")]
     Task<BaseResponse<GetSaleByBoutiqueResponse>> GetSaleByBoutiqueAsync(Guid boutiqueId);
 }

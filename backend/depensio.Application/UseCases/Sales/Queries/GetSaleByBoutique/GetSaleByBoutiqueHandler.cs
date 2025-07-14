@@ -22,7 +22,7 @@ public class GetSaleByBoutiqueHandler(
                 p.BoutiqueId.Value,
                 p.Title,
                 p.Description,
-               p.SaleItems.Sum(x => x.Price) ,
+               p.SaleItems.Sum(x => x.Price* x.Quantity) ,
                 null
             ))
             .ToListAsync();

@@ -2,19 +2,22 @@
 
 
 public record GetSaleByBoutiqueResponse(IEnumerable<Sale> Sales);
+public record CreateSaleRequest(Sale Sale);
+public record CreateSaleResponse(Guid Id);
 public record Sale
-(
-    Guid Id,
-    Guid BoutiqueId,
-    string Title,
-    string Description,
-    decimal TotalPrice,
-    IEnumerable<SaleItem> Items);
+{
+    public Guid Id { get; set; } = Guid.Empty;
+    public Guid BoutiqueId { get; set; } = Guid.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public decimal TotalPrice { get; set; } 
+    public List<SaleItem> Items { get; set; } = new List<SaleItem>();
+}
 
 public record SaleItem
-(
-    Guid Id,
-    Guid ProductId,
-    decimal Price,
-    int Quantity
-);
+{
+    public Guid Id { get; set; } = Guid.Empty;
+    public Guid ProductId { get; set; } = Guid.Empty;
+    public decimal Price { get; set; }
+    public int Quantity { get; set; }
+}

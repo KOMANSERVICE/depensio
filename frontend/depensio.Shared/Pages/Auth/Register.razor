@@ -124,6 +124,11 @@
                     editContext.NotifyValidationStateChanged();
                 }
 
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    messageStore.Add(new FieldIdentifier(registerModel, string.Empty), errorResult.Detail);
+                    editContext.NotifyValidationStateChanged();
+                }
                 
             }
             catch
