@@ -31,5 +31,5 @@ jobs:
             echo "📦 Pull du nouveau contenu"
             git pull origin main
             echo "♻️ Rebuild & redeploy"
-            docker compose -f docker-compose.prod.yml down -v || true
+            docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d --build
