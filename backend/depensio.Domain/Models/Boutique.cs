@@ -16,7 +16,7 @@ public class Boutique : Entity<BoutiqueId>
     public ICollection<Product> Products { get; set; }
     //public ICollection<StockLocation> StockLocations { get; set; }
     public ICollection<Sale> Sales { get; set; }
-    //public ICollection<Purchase> Purchases { get; set; }
+    public ICollection<Purchase> Purchases { get; set; }
     //public ICollection<Account> Accounts { get; set; }
     //public ICollection<CashFlow> CashFlows { get; set; }
     //public ICollection<Quote> Quotes { get; set; }

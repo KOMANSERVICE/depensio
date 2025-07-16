@@ -108,9 +108,10 @@ public static class DependencyInjection
 
     private static VaultSecretsConfig LoadVaultSecrets(IConfiguration configuration)
     {
-        var uri = configuration["Vault:Uri"]!;
+        var uri = "http://127.0.0.1:8200";
         var roleId = configuration["Vault:RoleId"]!;
         var secretId = configuration["Vault:SecretId"]!;
+       
         if (!string.IsNullOrWhiteSpace(uri) && !string.IsNullOrWhiteSpace(roleId) && !string.IsNullOrWhiteSpace(secretId))
         {
             return new VaultSecretsConfig

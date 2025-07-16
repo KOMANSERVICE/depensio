@@ -2,6 +2,7 @@
 using depensio.Application.UseCases.Sales.DTOs;
 using depensio.Domain.ValueObjects;
 using BuildingBlocks.Exceptions;
+using System.Linq;
 
 namespace depensio.Application.UseCases.Sales.Commands.CreateSale;
 
@@ -55,8 +56,8 @@ public class CreateSaleHandler(
         {
             Id = saleId,
             Date = DateTime.UtcNow,
-            Title = saleDTO.Title,
-            Description = saleDTO.Description,
+            //Title = saleDTO.Title,
+            //Description = saleDTO.Description,
             SaleItems = saleDTO.Items.Select(i => new SaleItem
             {
                 Id = SaleItemId.Of(Guid.NewGuid()),
