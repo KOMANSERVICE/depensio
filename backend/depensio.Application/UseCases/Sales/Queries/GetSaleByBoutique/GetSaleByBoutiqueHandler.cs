@@ -21,8 +21,7 @@ public class GetSaleByBoutiqueHandler(
             {
                 Id = p.Id.Value,
                 BoutiqueId = p.BoutiqueId.Value,
-                //Title = p.Title,
-                //Description = p.Description
+                Items = p.SaleItems.Select(i => new SaleItemDTO(i.Id.Value,i.ProductId.Value,i.Price,i.Quantity)).ToList(),
             })
             .ToListAsync();
 
