@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using depensio.Infrastructure.Data;
@@ -11,9 +12,11 @@ using depensio.Infrastructure.Data;
 namespace depensio.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(DepensioDbContext))]
-    partial class DepensioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250716163047_InitialPursach")]
+    partial class InitialPursach
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

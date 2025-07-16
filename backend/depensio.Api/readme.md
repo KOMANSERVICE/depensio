@@ -53,6 +53,9 @@ creer le fichier setup.sh dans le repertoire /vault/policies/
 vault policy write depensio-policy /vault/policies/depensio-policy.hcl
 vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl=1h token_max_ttl=4h token_explicit_max_ttl=0 token_period=60m  orphan=true
 
+ou 
+vault write auth/approle/role/my-role token_policies="depensio-policy"  token_ttl=0   token_max_ttl=0   token_explicit_max_ttl=0  token_period=0
+
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
 
@@ -167,7 +170,7 @@ sudo ufw status
 
 # Supprimer un dossier 
 sudo rm -rf depensio
-
+sudo chown -R komanatse:komanatse /home/
 
 # Cloner le projet depensio
 Cloner le projet depensio depuis GitHub avec un token d'accès personnel

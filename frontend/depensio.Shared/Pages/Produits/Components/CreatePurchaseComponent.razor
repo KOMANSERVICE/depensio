@@ -1,5 +1,5 @@
 @using depensio.Shared.Pages.Produits.Models
-@inject ISaleService _saleService;
+@inject IPurchaseService _purchaseService;
 
 <LoadingComponent IsLoad="@isLoad" />
 
@@ -8,56 +8,47 @@
     <ValidationSummary />
 
     <div class="grid grid-cols-6 gap-6">
-        @* <div class="col-span-6 sm:col-span-3">
+        <div class="col-span-6 sm:col-span-3">
             <label for="titre"
                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Titre</label>
-            <InputText type="text" @bind-Value="sale.Title" name="titre" id="titre"
+            <InputText type="text" @bind-Value="purchase.Title" name="titre" id="titre"
                        class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="Achet de fiin de mois" />
-            <ValidationMessage For="@(() => sale.Title)" />
-        </div> *@
-        @* <div class="col-span-6 sm:col-span-3">
-            <label for="description"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-            <InputText type="text" @bind-Value="sale.Description" name="description" id="description"
-                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="Green" />
-            <ValidationMessage For="@(() => sale.Description)" />
+                       placeholder="Achat de fin de mois" />
+            <ValidationMessage For="@(() => purchase.Title)" />
         </div>
+
         <div class="col-span-6 sm:col-span-3">
-            <label for="total"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-            <InputNumber @bind-Value="sale.TotalPrice" type="number" name="total" id="total"
-                         class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                         placeholder="example@company.com" />
-            <ValidationMessage For="@(() => sale.TotalPrice)" />
-        </div> *@
-
-
-       @*  <div class="col-span-6">
+            <label for="SupplierName"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fournisseur</label>
+            <InputText type="text" @bind-Value="purchase.SupplierName" name="SupplierName" id="SupplierName"
+                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                       placeholder="Fournisseur" />
+            <ValidationMessage For="@(() => purchase.SupplierName)" />
+        </div>
+        <div class="col-span-6">
             <label for="description"
                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-            <InputTextArea id="description" @bind-Value="sale.Description" rows="4"
+            <InputTextArea id="description" @bind-Value="purchase.Description" rows="4"
                       class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                       placeholder="Descripotion de l'achat"></InputTextArea>
-        </div> *@
+        </div>
         <div class="col-span-6 flex gap-2 justify-center items-center">
             <label for="total"
                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label> :
-            <span>@sale.TotalPrice FCFA</span>
+            <span>@purchase.TotalPrice FCFA</span>
         </div>
         <div class="col-span-6 flex gap-2">
-            <select @bind="saleItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+            <select @bind="purchaseItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                 <option selected="">Choix de produit</option>
                 @foreach (var prod in products)
                 {
                     <option value="@prod.Id">@prod.Name</option>
                 }                
             </select>
-            <input  @bind="saleItem.Price" type="number" name="position" id="position"
+            <input  @bind="purchaseItem.Price" type="number" name="position" id="position"
                    class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                    placeholder="e.g. Prix d'achat'">
-            <input @bind="saleItem.Quantity" type="number" name="position" id="position"
+            <input @bind="purchaseItem.Quantity" type="number" name="position" id="position"
                    class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                    placeholder="e.g. Quantité">
             <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
@@ -100,7 +91,7 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                                @foreach (var item in sale.Items)
+                                @foreach (var item in purchase.Items)
                                 {
                                     <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                         <td class="w-4 p-4">
@@ -153,8 +144,8 @@
      
     
     private bool isLoad = false;
-    private Sale sale = new();
-    private SaleItem saleItem = new();
+    private Purchase purchase = new();
+    private PurchaseItem purchaseItem = new();
     private ErrorMessage errorMessage = new();
 
     private EditContext editContext;
@@ -162,7 +153,7 @@
 
     protected override void OnInitialized()
     {
-        editContext = new EditContext(sale);
+        editContext = new EditContext(purchase);
         messageStore = new ValidationMessageStore(editContext);
 
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
@@ -174,13 +165,13 @@
         isLoad = true;
         try
         {
-            sale.BoutiqueId = BoutiqueId; // Set the boutique ID for the product
-            var result = await _saleService.CreateSaleAsync(new CreateSaleRequest(sale));
+            purchase.BoutiqueId = BoutiqueId; // Set the boutique ID for the product
+            var result = await _purchaseService.CreatePurchaseAsync(new CreatePurchaseRequest(purchase));
             if (result.Success)
             {
                 messageStore.Clear();
                 editContext.NotifyValidationStateChanged();
-                sale = new(); // Reset the boutique object
+                purchase = new(); // Reset the boutique object
                 await OnAfterSave.InvokeAsync(null); // Notify parent component
             }
 
@@ -196,19 +187,19 @@
 
                 if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
-                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
+                    messageStore.Add(new FieldIdentifier(purchase, string.Empty), errorResult.Detail);
                     editContext.NotifyValidationStateChanged();
                 }
 
                 if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
-                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
+                    messageStore.Add(new FieldIdentifier(purchase, string.Empty), errorResult.Detail);
                     editContext.NotifyValidationStateChanged();
                 }
             }
             catch
             {
-                messageStore.Add(new FieldIdentifier(sale, string.Empty), "Une erreur est survenue.");
+                messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Une erreur est survenue.");
                 editContext.NotifyValidationStateChanged();
             }
         }
@@ -220,10 +211,10 @@
 
     private void AddItem()
     {
-        if (saleItem.ProductId == Guid.Empty || saleItem.Quantity <= 0 || saleItem.Price <= 0)
+        if (purchaseItem.ProductId == Guid.Empty || purchaseItem.Quantity <= 0 || purchaseItem.Price <= 0)
             return;
 
-        bool alreadyExists = sale.Items.Any(i => i.ProductId == saleItem.ProductId);
+        bool alreadyExists = purchase.Items.Any(i => i.ProductId == purchaseItem.ProductId);
 
         if (alreadyExists)
         {
@@ -232,16 +223,16 @@
             return;
         }
 
-        sale.Items.Add(new()
+        purchase.Items.Add(new()
         {
-            ProductId = saleItem.ProductId,
-            Price = saleItem.Price,
-            Quantity = saleItem.Quantity
+            ProductId = purchaseItem.ProductId,
+            Price = purchaseItem.Price,
+            Quantity = purchaseItem.Quantity
         });
 
-        sale.TotalPrice = sale.Items.Sum(x => x.Price * x.Quantity);
+        purchase.TotalPrice = purchase.Items.Sum(x => x.Price * x.Quantity);
 
-        saleItem = new();
+        purchaseItem = new();
     }
 
 }

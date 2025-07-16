@@ -17,14 +17,13 @@ public class GetSaleByBoutiqueHandler(
                         && b.UsersBoutiques.Any(ub => ub.UserId == userId))
             .Include(b => b.Sales)
             .SelectMany(b => b.Sales)
-            .Select(p => new SaleDTO(
-                p.Id.Value,
-                p.BoutiqueId.Value,
-                p.Title,
-                p.Description,
-               p.SaleItems.Sum(x => x.Price* x.Quantity) ,
-                null
-            ))
+            .Select(p => new SaleDTO
+            {
+                Id = p.Id.Value,
+                BoutiqueId = p.BoutiqueId.Value,
+                //Title = p.Title,
+                //Description = p.Description
+            })
             .ToListAsync();
 
 

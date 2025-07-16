@@ -1,9 +1,9 @@
 ﻿namespace depensio.Domain.Models;
 
-public class PurchaseItem : Entity<Guid>
+public class PurchaseItem : Entity<PurchaseItemId>
 {
-    public Guid PurchaseId { get; set; }
-    public Guid ProductId { get; set; }
+    public PurchaseId PurchaseId { get; set; }
+    public ProductId ProductId { get; set; }
     public int Quantity { get; set; }
     public decimal Price { get; set; }
 
