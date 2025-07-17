@@ -18,3 +18,6 @@ public record SaleItem
     public decimal Price { get; set; }
     public int Quantity { get; set; }
 }
+
+public record GetSaleSummaryByBoutiqueResponse(IEnumerable<SaleSummary> SaleSummarys);
+public record SaleSummary(Guid ProductId, string ProductName, int TotalQuantity, decimal TotalRevenue, string Color);

@@ -11,4 +11,6 @@ public interface ISaleService
     Task<BaseResponse<CreateSaleResponse>> CreateSaleAsync(CreateSaleRequest request);
     [Get("/sale/{boutiqueId}")]
     Task<BaseResponse<GetSaleByBoutiqueResponse>> GetSaleByBoutiqueAsync(Guid boutiqueId);
+    [Get("/sale/{boutiqueId}/summary")]
+    Task<BaseResponse<GetSaleSummaryByBoutiqueResponse>> GetSaleSummaryByBoutiqueAsync(Guid boutiqueId);
 }

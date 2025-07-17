@@ -1,0 +1,41 @@
+﻿@using ApexCharts
+@using depensio.Shared.Pages.Produits.Models
+@using depensio.Shared.Helper
+
+@if (SaleSummarys != null && SaleSummarys.Any())
+{
+    <ApexChart TItem="SaleSummary"
+               Title="Recapitulatif des ventes par produit">
+
+        <ApexPointSeries TItem="SaleSummary"
+                         Items="SaleSummarys"
+                         Name="Revenue"
+                         XValue="@(e => e.ProductName)"
+                         YValue="@(e => e.TotalRevenue)"
+                         OrderByDescending="e=>e.Y"
+                         SeriesType="SeriesType.Bar"
+                         Color="#005ba3"
+                         PointColor="e=> GetColor(e)" />
+    </ApexChart>
+
+
+}
+
+
+@code {
+    [Parameter]
+    public IEnumerable<SaleSummary> SaleSummarys { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //SaleSummarys = (await _saleService.GetSaleSummaryByBoutiqueAsync()).ToList();
+        //data = (await GraphService.GetSalesByProductAsync()).ToList();
+        Console.WriteLine(SaleSummarys);
+    }
+
+
+    private string GetColor(SaleSummary saleSummary)
+    {        
+        return saleSummary.Color;
+    }
+}

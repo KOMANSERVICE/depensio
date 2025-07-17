@@ -1,4 +1,5 @@
-﻿using depensio.Services;
+﻿using depensio.Components;
+using depensio.Services;
 using depensio.Shared;
 using depensio.Shared.Services;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,7 @@ namespace depensio
                 .AddHttpClientFactoryServices(builder.Configuration);
 
             builder.Services.AddMauiBlazorWebView();
-
+            builder.Services.AddScoped<IGraphComponent, MauiGraphComponentService>();
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();
