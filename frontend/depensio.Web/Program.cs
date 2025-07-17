@@ -1,3 +1,4 @@
+using ApexCharts;
 using depensio.Shared;
 using depensio.Shared.Services;
 using depensio.Web.Components;
@@ -19,7 +20,9 @@ builder.Services.AddSingleton<IFormFactor, FormFactor>()
                 .AddHttpClientFactoryServices(builder.Configuration);
 builder.Services.AddScoped<ProtectedLocalStorage>();
 
+builder.Services.AddApexCharts();
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<IGraphComponent, WebGraphComponentService>();
 
 var JWTValidIssuer = builder.Configuration["JWT:ValidIssuer"];
 var JWTValidAudience = builder.Configuration["JWT:ValidAudience"];

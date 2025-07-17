@@ -10,6 +10,7 @@ public class GetSaleSummaryByBoutiqueHandler(
 {
     public async Task<GetSaleSummaryByBoutiqueResult> Handle(GetSaleSummaryByBoutiqueQuery request, CancellationToken cancellationToken)
     {
+        var rng = new Random();
         var userId = _userContextService.GetUserId();
 
         var salesSummary = await dbContext.Boutiques
@@ -27,7 +28,8 @@ public class GetSaleSummaryByBoutiqueHandler(
          g.Key.Id.Value,
          g.Key.Name,
          g.Sum(x => x.saleItem.Quantity),
-         g.Sum(x => x.saleItem.Quantity * x.saleItem.Price)
+         g.Sum(x => x.saleItem.Quantity * x.saleItem.Price),
+         $"#{rng.Next(0x1000000):X6}"
      ))
      .ToListAsync();
 

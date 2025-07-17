@@ -1,0 +1,22 @@
+@using depensio.Shared.Pages.Produits.Models
+@using depensio.Shared.Services
+@* @inject IGraphService GraphService
+
+<p class="text-center text-lg">?? Ventes Mobile</p>
+
+<ul class="list-disc ml-5">
+    @foreach (var item in data)
+    {
+        <li>@item.Product : @item.Total FCFA</li>
+    }
+</ul> *@
+
+@code {
+
+    private List<SaleSummary>? SaleSummarys;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //data = (await GraphService.GetSalesByProductAsync()).ToList();
+    }
+}
