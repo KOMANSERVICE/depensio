@@ -25,11 +25,8 @@ jobs:
           script: |
             echo "➡️ Récupérer le pojet sur github"
             git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
-            echo "➡️ Créer le contenu de setup.deploy.sh"
-            touch ./depensio/vault/policies/setup.deploy.sh
-            cat <<EOF > ./depensio/vault/policies/setup.deploy.sh
-            ${{ secrets.SETUP_DEPLOY }}
-            EOF
+            echo "➡️ Copier le fichier setup.deploy.sh"
+            cp ./vaultdepensio/setup.deploy.sh ./depensio/vault/policies
             chmod +x ./depensio/vault/policies/setup.deploy.sh
             echo "➡️ Créer le dossier shared"
             mkdir -p ./depensio/vault/shared
