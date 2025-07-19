@@ -211,3 +211,14 @@ Copier
 Modifier
 cat ~/.ssh/id_rsa
 
+
+# Github Actions Workflow Ajouter un cle private SSH 
+
+ssh-keygen -t rsa -b 4096 -C "deploy@yourdomain.com"
+Ajouter la cle dans ~/.ssh/authorized_keys sur le serveur distant
+
+
+# Github Actions Workflow Ajouter un cle private SSH  sans passphrase
+
+ssh-keygen -t rsa -b 4096 -C "ci-deploy@yourdomain.com" -N "" -f ~/.ssh/yourdomain.com
+Ajouter la cle dans ~/.ssh/authorized_keys sur le serveur distant
