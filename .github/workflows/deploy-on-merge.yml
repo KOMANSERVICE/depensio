@@ -23,12 +23,13 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |
-            cho "➡️ Copie de fichier"
-            mkdir /home/depensio/vault/shared
-            cp /home/vault/shared/setup.deploy.sh /home/depensio/vault/policies
-            chmod +x /home/depensio/vault/policies/setup.deploy.sh
+            echo "➡️ Créer le dossier depensio"
+            git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
+            echo "➡️ Créer le contenu de setup.deploy.sh"
+            echo "${{ secrets.SETUP_DEPLOY }}" > /depensio/vault/policies/setup.deploy.sh
+            chmod +x /depensio/vault/policies/setup.deploy.sh
             echo "➡️ Passage au dossier projet"
-            cd /home/depensio
+            cd /depensio
             echo "📦 Pull du nouveau contenu"
             git pull origin main
             echo "♻️ Rebuild & redeploy"
