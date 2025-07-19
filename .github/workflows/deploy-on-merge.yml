@@ -26,12 +26,12 @@ jobs:
             echo "➡️ Récupérer le pojet sur github"
             git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
             echo "➡️ Copier le fichier setup.deploy.sh"
-            cp ./vaultdepensio/setup.deploy.sh ./depensio/vault/policies
-            chmod +x ./depensio/vault/policies/setup.deploy.sh
+            cp /home/komanatse/vaultdepensio/setup.deploy.sh /home/komanatse/depensio/vault/policies
+            chmod +x /home/komanatse/depensio/vault/policies/setup.deploy.sh
             echo "➡️ Créer le dossier shared"
-            mkdir -p ./depensio/vault/shared
+            mkdir -p /home/komanatse/depensio/vault/shared
             echo "➡️ Passage au dossier projet"
-            cd /depensio
+            cd /home/komanatse/depensio
             echo "📦 Pull du nouveau contenu"
             git pull origin main
             echo "♻️ Rebuild & redeploy"
