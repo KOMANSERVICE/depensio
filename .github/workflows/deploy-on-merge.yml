@@ -27,7 +27,9 @@ jobs:
             git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
             echo "➡️ Créer le contenu de setup.deploy.sh"
             touch ./depensio/vault/policies/setup.deploy.sh
-            echo "${{ secrets.SETUP_DEPLOY }}" > ./depensio/vault/policies/setup.deploy.sh
+            cat <<EOF > ./depensio/vault/policies/setup.deploy.sh
+            ${{ secrets.SETUP_DEPLOY }}
+            EOF
             chmod +x ./depensio/vault/policies/setup.deploy.sh
             echo "➡️ Créer le dossier shared"
             mkdir -p ./depensio/vault/shared
