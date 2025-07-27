@@ -30,6 +30,9 @@ docker compose build --no-cache // facultative
 docker compose up -d // facultative
 vault kv get -format=json secret/depensio
 
+# ✅ Pour aller plus loin : supprimer aussi les images
+docker compose down --volumes --rmi all --remove-orphans
+
 docker exec -it depensioVault /bin/sh
 cat /etc/environment | grep Vault__
 printenv | grep Vault__
@@ -108,6 +111,27 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
+
+ou 
+
+server {
+    listen 80;
+    server_name vename.com www.vename.com;
+
+    location / {
+        proxy_pass http://localhost:5678;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
 
 Active le site :
 sudo ln -s /etc/nginx/sites-available/vename.com /etc/nginx/sites-enabled/
@@ -222,3 +246,7 @@ Ajouter la cle dans ~/.ssh/authorized_keys sur le serveur distant
 
 ssh-keygen -t rsa -b 4096 -C "ci-deploy@yourdomain.com" -N "" -f ~/.ssh/yourdomain.com
 Ajouter la cle dans ~/.ssh/authorized_keys sur le serveur distant
+
+# Probleme d'installation image docker
+sudo systemctl daemon-reexec
+sudo systemctl restart docker
