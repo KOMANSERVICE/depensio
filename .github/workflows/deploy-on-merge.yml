@@ -24,6 +24,7 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |
+            docker compose -f docker-compose.prod.yml down
             echo "Suppression de dossier exitant"
             rm -rf depensio
             echo "➡️ Récupérer le pojet sur github"
@@ -38,5 +39,4 @@ jobs:
             echo "📦 Pull du nouveau contenu"
             git pull origin main
             echo "♻️ Rebuild & redeploy"
-            docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d --build
