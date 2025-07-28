@@ -197,6 +197,7 @@ sudo rm -rf depensio
 sudo chown -R komanatse:komanatse /home/
 
 
+
 # Cloner le projet depensio
 Cloner le projet depensio depuis GitHub avec un token d'accès personnel
 git clone https://<USERNAME>:<TOKEN>@github.com/KOMANSERVICE/depensio.git
