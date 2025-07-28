@@ -10,40 +10,40 @@
     <div class="grid grid-cols-6 gap-6">
         <div class="col-span-6 sm:col-span-3">
             <label for="first-name"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Libellé</label>
             <InputText type="text" @bind-Value="product.Name" name="first-name" id="first-name"
                        class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="Bonnie" />
+                       placeholder="Bonnet rouge" />
             <ValidationMessage For="@(() => product.Name)" />
         </div>
         <div class="col-span-6 sm:col-span-3">
             <label for="last-name"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Barcode</label>
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Code bar</label>
             <InputText type="text" @bind-Value="product.Barcode" name="last-name" id="last-name"
                        class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="Green" />
+                       placeholder="Code bar" />
             <ValidationMessage For="@(() => product.Barcode)" />
         </div>
         <div class="col-span-6 sm:col-span-3">
-            <label for="email"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Price</label>
-            <InputNumber @bind-Value="product.Price" type="number" name="email" id="email"
+            <label for="price"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix de vente</label>
+            <InputNumber @bind-Value="product.Price" type="number" name="email" id="price"
                          class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                          placeholder="example@company.com" />
             <ValidationMessage For="@(() => product.Price)" />
         </div>
         <div class="col-span-6 sm:col-span-3">
-            <label for="position"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">CostPrice</label>
-            <InputNumber @bind-Value="product.CostPrice" type="number" name="position" id="position"
+            <label for="CostPrice"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix d'achat</label>
+            <InputNumber @bind-Value="product.CostPrice" type="number" name="CostPrice" id="CostPrice"
                          class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                          placeholder="e.g. React developer" />
             <ValidationMessage For="@(() => product.CostPrice)" />
         </div>
         <div class="col-span-6">
-            <label for="position"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Stock</label>
-            <InputNumber @bind-Value="product.Stock" type="number" name="position" id="position"
+            <label for="Stock"
+                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Produit en stock</label>
+            <InputNumber @bind-Value="product.Stock" type="number" name="Stock" id="Stock"
                          class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                          placeholder="e.g. React developer" />
             <ValidationMessage For="@(() => product.Stock)" />
