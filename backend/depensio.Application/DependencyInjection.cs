@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Behaviors;
+using depensio.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using System.Reflection;
@@ -22,7 +23,8 @@ public static class DependencyInjection
 
         services.AddFeatureManagement();
         //services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
-              
+        services.AddScoped<IBarcodeService, BarcodeService>();
+        services.AddScoped<IBoutiqueSettingService, BoutiqueSettingService>();
 
         return services;
     }

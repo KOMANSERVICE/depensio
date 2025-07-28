@@ -11,6 +11,6 @@ public interface IGenericRepository<TEntity> where TEntity : class
     void UpdateData(TEntity entity);
     void UpdateRangeData(IEnumerable<TEntity> entities);
     Task DeleteDataAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<List<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+    Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
     Task<List<TEntity>> GetByConditionAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 }

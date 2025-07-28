@@ -6,7 +6,8 @@ namespace depensio.Application.UseCases.Products.Commands.CreateProduct;
 
 public class CreateProductHandler(
     IGenericRepository<Product> _productRepository,
-    IUnitOfWork _unitOfWork
+    IUnitOfWork _unitOfWork,
+    IBarcodeService _barcodeService
     )
     : ICommandHandler<CreateProductCommand, CreateProductResult>
 {
@@ -15,7 +16,7 @@ public class CreateProductHandler(
         CancellationToken cancellationToken
         )
     {
-        var product = CreateNewProduct(command.Product);
+        var product = await CreateNewProductAsync(command.Product);
 
         await _productRepository.AddDataAsync(product, cancellationToken);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
@@ -23,7 +24,7 @@ public class CreateProductHandler(
         return new CreateProductResult(product.Id.Value);
     }
 
-    private Product CreateNewProduct(ProductDTO productDTO)
+    private async Task<Product> CreateNewProductAsync(ProductDTO productDTO)
     {
         var productId = ProductId.Of(Guid.NewGuid());
 
@@ -33,7 +34,7 @@ public class CreateProductHandler(
             Name = productDTO.Name,
             CostPrice = productDTO.CostPrice,
             Price = productDTO.Price,
-            Barcode = productDTO.Barcode,
+            Barcode = await _barcodeService.GenerateBarcodeAsync(productDTO.BoutiqueId, productDTO.Barcode),
             Stock = productDTO.Stock,
             BoutiqueId = BoutiqueId.Of(productDTO.BoutiqueId),
         };
