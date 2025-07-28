@@ -26,7 +26,7 @@ jobs:
           script: |
             docker compose -f docker-compose.prod.yml down
             echo "Suppression de dossier exitant"
-            rm -rf depensio
+            sudo rm -rf depensio
             echo "➡️ Récupérer le pojet sur github"
             git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
             echo "➡️ Copier le fichier setup.deploy.sh"
