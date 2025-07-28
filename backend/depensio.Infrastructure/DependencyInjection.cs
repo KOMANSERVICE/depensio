@@ -28,7 +28,7 @@ public static class DependencyInjection
         (this IServiceCollection services, IConfiguration configuration)
     {
 
-        var vaultUri = configuration["Vault:Uri"];
+        //var vaultUri = configuration["Vault:Uri"];
         //var vaultSecrets = LoadVaultSecrets(configuration);
         var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "vault/shared/vault-depensio-env.json");
         var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(File.ReadAllText(jsonPath.Replace(@"backend\depensio.Api\", "")))!;

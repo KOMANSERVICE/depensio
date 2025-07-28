@@ -20,6 +20,7 @@ public class DepensioDbContext : IdentityDbContext<ApplicationUser>, IDepensioDb
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+    public DbSet<BoutiqueSetting> BoutiqueSettings => Set<BoutiqueSetting>();
     //public DbSet<Subscription> Subscription => Set<Subscription>();
     //public DbSet<Plan> Plan => Set<Plan>();
 

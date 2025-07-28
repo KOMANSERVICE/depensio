@@ -13,9 +13,9 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         _dbSet = context.Set<TEntity>();
     }
     public async Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) => await _dbSet.FindAsync(new object[] { id }, cancellationToken);
-    public async Task<List<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.Where(predicate).ToListAsync(cancellationToken);
+        return await _dbSet.Where(predicate).FirstOrDefaultAsync();
     }
     public async Task<List<TEntity>> GetAllAsync(CancellationToken cancellationToken = default) => await _dbSet.ToListAsync();
 
