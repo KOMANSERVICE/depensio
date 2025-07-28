@@ -1,6 +1,7 @@
 @page "/listboutique"
 @using depensio.Shared.Pages.Boutique.Components
 @using depensio.Shared.Pages.Boutique.Model
+@inject NavigationManager _navigationManager
 @inherits FlowbitePage
 @layout SecondaryLayout
 @inject IBoutiqueService _boutiqueService;
@@ -1511,6 +1512,11 @@
     {
         boutiques = await _boutiqueService.GetBoutiqueByUser();
 
+        // if(boutiques != null || boutiques.Data != null || boutiques.Data.Boutiques.Any())
+        // {
+        //     _navigationManager.NavigateTo($"/dashboard/{boutiques.Data.Boutiques.First().Id}", true);
+        // }
+        
     }
 
 }
