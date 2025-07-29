@@ -23,13 +23,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
-          script: |
-            echo "Fermeture du site"
-            cd /home/komanatse/depensio
-            docker compose -f docker-compose.prod.yml down
-            cd ..
-            echo "Suppression de dossier exitant"
-            rm -rf depensio || (chmod -R u+w depensio && rm -rf depensio)
+          script: |           
             echo "➡️ Récupérer le pojet sur github"
             git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
             echo "➡️ Copier le fichier setup.deploy.sh"
@@ -42,4 +36,5 @@ jobs:
             echo "📦 Pull du nouveau contenu"
             git pull origin main
             echo "♻️ Rebuild & redeploy"
+            docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d --build
