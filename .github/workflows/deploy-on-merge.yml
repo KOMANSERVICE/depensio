@@ -23,9 +23,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
-          script: |
-            echo "Suppression de dossier exitant"
-            sudo rm -rf depensio
+          script: |           
             echo "➡️ Récupérer le pojet sur github"
             git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
             echo "➡️ Copier le fichier setup.deploy.sh"
