@@ -19,6 +19,7 @@
   <ItemGroup>
     <Folder Include="Components\Errors\" />
     <Folder Include="Pages\Dashboards\" />
+    <Folder Include="Pages\Settings\Components\" />
   </ItemGroup>
 
 </Project>
