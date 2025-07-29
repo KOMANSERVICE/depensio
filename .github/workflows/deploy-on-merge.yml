@@ -24,7 +24,10 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |
+            echo "Fermeture du site"
+            cd /home/komanatse/depensio
             docker compose -f docker-compose.prod.yml down
+            cd ..
             echo "Suppression de dossier exitant"
             sudo rm -rf depensio
             echo "➡️ Récupérer le pojet sur github"
