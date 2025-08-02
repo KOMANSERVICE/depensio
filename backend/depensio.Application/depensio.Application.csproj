@@ -16,8 +16,4 @@
     <ProjectReference Include="..\depensio.Domain\depensio.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UseCases\Settings\Commands\" />
-  </ItemGroup>
-
 </Project>

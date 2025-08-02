@@ -28,7 +28,7 @@ public class BoutiqueSettingService(
         throw new NotImplementedException();
     }
 
-    public async Task<string> GetSettingAsync(Guid boutiqueId, string key)
+    public async Task<SettingDTO> GetSettingAsync(Guid boutiqueId, string key)
     {
 
         var userId = _userContextService.GetUserId();
@@ -59,7 +59,7 @@ public class BoutiqueSettingService(
         //var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(setting.Value);
         //_cache.Set(cacheKey, value, TimeSpan.FromMinutes(30));
 
-        return setting.Value;
+        return setting;
     }
 
     public Task<bool> HasSettingAsync(Guid boutiqueId, string key)
@@ -67,31 +67,24 @@ public class BoutiqueSettingService(
         throw new NotImplementedException();
     }
 
-    public Task RemoveSettingAsync(Guid boutiqueId, string key)
-    {
-        throw new NotImplementedException();
-    }
 
-    public async Task SetSettingAsync<T>(Guid boutiqueId, string key, T value)
+    public async Task<Guid> UpsertAsync(SettingDTO setting)
     {
-        var jsonValue = JsonSerializer.Serialize(value);
-        await UpsertAsync(boutiqueId, key, jsonValue);
-        await _unitOfWork.SaveChangesDataAsync();
 
-        // Invalider le cache
-        var cacheKey = $"boutique_setting_{boutiqueId}_{key}";
-        _cache.Remove(cacheKey);
-    }
-
-    private async Task UpsertAsync(Guid boutiqueId, string key, string value)
-    {
+        var userId = _userContextService.GetUserId();
         // Rechercher le paramètre existant
-        var existingSetting = await _repository.FindAsync(bs => bs.BoutiqueId == BoutiqueId.Of(boutiqueId) && bs.Key == key);
+        var existingSetting = await _dbContext.Boutiques
+            .Where(b => b.Id == BoutiqueId.Of(setting.BoutiqueId)
+                        && b.UsersBoutiques.Any(ub => ub.UserId == userId))
+            .SelectMany(b => b.BoutiqueSettings)
+            .Where(s => s.Key == setting.Key)
+            .Select(p => new BoutiqueSetting())
+            .FirstOrDefaultAsync();
 
         if (existingSetting != null)
         {
             // Mise à jour du paramètre existant
-            existingSetting.Value = value;
+            existingSetting.Value = setting.Value;
             _repository.UpdateData(existingSetting);
         }
         else
@@ -99,14 +92,18 @@ public class BoutiqueSettingService(
             // Création d'un nouveau paramètre
             var newSetting = new BoutiqueSetting
             {
-                BoutiqueId = BoutiqueId.Of(boutiqueId),
-                Key = key,
-                Value = value
+                BoutiqueId = BoutiqueId.Of(setting.BoutiqueId),
+                Key = setting.Key,
+                Value = setting.Value
             };
 
             await _repository.AddDataAsync(newSetting);
             existingSetting = newSetting;
         }
+
+        await _unitOfWork.SaveChangesDataAsync();
+
+        return existingSetting.Id.Value;    
 
     }
 

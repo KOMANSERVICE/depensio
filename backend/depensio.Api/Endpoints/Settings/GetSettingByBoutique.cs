@@ -5,7 +5,7 @@ using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Settings;
 
-public record GetSettingByBoutiqueResponse(string Values);
+public record GetSettingByBoutiqueResponse(SettingDTO Settings);
 
 public class GetSettingByBoutique : ICarterModule
 {

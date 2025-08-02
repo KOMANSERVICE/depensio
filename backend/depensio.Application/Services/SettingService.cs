@@ -6,12 +6,10 @@ namespace depensio.Application.Services;
 public class SettingService : ISettingService
 {
 
-    public string GetSetting(string key)
+    public SettingDTO GetSetting(string key)
     {
         var settings = GetAllSettings();
-        var setting = settings.FirstOrDefault(s => s.Key == key) ?? new SettingDTO();
-
-        return setting.Value;
+        return settings.FirstOrDefault(s => s.Key == key) ?? new SettingDTO();
     }
 
     private List<SettingDTO> GetAllSettings()

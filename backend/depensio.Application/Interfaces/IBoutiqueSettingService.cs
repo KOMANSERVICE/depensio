@@ -2,9 +2,7 @@
 
 public interface IBoutiqueSettingService
 {
-    Task SetSettingAsync<T>(Guid boutiqueId, string key, T value);
+    Task<Guid> UpsertAsync(SettingDTO setting);
     Task<bool> HasSettingAsync(Guid boutiqueId, string key);
-    Task RemoveSettingAsync(Guid boutiqueId, string key);
-    Task<Dictionary<string, object>> GetAllSettingsAsync(Guid boutiqueId);
-    Task<string> GetSettingAsync(Guid boutiqueId, string key);
+    Task<SettingDTO> GetSettingAsync(Guid boutiqueId, string key);
 }

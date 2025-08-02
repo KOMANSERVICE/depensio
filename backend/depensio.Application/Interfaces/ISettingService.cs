@@ -2,5 +2,5 @@
 
 public interface ISettingService
 {
-    string GetSetting(string key);
+    SettingDTO GetSetting(string key);
 }

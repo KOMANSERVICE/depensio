@@ -43,7 +43,7 @@ public class Ean13GeneratorService(
             BoutiqueSettingKeys.PRODUCT_KEY
         );
 
-        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config);
+        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
 
         return result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
     }
