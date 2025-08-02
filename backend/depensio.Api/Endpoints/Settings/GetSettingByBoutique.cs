@@ -16,7 +16,7 @@ public class GetSettingByBoutique : ICarterModule
             var result = await sender.Send(new GetSettingByBoutiqueQuery(boutiqueId, key));
 
             var response = result.Adapt<GetSettingByBoutiqueResponse>();
-            var baseResponse = ResponseFactory.Success(response, "Liste des produire récuperés avec succès", StatusCodes.Status200OK);
+            var baseResponse = ResponseFactory.Success(response, "Liste des paramètre récuperés avec succès", StatusCodes.Status200OK);
 
             return Results.Ok(baseResponse);
         })

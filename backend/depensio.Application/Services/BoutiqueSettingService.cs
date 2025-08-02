@@ -70,22 +70,33 @@ public class BoutiqueSettingService(
 
     public async Task<Guid> UpsertAsync(SettingDTO setting)
     {
+        var settingExist = _settingService.GetSetting(setting.Key);
+        if(settingExist == null)
+        {
+            throw new BadRequestException($"Le paramètre '{setting.Key}' n'existe pas dans la configuration de l'application.");
+        }
 
         var userId = _userContextService.GetUserId();
         // Rechercher le paramètre existant
-        var existingSetting = await _dbContext.Boutiques
+        var existingBoutiqueSetting = await _dbContext.Boutiques
             .Where(b => b.Id == BoutiqueId.Of(setting.BoutiqueId)
                         && b.UsersBoutiques.Any(ub => ub.UserId == userId))
             .SelectMany(b => b.BoutiqueSettings)
             .Where(s => s.Key == setting.Key)
-            .Select(p => new BoutiqueSetting())
+            .Select(p => new BoutiqueSetting
+            {
+                Id = p.Id,
+                BoutiqueId = p.BoutiqueId,
+                Key = p.Key,
+                Value = p.Value
+            })
             .FirstOrDefaultAsync();
 
-        if (existingSetting != null)
+        if (existingBoutiqueSetting != null)
         {
             // Mise à jour du paramètre existant
-            existingSetting.Value = setting.Value;
-            _repository.UpdateData(existingSetting);
+            existingBoutiqueSetting.Value = setting.Value;
+            _repository.UpdateData(existingBoutiqueSetting);
         }
         else
         {
@@ -98,12 +109,12 @@ public class BoutiqueSettingService(
             };
 
             await _repository.AddDataAsync(newSetting);
-            existingSetting = newSetting;
+            existingBoutiqueSetting = newSetting;
         }
 
         await _unitOfWork.SaveChangesDataAsync();
 
-        return existingSetting.Id.Value;    
+        return existingBoutiqueSetting.Id.Value;    
 
     }
 

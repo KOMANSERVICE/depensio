@@ -21,6 +21,7 @@ public class VerifyMail : ICarterModule
             return Results.Created($"/verifymail/{response.Result}", response);
         })
         .WithName("verifymail")
+        .WithGroupName("Login")
         .Produces<VerifyMailResponse>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("verifymail")
