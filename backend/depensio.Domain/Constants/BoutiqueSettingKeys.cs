@@ -2,9 +2,11 @@
 
 public static class BoutiqueSettingKeys
 {
-    // Gestion des codes-barres (concept métier)
-    public const string BARCODE_GENERATION_MODE = "barcode.generation.mode";
-    public const string BARCODE_PREFIX = "barcode.prefix";
+    // Gestion des produits (concept métier)
+    public const string PRODUCT_KEY = "product.key";
+
+    public const string PRODUCT_BARCODE_GENERATION_MODE = "product.barcode.generation.mode";
+    public const string PRODUCT_BARCODE_PREFIX = "barcode.prefix";
 
     // Gestion des ventes (concept métier)
     public const string SALE_TAX_RATE = "sale.tax.rate";

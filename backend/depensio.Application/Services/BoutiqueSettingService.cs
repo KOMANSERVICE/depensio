@@ -1,15 +1,25 @@
-﻿using depensio.Domain.ValueObjects;
+﻿using depensio.Application.Models;
+using depensio.Application.UseCases.Settings.DTOs;
+using depensio.Domain.Abstractions;
+using depensio.Domain.Constants;
+using depensio.Domain.Enums;
+using depensio.Domain.Models;
+using depensio.Domain.ValueObjects;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
 namespace depensio.Application.Services;
 
 public class BoutiqueSettingService(
+    IDepensioDbContext _dbContext,
     IGenericRepository<BoutiqueSetting> _repository,
     IUnitOfWork _unitOfWork,
-    IMemoryCache _cache
+    IMemoryCache _cache,
+    IUserContextService _userContextService,
+    ISettingService _settingService
     ) : IBoutiqueSettingService
 {
 
@@ -18,22 +28,38 @@ public class BoutiqueSettingService(
         throw new NotImplementedException();
     }
 
-    public async Task<T?> GetSettingAsync<T>(Guid boutiqueId, string key, T? defaultValue = default)
+    public async Task<string> GetSettingAsync(Guid boutiqueId, string key)
     {
-        var cacheKey = $"boutique_setting_{boutiqueId}_{key}";
 
-        if (_cache.TryGetValue(cacheKey, out T? cachedValue))
-            return cachedValue;
+        var userId = _userContextService.GetUserId();
+        //var cacheKey = $"boutique_setting_{boutiqueId}_{key}";
 
-        var setting = await _repository.FindAsync(b => b.BoutiqueId == BoutiqueId.Of(boutiqueId) && b.Key == key);
+        //if (_cache.TryGetValue(cacheKey, out T? cachedValue))
+        //    return cachedValue;
+
+        //var setting = await _repository.FindAsync(b => b.BoutiqueId == BoutiqueId.Of(boutiqueId) && b.Key == key);
+
+        var setting = await _dbContext.Boutiques
+            .Where(b => b.Id == BoutiqueId.Of(boutiqueId)
+                        && b.UsersBoutiques.Any(ub => ub.UserId == userId))
+            .SelectMany(b => b.BoutiqueSettings)
+            .Where(s => s.Key == key)
+            .Select(p => new SettingDTO
+            {
+               Key = p.Key,
+               Value = p.Value
+            })
+            .FirstOrDefaultAsync();
 
         if (setting == null)
-            return defaultValue;
+        {
+            return _settingService.GetSetting(key);
+        }         
 
-        var value = JsonSerializer.Deserialize<T>(setting.Value);
-        _cache.Set(cacheKey, value, TimeSpan.FromMinutes(30));
+        //var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(setting.Value);
+        //_cache.Set(cacheKey, value, TimeSpan.FromMinutes(30));
 
-        return value;
+        return setting.Value;
     }
 
     public Task<bool> HasSettingAsync(Guid boutiqueId, string key)
