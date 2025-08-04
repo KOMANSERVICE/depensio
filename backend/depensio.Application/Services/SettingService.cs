@@ -23,7 +23,7 @@ public class SettingService : ISettingService
             {
                 "Id": "{{BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE}}",
                 "LabelValue": "Code Bar.",
-                "Value": {{BarcodeGenerationMode.Auto}},
+                "Value": "{{BarcodeGenerationMode.Auto}}",
                 "LabelText": "Préfixe Code Bar.",
                 "Text": "",
                 "Description": "Rendre la génération de code bar automatique, Ajouter egalement le préfixe."
