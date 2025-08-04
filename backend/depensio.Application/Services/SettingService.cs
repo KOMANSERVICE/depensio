@@ -27,7 +27,7 @@ public class SettingService : ISettingService
                 "LabelText": "Préfixe Code Bar.",
                 "Text": "",
                 "Description": "Rendre la génération de code bar automatique, Ajouter egalement le préfixe."
-            },
+            }
         ]
         """ }
         };
