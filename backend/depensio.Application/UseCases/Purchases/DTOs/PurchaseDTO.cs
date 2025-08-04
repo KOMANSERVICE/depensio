@@ -14,6 +14,6 @@ public record PurchaseDTO
     public string SupplierName { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public decimal TotalAmount => Items.Sum(item => item.Price * item.Quantity);
     public IEnumerable<PurchaseItemDTO> Items { get; set; } = new List<PurchaseItemDTO>();
+    public decimal TotalAmount => Items.Sum(item => item.Price * item.Quantity);
 }

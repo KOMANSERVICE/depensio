@@ -33,7 +33,7 @@
                            placeholder="Descripotion de l'achat"></InputTextArea>
         </div>
         <div class="col-span-6 flex items-start justify-start">
-            <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalPrice FCFA</p>
+            <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalAmount FCFA</p>
         </div>
         <div class="col-span-6 flex gap-2">
             <div>
@@ -245,7 +245,7 @@
             Quantity = purchaseItem.Quantity
         });
 
-        purchase.TotalPrice = purchase.Items.Sum(x => x.Price * x.Quantity);
+        purchase.TotalAmount = purchase.Items.Sum(x => x.Price * x.Quantity);
 
         purchaseItem = new();
     }
