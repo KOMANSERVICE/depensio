@@ -1,8 +1,8 @@
 ﻿namespace depensio.Shared.Pages.Boutique.Model;
-//public record CreateBoutiqueResponse(Guid Id);
+public record UpsetSettingByBoutiqueResponse(Guid Id);
 public record GetSettingByBoutiqueResponse(Setting Settings);
 
-//public record GetBoutiqueByUserResponse(IEnumerable<BoutiqueDTO> Boutiques);
+public record UpsetSettingByBoutiqueRequest(Setting Setting);
 
 public record Setting
 {

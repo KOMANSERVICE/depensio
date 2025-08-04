@@ -106,7 +106,7 @@
         var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);
         var settingCodeBar = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
 
-        mode = EnumHelper.ParseOrDefault<BarcodeGenerationMode>(settingCodeBar?.Value, BarcodeGenerationMode.Auto);
+        mode = EnumHelper.ParseOrDefault<BarcodeGenerationMode>(settingCodeBar?.Value.ToString(), BarcodeGenerationMode.Auto);
 
         isAuto = mode == BarcodeGenerationMode.Auto;
 
