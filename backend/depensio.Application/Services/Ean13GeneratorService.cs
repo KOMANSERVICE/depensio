@@ -1,4 +1,5 @@
-﻿using depensio.Application.Models;
+﻿using depensio.Application.Helpers;
+using depensio.Application.Models;
 using depensio.Domain.Constants;
 using depensio.Domain.Enums;
 using depensio.Domain.Settings;
@@ -16,7 +17,7 @@ public class Ean13GeneratorService(
     {
         var config = await GetBarcodeConfigAsync(boutiqueId);
 
-        switch (config.Value)
+        switch (EnumHelper.ParseOrDefault<BarcodeGenerationMode>(config.Value.ToString(), BarcodeGenerationMode.Auto) )
         {
             case BarcodeGenerationMode.Manual:
                 if (string.IsNullOrEmpty(manualBarcode))
