@@ -10,7 +10,7 @@ public record Purchase
     public string Title { get; set; } = string.Empty;
     public string SupplierName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public decimal TotalPrice { get; set; }
+    public decimal TotalAmount { get; set; }
     public List<PurchaseItem> Items { get; set; } = new List<PurchaseItem>();
 }
 

@@ -20,6 +20,7 @@ public class GetPurchaseByBoutiqueHandler(
             .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId)
                         && b.UsersBoutiques.Any(ub => ub.UserId == userId))
             .Include(b => b.Purchases)
+            .ThenInclude(p => p.PurchaseItems)
             .SelectMany(b => b.Purchases)
             .Select(p => new PurchaseDTO
             {
@@ -27,7 +28,10 @@ public class GetPurchaseByBoutiqueHandler(
                 BoutiqueId = p.BoutiqueId.Value,
                 SupplierName = p.SupplierName,
                 Title = p.Title,
-                Description = p.Description
+                Description = p.Description,
+                Items = p.PurchaseItems.Select(pi => new PurchaseItemDTO(
+                    pi.Id.Value,pi.ProductId.Value, pi.Price, pi.Quantity
+                )).ToList()
             })
             .ToListAsync();
 
