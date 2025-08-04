@@ -29,37 +29,52 @@
             <label for="description"
                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
             <InputTextArea id="description" @bind-Value="purchase.Description" rows="4"
-                      class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                      placeholder="Descripotion de l'achat"></InputTextArea>
+                           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="Descripotion de l'achat"></InputTextArea>
         </div>
-        <div class="col-span-6 flex gap-2 justify-center items-center">
-            <label for="total"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label> :
-            <span>@purchase.TotalPrice FCFA</span>
+        <div class="col-span-6 flex items-start justify-start">
+            <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalPrice FCFA</p>
         </div>
         <div class="col-span-6 flex gap-2">
-            <select @bind="purchaseItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                <option selected="">Choix de produit</option>
-                @foreach (var prod in products)
-                {
-                    <option value="@prod.Id">@prod.Name</option>
-                }                
-            </select>
-            <input  @bind="purchaseItem.Price" type="number" name="position" id="position"
-                   class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                   placeholder="e.g. Prix d'achat'">
-            <input @bind="purchaseItem.Quantity" type="number" name="position" id="position"
-                   class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                   placeholder="e.g. Quantité">
-            <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                    type="button" @onclick="AddItem">
-                <svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                          d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                          clip-rule="evenodd"></path>
-                </svg>
-            </button>
+            <div>
+                <label for="prodctId"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Produit</label>
+                <select @bind="purchaseItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                    <option selected="">Choix de produit</option>
+                    @foreach (var prod in products)
+                    {
+                        <option value="@prod.Id">@prod.Name</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="Prix"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix</label>
+                <input @bind="purchaseItem.Price" type="number" name="position" id="Prix"
+                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                       placeholder="e.g. Prix d'achat'">
+            </div>
+
+            <div>
+                <label for="Quantite"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantité</label>
+                <input @bind="purchaseItem.Quantity" type="number" name="position" id="Quantite"
+                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                       placeholder="e.g. Quantité">
+            </div>
+            <div class="flex items-end justify-end">
+                <label for="Quantite"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                        type="button" @onclick="AddItem">
+                    <svg class="w-5 h-5 -ml-1" fill="currentColor" viewBox="0 0 20 20"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                              clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
         <div class="col-span-6">
             <div class="overflow-x-auto">
@@ -102,7 +117,7 @@
                                             </div>
                                         </td>
                                         <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                            @item.ProductId
+                                            @(products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
                                         </td>
                                         <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
                                             @item.Price FCFA
@@ -141,8 +156,8 @@
 
     [Parameter]
     public IEnumerable<Product> products { get; set; }
-     
-    
+
+
     private bool isLoad = false;
     private Purchase purchase = new();
     private PurchaseItem purchaseItem = new();

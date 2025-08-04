@@ -252,3 +252,11 @@ Ajouter la cle dans ~/.ssh/authorized_keys sur le serveur distant
 # Probleme d'installation image docker
 sudo systemctl daemon-reexec
 sudo systemctl restart docker
+
+
+✅ Structure d’un code EAN-13 :
+Partie	Longueur	Description
+Préfixe (GS1)	3	Pays ou organisation (ex: 613)
+Code entreprise	4–5	Code assigné à l’entreprise
+Code produit	5–4	ID unique pour le produit
+Clé de contrôle	1	Calculée avec l’algorithme modulo
