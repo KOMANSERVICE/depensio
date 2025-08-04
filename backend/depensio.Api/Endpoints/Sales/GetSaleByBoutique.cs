@@ -6,7 +6,7 @@ namespace Depensio.Api.Endpoints.Sales;
 
 public record GetSaleByBoutiqueResponse(IEnumerable<SaleDTO> Sales);
 
-public class GetSaleByBoutique : ICarterModule
+public class GetSettingByBoutique : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {

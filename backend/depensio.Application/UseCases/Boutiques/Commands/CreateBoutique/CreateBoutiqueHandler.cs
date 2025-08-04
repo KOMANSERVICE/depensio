@@ -5,7 +5,7 @@ using depensio.Domain.ValueObjects;
 
 namespace depensio.Application.UserCases.Boutiques.Commands.CreateBoutique;
 
-public class CreateBoutiqueHandler(
+public class CreateSettingByBoutiqueHandler(
     IGenericRepository<Boutique> _boutiqueRepository,
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService

@@ -1,5 +1,9 @@
+@using depensio.Shared.Enums
+@using depensio.Shared.Helpers
+@using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Models
 @inject IProductService _productService;
+@inject IBoutiqueSettingService _boutiqueSettingService
 
 <LoadingComponent IsLoad="@isLoad" />
 
@@ -16,14 +20,19 @@
                        placeholder="Bonnet rouge" />
             <ValidationMessage For="@(() => product.Name)" />
         </div>
-        <div class="col-span-6 sm:col-span-3">
-            <label for="last-name"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Code bar</label>
-            <InputText type="text" @bind-Value="product.Barcode" name="last-name" id="last-name"
-                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="Code bar" />
-            <ValidationMessage For="@(() => product.Barcode)" />
-        </div>
+        @if (!isAuto)
+        { 
+            <div class="col-span-6 sm:col-span-3">
+              
+                <label for="last-name"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Code bar</label>
+                <InputText type="text" @bind-Value="product.Barcode" name="last-name" id="last-name"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="Code bar" />
+                <ValidationMessage For="@(() => product.Barcode)" />
+            
+            </div>
+        }
         <div class="col-span-6 sm:col-span-3">
             <label for="price"
                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix de vente</label>
@@ -73,21 +82,35 @@
 
     [Parameter]
     public Guid BoutiqueId { get; set; }
-    
+
     private bool isLoad = false;
     private Product product = new();
     private ErrorMessage errorMessage = new();
 
     private EditContext editContext;
     private ValidationMessageStore messageStore;
+    BarcodeGenerationMode mode;
+    bool isAuto = true;
+    //private BoutiqueSettingValue settingCodeBar;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         editContext = new EditContext(product);
         messageStore = new ValidationMessageStore(editContext);
 
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+
+
+        var setting = await _boutiqueSettingService.GetSettingByBoutique(BoutiqueId, BoutiqueSettingKeys.PRODUCT_KEY);
+        var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);
+        var settingCodeBar = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
+
+        mode = EnumHelper.ParseOrDefault<BarcodeGenerationMode>(settingCodeBar?.Value.ToString(), BarcodeGenerationMode.Auto);
+
+        isAuto = mode == BarcodeGenerationMode.Auto;
+
+
     }
 
     private async Task HandleCreateProduit()

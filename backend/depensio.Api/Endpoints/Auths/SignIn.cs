@@ -22,6 +22,7 @@ public class SignIn : ICarterModule
             return Results.Ok(response);
         })
         .WithName("SignIn")
+        .WithGroupName("Login")
         .Produces<SignInResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

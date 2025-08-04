@@ -6,3 +6,4 @@ global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.Tokens;
 global using depensio.Application.UserCases.Auth.DTOs;
 global using BuildingBlocks.Responses;
+global using depensio.Application.DTOs;

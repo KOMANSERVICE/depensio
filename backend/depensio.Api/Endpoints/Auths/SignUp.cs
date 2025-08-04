@@ -22,6 +22,7 @@ public class SignUp : ICarterModule
             return Results.Created($"/signup/{response.Result}", response);
         })
         .WithName("SignUp")
+        .WithGroupName("Login")
         .Produces<SignUpResponse>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("SignUp")

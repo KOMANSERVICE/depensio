@@ -23,9 +23,10 @@ public static class DependencyInjection
 
         services.AddFeatureManagement();
         //services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
-        services.AddScoped<IBarcodeService, BarcodeService>();
+        services.AddScoped<IBarcodeService, Ean13GeneratorService>();
         services.AddScoped<IBoutiqueSettingService, BoutiqueSettingService>();
-
+        services.AddScoped<ISettingService, SettingService>();
+        
         return services;
     }
 }

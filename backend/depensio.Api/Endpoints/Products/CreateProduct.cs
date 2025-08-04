@@ -24,6 +24,7 @@ public class CreateProduct : ICarterModule
             return Results.Created($"/product/{response.Id}", baseResponse);
         })
         .WithName("CreateProduct")
+        .WithGroupName("Produits")
         .Produces<BaseResponse<CreateProductResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

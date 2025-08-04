@@ -1,13 +1,19 @@
 @page "/settings/{boutiqueId:guid}/product"
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@using depensio.Shared.Enums
+@using depensio.Shared.Helpers
+@using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Components
 @using depensio.Shared.Pages.Produits.Models
 @inherits FlowbitePage
 @layout MainLayout
-@inject IProductService _productService
+@inject IBoutiqueSettingService _boutiqueSettingService
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 
 
+<LoadingComponent IsLoad="@isLoad" />
 <div class="border-b border-gray-200 dark:border-gray-700">
     <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
         <li class="me-2">
@@ -47,60 +53,42 @@
 
 <div class="grid grid-cols-1 px-4 xl:grid-cols-2 xl:gap-4">
     <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800 xl:mb-0">
-        <div class="flow-root">
-            <h3 class="text-xl font-semibold dark:text-white">Alerts & Notifications</h3>
-            <p class="text-sm font-normal text-gray-500 dark:text-gray-400">You can set up Themesberg to get notifications</p>
-            <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                <!-- Item 1 -->
-                <div class="flex items-center justify-between py-4">
-                    <div class="flex flex-col flex-grow">
-                        <div class="text-lg font-semibold text-gray-900 dark:text-white">Company News</div>
-                        <div class="text-base font-normal text-gray-500 dark:text-gray-400">Get Themesberg news, announcements, and product updates</div>
+        @if (@settingCodeBar != null)
+        {
+
+            <EditForm Model="formModel" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="flow-root">
+                    <h3 class="text-xl font-semibold dark:text-white">Alerts & Notifications</h3>
+                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">You can set up Themesberg to get notifications</p>
+                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+
+                        <div class="flex items-center justify-between py-4">
+                            <div class="flex flex-col flex-grow">
+                                <div class="text-lg font-semibold text-gray-900 dark:text-white">@settingCodeBar.LabelValue</div>
+                                <div class="text-base font-normal text-gray-500 dark:text-gray-400">@settingCodeBar.Description</div>
+                            </div>
+                            <select @bind="formModel.GenerationMode" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                @*  <option selected="">Choix de produit</option> *@
+                                @foreach (var mode in Enum.GetValues<BarcodeGenerationMode>())
+                                {
+                                    <option value="@mode">@GetDisplayName(mode)</option>
+                                }
+                            </select>
+                        </div>
+                        <ValidationMessage For="@(() => formModel.GenerationMode)" />
+
                     </div>
-                    <div class="relative inline-block w-11 h-5">
-                        <input checked id="switch-component" type="checkbox" class="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-primary-800 cursor-pointer transition-colors duration-300" />
-                        <label for="switch-component" class="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer">
-                        </label>
+                    <div class="mt-6">
+                        <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Enregistrer</button>
                     </div>
                 </div>
-                <!-- Item 2 -->
-                <div class="flex items-center justify-between py-4">
-                    <div class="flex flex-col flex-grow">
-                        <div class="text-lg font-semibold text-gray-900 dark:text-white">Account Activity</div>
-                        <div class="text-base font-normal text-gray-500 dark:text-gray-400">Get important notifications about you or activity you've missed</div>
-                    </div>
-                    <label for="account-activity" class="relative flex items-center cursor-pointer">
-                        <input type="checkbox" id="account-activity" class="sr-only" checked>
-                        <span class="h-6 bg-gray-200 border border-gray-200 rounded-full w-11 toggle-bg dark:bg-gray-700 dark:border-gray-600"></span>
-                    </label>
-                </div>
-                <!-- Item 3 -->
-                <div class="flex items-center justify-between py-4">
-                    <div class="flex flex-col flex-grow">
-                        <div class="text-lg font-semibold text-gray-900 dark:text-white">Meetups Near You</div>
-                        <div class="text-base font-normal text-gray-500 dark:text-gray-400">Get an email when a Dribbble Meetup is posted close to my location</div>
-                    </div>
-                    <label for="meetups" class="relative flex items-center cursor-pointer">
-                        <input type="checkbox" id="meetups" class="sr-only" checked>
-                        <span class="h-6 bg-gray-200 border border-gray-200 rounded-full w-11 toggle-bg dark:bg-gray-700 dark:border-gray-600"></span>
-                    </label>
-                </div>
-                <!-- Item 4 -->
-                <div class="flex items-center justify-between pt-4">
-                    <div class="flex flex-col flex-grow">
-                        <div class="text-lg font-semibold text-gray-900 dark:text-white">New Messages</div>
-                        <div class="text-base font-normal text-gray-500 dark:text-gray-400">Get Themsberg news, announcements, and product updates</div>
-                    </div>
-                    <label for="new-messages" class="relative flex items-center cursor-pointer">
-                        <input type="checkbox" id="new-messages" class="sr-only">
-                        <span class="h-6 bg-gray-200 border border-gray-200 rounded-full w-11 toggle-bg dark:bg-gray-700 dark:border-gray-600"></span>
-                    </label>
-                </div>
-            </div>
-            <div class="mt-6">
-                <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Save all</button>
-            </div>
-        </div>
+
+            </EditForm>
+
+        }
+
     </div>
     <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800 xl:mb-0">
         <div class="flow-root">
@@ -113,10 +101,11 @@
                         <div class="text-lg font-semibold text-gray-900 dark:text-white">Rating reminders</div>
                         <div class="text-base font-normal text-gray-500 dark:text-gray-400">Send an email reminding me to rate an item a week after purchase</div>
                     </div>
-                    <label for="rating-reminders" class="relative flex items-center cursor-pointer">
-                        <input type="checkbox" id="rating-reminders" class="sr-only">
-                        <span class="h-6 bg-gray-200 border border-gray-200 rounded-full w-11 toggle-bg dark:bg-gray-700 dark:border-gray-600"></span>
-                    </label>
+                    <div class="relative inline-block w-11 h-5">
+                        <input checked id="switch-component" type="checkbox" class="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-primary-800 cursor-pointer transition-colors duration-300" />
+                        <label for="switch-component" class="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer">
+                        </label>
+                    </div>
                 </div>
                 <!-- Item 2 -->
                 <div class="flex items-center justify-between py-4">
@@ -153,7 +142,7 @@
                 </div>
             </div>
             <div class="mt-6">
-                <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Save all</button>
+                <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Enregistrer</button>
             </div>
         </div>
     </div>
@@ -162,5 +151,74 @@
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
+    private bool isLoad = false;
+
+    private BoutiqueSettingValue settingCodeBar;
+    private ProductFormModel formModel = new();
+
+    private EditContext editContext;
+    private ValidationMessageStore messageStore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var setting = await _boutiqueSettingService.GetSettingByBoutique(boutiqueId, BoutiqueSettingKeys.PRODUCT_KEY);
+        var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);
+        settingCodeBar = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
+
+        formModel.GenerationMode = EnumHelper.ParseOrDefault<BarcodeGenerationMode>(settingCodeBar.Value.ToString(), BarcodeGenerationMode.Auto);
+    }
+
+
+    private async void HandleValidSubmit()
+    {
+        //isLoad = true;
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingByBoutique(boutiqueId, BoutiqueSettingKeys.PRODUCT_KEY);
+
+            if (setting?.Data?.Settings?.Value is not string json)
+            {
+                Console.Error.WriteLine("Erreur : Valeur des paramètres produit non disponible ou invalide.");
+                return;
+            }
+
+            var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+            if (result is null)
+            {
+                Console.Error.WriteLine("Erreur de désérialisation des paramètres.");
+                return;
+            }
+
+            var barcodeSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
+            if (barcodeSetting is not null)
+            {
+                barcodeSetting.Value = formModel.GenerationMode.ToString();
+            }
+
+            setting.Data.Settings.Value = JsonSerializer.Serialize(result);
+            setting.Data.Settings.BoutiqueId = boutiqueId;
+
+            var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
+                new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
+            );
+        }
+        catch
+        {
+            
+        }finally
+        {
+            //isLoad = false;
+        }
+      
+
+    }
+
+
+    private string GetDisplayName(Enum value)
+    {
+        var field = value.GetType().GetField(value.ToString());
+        var attr = field?.GetCustomAttribute<DisplayAttribute>();
+        return attr?.Name ?? value.ToString();
+    }
 
 }
