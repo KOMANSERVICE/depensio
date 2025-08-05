@@ -27,6 +27,13 @@ public class SettingService : ISettingService
                 "LabelText": "Préfixe Code Bar.",
                 "Text": "",
                 "Description": "Rendre la génération de code bar automatique, Ajouter egalement le préfixe."
+            },{
+                "Id": "{{BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE}}",
+                "LabelValue": "Stock automatique",
+                "Value": "true",
+                "LabelText": "Préfixe Code Bar.",
+                "Text": "",
+                "Description": "Coché pour rendre la gestion du stock automatique sinon la gestion du stock sera manuel"
             }
         ]
         """ }

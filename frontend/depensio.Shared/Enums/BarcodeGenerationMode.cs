@@ -15,8 +15,7 @@ public enum BarcodeGenerationMode
 
 public class ProductFormModel
 {
-    [Required]
     public BarcodeGenerationMode GenerationMode { get; set; } = BarcodeGenerationMode.Manual;
 
-    // ... autres propriétés (ex: Barcode, Name, etc.)
+    public bool StockAuto { get; set; } = true;
 }

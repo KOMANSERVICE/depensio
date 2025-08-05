@@ -39,7 +39,7 @@ public class BoutiqueSettingService(
 
         //var setting = await _repository.FindAsync(b => b.BoutiqueId == BoutiqueId.Of(boutiqueId) && b.Key == key);
 
-        var setting = await _dbContext.Boutiques
+        var settingBoutique = await _dbContext.Boutiques
             .Where(b => b.Id == BoutiqueId.Of(boutiqueId)
                         && b.UsersBoutiques.Any(ub => ub.UserId == userId))
             .SelectMany(b => b.BoutiqueSettings)
@@ -51,15 +51,28 @@ public class BoutiqueSettingService(
             })
             .FirstOrDefaultAsync();
 
-        if (setting == null)
+        var settings = _settingService.GetSetting(key);
+
+        if (settingBoutique == null)
         {
-            return _settingService.GetSetting(key);
-        }         
+            return settings;
+        }
+        
+        if(settingBoutique.Value.Equals(settings.Value))
+        {
+            return settingBoutique;
+        }
 
-        //var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(setting.Value);
+        var resultBoutique = JsonSerializer.Deserialize<List<BoutiqueValue>>(settingBoutique.Value);
+        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(settings.Value);
         //_cache.Set(cacheKey, value, TimeSpan.FromMinutes(30));
+        var allSettings = resultBoutique
+        .Union(result.Where(r => !resultBoutique.Any(rb => rb.Id == r.Id)))
+        .ToList();
 
-        return setting;
+        settingBoutique.Value = JsonSerializer.Serialize(allSettings);
+
+        return settingBoutique;
     }
 
     public Task<bool> HasSettingAsync(Guid boutiqueId, string key)
