@@ -11,6 +11,7 @@ public record Purchase
     public string SupplierName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
+    public decimal TotalQuantity { get; set; }
     public List<PurchaseItem> Items { get; set; } = new List<PurchaseItem>();
 }
 

@@ -9,7 +9,7 @@
 
         <ApexPointSeries TItem="SaleSummary"
                          Items="SaleSummarys"
-                         Name="Revenue"
+                         Name="Montant total"
                          XValue="@(e => e.ProductName)"
                          YValue="@(e => e.TotalRevenue)"
                          OrderByDescending="e=>e.Y"
@@ -30,7 +30,6 @@
     {
         //SaleSummarys = (await _saleService.GetSaleSummaryByBoutiqueAsync()).ToList();
         //data = (await GraphService.GetSalesByProductAsync()).ToList();
-        Console.WriteLine(SaleSummarys);
     }
 
 
