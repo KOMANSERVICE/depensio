@@ -1,11 +1,17 @@
-﻿using depensio.Application.UseCases.Products.DTOs;
+﻿using depensio.Application.Helpers;
+using depensio.Application.Models;
+using depensio.Application.UseCases.Products.DTOs;
+using depensio.Domain.Constants;
+using depensio.Domain.Models;
 using depensio.Domain.ValueObjects;
+using System.Text.Json;
 
 namespace depensio.Application.UseCases.Products.Queries.GetProductByBoutique;
 
 
 public class GetProductByBoutiqueHandler(
     IDepensioDbContext dbContext,
+    IBoutiqueSettingService _settingService,
     IUserContextService _userContextService)
     : IQueryHandler<GetProductByBoutiqueQuery, GetProductByBoutiqueResult>
 {
@@ -14,31 +20,37 @@ public class GetProductByBoutiqueHandler(
 
         var userId = _userContextService.GetUserId();
 
-        //var userProduct = await dbContext.Boutiques
-        //    .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId) && b.BoutiquesBoutiques.Any(ub => ub.BoutiqueId == userId))
-        //    .Select(b => new ProductDTO(
-        //        b.Products.,
-        //        b.Name,
-        //        b.Location
-        //    ))
-        //    .ToListAsync();
+        var config = await _settingService.GetSettingAsync(
+            request.BoutiqueId,
+            BoutiqueSettingKeys.PRODUCT_KEY
+        );
+
+        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
+
+        var stockSetting = result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
+        var stockIsAuto = BoolHelper.ToBool(stockSetting.Value.ToString());
 
         var products = await dbContext.Boutiques
-            .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId)
-                        && b.UsersBoutiques.Any(ub => ub.UserId == userId))
-            .Include(b => b.Products)
-            .SelectMany(b => b.Products)
-            .Select(p => new ProductDTO(
-                p.Id.Value,
-                p.BoutiqueId.Value,
-                p.Name,
-                p.Barcode,
-                p.CostPrice,
-                p.Price,
-                p.Stock
-            ))
-            .ToListAsync();
-
+                    .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId)
+                                && b.UsersBoutiques.Any(ub => ub.UserId == userId))
+                    .Include(b => b.Products)
+                        .ThenInclude(p => p.PurchaseItems)
+                    .Include(b => b.Products)
+                        .ThenInclude(p => p.SaleItems)
+                    .SelectMany(b => b.Products)
+                    .Select(p => new ProductDTO(
+                        p.Id.Value,
+                        p.BoutiqueId.Value,
+                        p.Name,
+                        p.Barcode,
+                        p.CostPrice,
+                        p.Price,
+                        (stockIsAuto
+                        ? p.PurchaseItems.Sum(pi => pi.Quantity) - p.SaleItems.Sum(si => si.Quantity) : 
+                        p.Stock)
+                    ))
+                    .ToListAsync();
+     
 
         return new GetProductByBoutiqueResult(products);
     }
