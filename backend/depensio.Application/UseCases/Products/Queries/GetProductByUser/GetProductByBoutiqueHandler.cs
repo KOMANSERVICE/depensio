@@ -43,8 +43,8 @@ public class GetProductByBoutiqueHandler(
                         p.BoutiqueId.Value,
                         p.Name,
                         p.Barcode,
-                        p.CostPrice,
                         p.Price,
+                        p.CostPrice,
                         (stockIsAuto
                         ? p.PurchaseItems.Sum(pi => pi.Quantity) - p.SaleItems.Sum(si => si.Quantity) : 
                         p.Stock)

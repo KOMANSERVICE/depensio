@@ -45,10 +45,10 @@ public class SettingService : ISettingService
                 "Value": "false",
                 "LabelText": "Pourcentage de reduction maximun",
                 "Text": "100",
-                "Description": "Lors de la vente, à la caisse, permttre la modification du prix de vente"
+                "Description": "Lors de la vente, à la caisse, permettre la modification du prix de vente"
             },{
                 "Id": "{{BoutiqueSettingKeys.VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO}}",
-                "LabelValue": "Vendre avec stock 0",
+                "LabelValue": "Vendre avec stock zéro (0)",
                 "Value": "true",
                 "LabelText": "Préfixe Code Bar.",
                 "Text": "",
