@@ -40,3 +40,66 @@ html, body {
 .feature-card:hover {
     transform: scale(1.03);
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #825513;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6b460f;
+}
+
+/* Animation for scanning */
+@keyframes scan {
+    0% {
+        top: 0;
+    }
+
+    100% {
+        top: 100%;
+    }
+}
+
+.scan-animation {
+    position: relative;
+    overflow: hidden;
+}
+
+    .scan-animation::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #825513;
+        opacity: 0.2;
+        animation: scan 1.5s linear infinite;
+    }
+
+.scanner-animation {
+    animation: scan2 2s infinite;
+}
+
+@keyframes scan2 {
+    0% {
+        box-shadow: 0 0 0 0 rgba(130, 85, 19, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(130, 85, 19, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(130, 85, 19, 0);
+    }
+}

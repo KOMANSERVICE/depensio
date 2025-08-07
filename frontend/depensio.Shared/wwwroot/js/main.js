@@ -119,5 +119,35 @@ window.depensio.initialized = function () {
         });
     }
 
-    console.log('?? Scripts initiaux chargés.');
+    const scanTab = document.getElementById('scan-tab');
+    const manualTab = document.getElementById('manual-tab');
+    const scanSection = document.getElementById('scan-section');
+    const manualSection = document.getElementById('manual-section');
+    const scannerAnimation = document.querySelector('.scanner-animation');
+    const barcodeInput = document.getElementById('barcode-input');
+
+    if (scanTab && manualTab && scanSection && manualSection && scannerAnimation && barcodeInput) {
+
+        // Tab switching
+        scanTab.addEventListener('click', function () {
+            this.classList.add('primary-text', 'border-b-2', 'primary-border');
+            manualTab.classList.remove('primary-text', 'border-b-2', 'primary-border');
+            manualTab.classList.add('text-gray-500');
+            scanSection.classList.remove('hidden');
+            manualSection.classList.add('hidden');
+        });
+
+        manualTab.addEventListener('click', function () {
+            this.classList.add('primary-text', 'border-b-2', 'primary-border');
+            scanTab.classList.remove('primary-text', 'border-b-2', 'primary-border');
+            scanTab.classList.add('text-gray-500');
+            manualSection.classList.remove('hidden');
+            scanSection.classList.add('hidden');
+        });
+
+        // Focus barcode input when scanner area is clicked
+        scannerAnimation.addEventListener('click', function () {
+            barcodeInput.focus();
+        });
+    }
 }

@@ -16,6 +16,7 @@ public enum BarcodeGenerationMode
 public class ProductFormModel
 {
     public BarcodeGenerationMode GenerationMode { get; set; } = BarcodeGenerationMode.Manual;
-
     public bool StockAuto { get; set; } = true;
+    public bool AutoSaisiPrix { get; set; } = false;
+    public bool AutoVenteProduitSkockZero { get; set; } = true;
 }

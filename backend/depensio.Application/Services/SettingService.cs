@@ -22,18 +22,37 @@ public class SettingService : ISettingService
         [
             {
                 "Id": "{{BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE}}",
-                "LabelValue": "Code Bar.",
+                "LabelValue": "Code Barre",
                 "Value": "{{BarcodeGenerationMode.Auto}}",
-                "LabelText": "Préfixe Code Bar.",
+                "LabelText": "Préfixe Code Barre",
                 "Text": "",
                 "Description": "Rendre la génération de code bar automatique, Ajouter egalement le préfixe."
             },{
                 "Id": "{{BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE}}",
                 "LabelValue": "Stock automatique",
                 "Value": "true",
-                "LabelText": "Préfixe Code Bar.",
+                "LabelText": "Préfixe Code Barre",
                 "Text": "",
                 "Description": "Coché pour rendre la gestion du stock automatique sinon la gestion du stock sera manuel"
+            }
+        ]
+        """ },
+             new SettingDTO { Key = BoutiqueSettingKeys.VENTE_KEY, Value = $$"""
+        [
+            {
+                "Id": "{{BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX}}",
+                "LabelValue": "Autoriser la modification du prix",
+                "Value": "false",
+                "LabelText": "Pourcentage de reduction maximun",
+                "Text": "100",
+                "Description": "Lors de la vente, à la caisse, permettre la modification du prix de vente"
+            },{
+                "Id": "{{BoutiqueSettingKeys.VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO}}",
+                "LabelValue": "Vendre avec stock zéro (0)",
+                "Value": "true",
+                "LabelText": "Préfixe Code Bar.",
+                "Text": "",
+                "Description": "Lors de la vente, à la caisse, vous ou vos employer pourrons selectionner un produit en rupture de stock"
             }
         ]
         """ }
