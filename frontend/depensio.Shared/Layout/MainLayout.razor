@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavManager
+@inject IJSRuntime JS
 
 <NavBarDashboard OnAfterToggleSidebar="()=>{
     isSidebarOpen = !isSidebarOpen;
@@ -37,6 +38,14 @@
             {
                 boutiqueId = id;
             }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("depensio.initialized");
         }
     }
 }
