@@ -4,93 +4,62 @@
 @inject IFormFactor FormFactor
 @layout HomeLayout
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Depensio - Acceuil</PageTitle>
 @* 
  *@
 
-<section class="bg-gradient-to-r from-primary-700/10 to-primary-700/5 py-20">
+<!-- Hero Section -->
+<section id="home" class="bg-gradient-to-r from-primary-700 to-yellow-700 text-white py-20">
     <div class="container mx-auto px-6 flex flex-col md:flex-row items-center">
         <div class="md:w-1/2 mb-10 md:mb-0">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6">Découvrez notre solution innovante</h1>
-            <p class="text-lg text-gray-600 mb-8">Une plateforme complète pour booster votre productivité et simplifier votre quotidien professionnel.</p>
-            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <button class="px-6 py-3 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-700/90 transition">Essai gratuit</button>
-                <button class="px-6 py-3 border border-primary-700 text-primary-700 font-medium rounded-lg hover:bg-primary-700/10 transition">Voir la démo</button>
+            <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-6">Transformez votre travail avec notre Depensiofessionnelle</h1>
+            <p class="text-xl mb-8 opacity-90">L'outil tout-en-un pour optimiser votre productivité et simplifier vos processus métiers.</p>
+            <div class="flex space-x-4">
+                <a href="#" class="px-8 py-3 bg-white text-primary-700 font-bold rounded-md hover:bg-opacity-90 transition">Essai gratuit</a>
+                <a href="#" class="px-8 py-3 border-2 border-white text-white font-bold rounded-md hover:bg-white hover:text-primary-700 transition">Voir la démo</a>
             </div>
         </div>
         <div class="md:w-1/2 flex justify-center">
-            <img src="https://illustrations.popsy.co/amber/digital-nomad.svg" alt="Hero Illustration" class="w-full max-w-md">
+            <div class="relative w-full max-w-md">
+                <div class="absolute -top-6 -left-6 w-32 h-32 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+                <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-primary-700 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+                <div class="relative bg-white rounded-lg shadow-xl p-4">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Dashboard" class="rounded-md">
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
-<section id="features" class="py-20 bg-white">
+<!-- About Section -->
+<section id="about" class="py-20 bg-white">
     <div class="container mx-auto px-6">
         <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Nos fonctionnalités</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Découvrez les fonctionnalités puissantes qui rendent notre outil indispensable pour votre entreprise.</p>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Notre solution en quelques mots</h2>
+            <div class="w-20 h-1 bg-primary-700 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Une plateforme intuitive conçue pour répondre aux besoins des professionnels exigeants, combinant puissance et simplicité d'utilisation.</p>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Feature 1 -->
-            <div class="bg-white rounded-xl shadow-md p-8 feature-card transition duration-300">
-                <div class="w-14 h-14 bg-primary-700/10 rounded-full flex items-center justify-center mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3D2C00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path>
-                        <polyline points="2.32 6.16 12 11 21.68 6.16"></polyline>
-                        <line x1="12" y1="22.76" x2="12" y2="11"></line>
-                    </svg>
+        <div class="grid md:grid-cols-3 gap-10">
+            <div class="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition">
+                <div class="w-16 h-16 bg-primary-700 bg-opacity-10 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-bolt text-primary-700 text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-3">Performance optimale</h3>
-                <p class="text-gray-600">Notre plateforme est conçue pour offrir des performances exceptionnelles même avec des charges de travail importantes.</p>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Rapidité</h3>
+                <p class="text-gray-600">Exécutez vos tâches en un temps record grâce à une interface optimisée et des processus automatisés.</p>
             </div>
-
-            <!-- Feature 2 -->
-            <div class="bg-white rounded-xl shadow-md p-8 feature-card transition duration-300">
-                <div class="w-14 h-14 bg-primary-700/10 rounded-full flex items-center justify-center mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3D2C00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
+            <div class="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition">
+                <div class="w-16 h-16 bg-primary-700 bg-opacity-10 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-shield-alt text-primary-700 text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-3">Sécurité renforcée</h3>
-                <p class="text-gray-600">Protection avancée de vos données avec chiffrement de bout en bout et authentification multi-facteurs.</p>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Sécurité</h3>
+                <p class="text-gray-600">Vos données sont protégées par des normes de sécurité de niveau bancaire et des sauvegardes automatiques.</p>
             </div>
-
-            <!-- Feature 3 -->
-            <div class="bg-white rounded-xl shadow-md p-8 feature-card transition duration-300">
-                <div class="w-14 h-14 bg-primary-700/10 rounded-full flex items-center justify-center mb-6">
+            <div class="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition">
+                <div class="w-16 h-16 bg-primary-700 bg-opacity-10 rounded-full flex items-center justify-center mb-6">
                     <i class="fas fa-sync-alt text-primary-700 text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-3">Synchronisation en temps réel</h3>
-                <p class="text-gray-600">Toutes vos données sont synchronisées instantanément sur tous vos appareils pour un accès permanent.</p>
-            </div>
-
-            <!-- Feature 4 -->
-            <div class="bg-white rounded-xl shadow-md p-8 feature-card transition duration-300">
-                <div class="w-14 h-14 bg-primary-700/10 rounded-full flex items-center justify-center mb-6">
-                    <i class="fas fa-chart-line text-primary-700 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-3">Analyses avancées</h3>
-                <p class="text-gray-600">Tableaux de bord personnalisables avec des analyses approfondies pour prendre des décisions éclairées.</p>
-            </div>
-
-            <!-- Feature 5 -->
-            <div class="bg-white rounded-xl shadow-md p-8 feature-card transition duration-300">
-                <div class="w-14 h-14 bg-primary-700/10 rounded-full flex items-center justify-center mb-6">
-                    <i class="fas fa-users-cog text-primary-700 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-3">Gestion d'équipe</h3>
-                <p class="text-gray-600">Attribuez des rôles, gérez les permissions et collaborez efficacement avec votre équipe en un seul endroit.</p>
-            </div>
-
-            <!-- Feature 6 -->
-            <div class="bg-white rounded-xl shadow-md p-8 feature-card transition duration-300">
-                <div class="w-14 h-14 bg-primary-700/10 rounded-full flex items-center justify-center mb-6">
-                    <i class="fas fa-plug text-primary-700 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-3">Intégrations multiples</h3>
-                <p class="text-gray-600">Connectez facilement notre solution à vos outils préférés grâce à notre API et nos intégrations natives.</p>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Flexibilité</h3>
+                <p class="text-gray-600">Adaptez l'outil à vos besoins spécifiques grâce à des modules personnalisables et une API ouverte.</p>
             </div>
         </div>
     </div>
@@ -98,145 +67,81 @@
 
 <!-- Pricing Section -->
 <Pricing />
-@* <section id="pricing" class="py-20 bg-gray-50">
+
+<!-- Features Section -->
+<section id="features" class="py-20 bg-white">
     <div class="container mx-auto px-6">
         <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Nos tarifs</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Choisissez le plan qui correspond à vos besoins. Tous nos plans incluent un essai gratuit de 14 jours.</p>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Nos fonctionnalités clés</h2>
+            <div class="w-20 h-1 bg-primary-700 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Découvrez ce qui rend notre solution indispensable pour votre activité.</p>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Free Plan -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden price-card transition duration-300">
-                <div class="p-8 border-b border-gray-200">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Gratuit</h3>
-                    <p class="text-gray-600 mb-6">Parfait pour essayer notre plateforme</p>
-                    <div class="mb-6">
-                        <span class="text-4xl font-bold text-gray-800">0€</span>
-                        <span class="text-gray-600">/mois</span>
+        <div class="grid md:grid-cols-2 gap-12">
+            <div class="flex">
+                <div class="mr-6">
+                    <div class="w-12 h-12 rounded-full bg-primary-700 bg-opacity-10 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-primary-700 text-xl"></i>
                     </div>
-                    <button class="w-full px-4 py-2 border border-primary-700 text-primary-700 font-medium rounded-lg hover:bg-primary-700/10 transition">Choisir ce plan</button>
                 </div>
-                <div class="p-8">
-                    <ul class="space-y-3">
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> 1 utilisateur</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> 5GB de stockage</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Fonctions de base</li>
-                        <li class="flex items-center text-gray-400"><i class="fas fa-times text-red-400 mr-2"></i> Support prioritaire</li>
-                        <li class="flex items-center text-gray-400"><i class="fas fa-times text-red-400 mr-2"></i> Analyses avancées</li>
-                    </ul>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Tableaux de bord personnalisables</h3>
+                    <p class="text-gray-600">Visualisez vos indicateurs clés avec des graphiques et widgets adaptés à vos besoins métiers.</p>
                 </div>
             </div>
-
-            <!-- Débutant Plan -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden price-card transition duration-300">
-                <div class="bg-primary-700/10 p-8 border-b border-gray-200">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Débutant</h3>
-                    <p class="text-gray-600 mb-6">Idéal pour les petites entreprises</p>
-                    <div class="mb-6">
-                        <span class="text-4xl font-bold text-gray-800">9€</span>
-                        <span class="text-gray-600">/mois</span>
+            <div class="flex">
+                <div class="mr-6">
+                    <div class="w-12 h-12 rounded-full bg-primary-700 bg-opacity-10 flex items-center justify-center">
+                        <i class="fas fa-tasks text-primary-700 text-xl"></i>
                     </div>
-                    <button class="w-full px-4 py-2 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-700/90 transition">Choisir ce plan</button>
                 </div>
-                <div class="p-8">
-                    <ul class="space-y-3">
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> 3 utilisateurs</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> 20GB de stockage</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Toutes fonctions de base</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Support par email</li>
-                        <li class="flex items-center text-gray-400"><i class="fas fa-times text-red-400 mr-2"></i> Analyses avancées</li>
-                    </ul>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Gestion de projets avancée</h3>
+                    <p class="text-gray-600">Planifiez, suivez et collaborez sur vos projets avec des outils intégrés de gestion des tâches.</p>
                 </div>
             </div>
-
-            <!-- Standard Plan -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden price-card transition duration-300 transform scale-105 z-10">
-                <div class="bg-primary-700 text-white p-8 border-b border-primary-700/20">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="text-xl font-semibold mb-2">Standard</h3>
-                            <p class="text-primary-100 mb-6">Le choix le plus populaire</p>
-                        </div>
-                        <span class="bg-white text-primary-700 text-xs font-bold px-3 py-1 rounded-full">RECOMMANDÉ</span>
+            <div class="flex">
+                <div class="mr-6">
+                    <div class="w-12 h-12 rounded-full bg-primary-700 bg-opacity-10 flex items-center justify-center">
+                        <i class="fas fa-file-invoice-dollar text-primary-700 text-xl"></i>
                     </div>
-                    <div class="mb-6">
-                        <span class="text-4xl font-bold">29€</span>
-                        <span class="text-primary-200">/mois</span>
-                    </div>
-                    <button class="w-full px-4 py-2 bg-white text-primary-700 font-medium rounded-lg hover:bg-gray-100 transition">Choisir ce plan</button>
                 </div>
-                <div class="p-8">
-                    <ul class="space-y-3">
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> 10 utilisateurs</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> 100GB de stockage</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Toutes fonctions</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Support 24/7</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Analyses de base</li>
-                    </ul>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Facturation automatisée</h3>
+                    <p class="text-gray-600">Générez des factures professionnelles en quelques clics et suivez les paiements en temps réel.</p>
                 </div>
             </div>
-
-            <!-- Pro Plan -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden price-card transition duration-300">
-                <div class="p-8 border-b border-gray-200">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Professionnel</h3>
-                    <p class="text-gray-600 mb-6">Pour les entreprises exigeantes</p>
-                    <div class="mb-6">
-                        <span class="text-4xl font-bold text-gray-800">79€</span>
-                        <span class="text-gray-600">/mois</span>
+            <div class="flex">
+                <div class="mr-6">
+                    <div class="w-12 h-12 rounded-full bg-primary-700 bg-opacity-10 flex items-center justify-center">
+                        <i class="fas fa-users text-primary-700 text-xl"></i>
                     </div>
-                    <button class="w-full px-4 py-2 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-700/90 transition">Choisir ce plan</button>
                 </div>
-                <div class="p-8">
-                    <ul class="space-y-3">
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Utilisateurs illimités</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Stockage illimité</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Toutes fonctions premium</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Support prioritaire 24/7</li>
-                        <li class="flex items-center text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i> Analyses avancées</li>
-                    </ul>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Gestion des clients</h3>
+                    <p class="text-gray-600">Centralisez les informations de vos clients, leurs historiques et interactions avec votre entreprise.</p>
                 </div>
             </div>
-        </div>
-
-        <div class="mt-12 text-center">
-            <p class="text-gray-600">Vous avez besoin d'une solution personnalisée? <a href="#contact" class="text-primary-700 font-medium hover:underline">Contactez-nous</a></p>
-        </div>
-    </div>
-</section>
- *@
-<!-- About Section -->
-<section id="about" class="py-20 bg-white">
-    <div class="container mx-auto px-6">
-        <div class="flex flex-col lg:flex-row items-center">
-            <div class="lg:w-1/2 mb-12 lg:mb-0 lg:pr-12">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">Notre outil révolutionnaire</h2>
-                <p class="text-gray-600 mb-6">Modern Solution est né de la volonté de simplifier les processus complexes tout en offrant une expérience utilisateur exceptionnelle. Notre plateforme combine puissance et simplicité pour répondre aux besoins des entreprises de toutes tailles.</p>
-                <p class="text-gray-600 mb-6">Avec des années de recherche et développement, nous avons créé une solution tout-en-un qui s'adapte à votre flux de travail plutôt que l'inverse. Notre équipe d'experts travaille constamment à l'amélioration de l'outil pour vous offrir toujours plus de fonctionnalités et de performance.</p>
-                <div class="flex flex-wrap gap-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-primary-700/10 rounded-full flex items-center justify-center mr-3">
-                            <i class="fas fa-check text-primary"></i>
-                        </div>
-                        <span class="text-gray-700">Interface intuitive</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-primary-700/10 rounded-full flex items-center justify-center mr-3">
-                            <i class="fas fa-check text-primary"></i>
-                        </div>
-                        <span class="text-gray-700">Sécurité renforcée</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-primary-700/10 rounded-full flex items-center justify-center mr-3">
-                            <i class="fas fa-check text-primary"></i>
-                        </div>
-                        <span class="text-gray-700">Support réactif</span>
+            <div class="flex">
+                <div class="mr-6">
+                    <div class="w-12 h-12 rounded-full bg-primary-700 bg-opacity-10 flex items-center justify-center">
+                        <i class="fas fa-mobile-alt text-primary-700 text-xl"></i>
                     </div>
                 </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Application mobile</h3>
+                    <p class="text-gray-600">Accédez à toutes les fonctionnalités depuis votre smartphone, où que vous soyez.</p>
+                </div>
             </div>
-            <div class="lg:w-1/2">
-                <img src="https://media.istockphoto.com/id/1448519280/fr/photo/homme-daffaires-utilisant-un-smartphone-sur-une-connexion-au-r%C3%A9seau-mondial-daffaires-pour.jpg?s=612x612&w=0&k=20&c=2fQ1MF_TTzTxOxOsjiuOM0Qj6AnGBtgb_uXNDdfcvXI=" alt="About Illustration" class="w-full rounded-lg shadow-md">
+            <div class="flex">
+                <div class="mr-6">
+                    <div class="w-12 h-12 rounded-full bg-primary-700 bg-opacity-10 flex items-center justify-center">
+                        <i class="fas fa-plug text-primary-700 text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Intégrations multiples</h3>
+                    <p class="text-gray-600">Connectez notre solution à vos outils préférés (Google Workspace, Microsoft 365, etc.).</p>
+                </div>
             </div>
         </div>
     </div>
@@ -245,67 +150,48 @@
 <!-- Contact Section -->
 <section id="contact" class="py-20 bg-gray-50">
     <div class="container mx-auto px-6">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Contactez-nous</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Une question? Une demande particulière? Notre équipe est là pour vous répondre dans les plus brefs délais.</p>
-        </div>
-
         <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
             <div class="md:flex">
-                <div class="md:w-1/2 bg-primary-700 text-white p-12">
-                    <h3 class="text-2xl font-semibold mb-6">Informations de contact</h3>
-                    <div class="space-y-6">
-                        <div class="flex items-start">
-                            <i class="fas fa-map-marker-alt mt-1 mr-4"></i>
-                            <div>
-                                <h4 class="font-medium">Adresse</h4>
-                                <p class="text-primary-200">123 Rue de l'Innovation, 75000 Paris</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start">
-                            <i class="fas fa-phone-alt mt-1 mr-4"></i>
-                            <div>
-                                <h4 class="font-medium">Téléphone</h4>
-                                <p class="text-primary-200">+33 1 23 45 67 89</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start">
-                            <i class="fas fa-envelope mt-1 mr-4"></i>
-                            <div>
-                                <h4 class="font-medium">Email</h4>
-                                <p class="text-primary-200">contact@modernsolution.com</p>
-                            </div>
-                        </div>
+                <div class="md:w-1/2 bg-primary-700 p-10 text-white">
+                    <h2 class="text-2xl font-bold mb-6">Contactez-nous</h2>
+                    <p class="mb-6">Vous avez des questions ou besoin d'une démonstration personnalisée ? Notre équipe est à votre disposition.</p>
+                    <div class="mb-6">
+                        <h3 class="font-bold mb-2"><i class="fas fa-phone-alt mr-2"></i> Téléphone</h3>
+                        <p>+33 1 23 45 67 89</p>
                     </div>
-                    <div class="mt-10">
-                        <h4 class="font-medium mb-4">Suivez-nous</h4>
-                        <div class="flex space-x-4">
-                            <a href="#" class="w-10 h-10 rounded-full bg-primary-700/20 flex items-center justify-center hover:bg-primary-700/30 transition"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-primary-700/20 flex items-center justify-center hover:bg-primary-700/30 transition"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-primary-700/20 flex items-center justify-center hover:bg-primary-700/30 transition"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-primary-700/20 flex items-center justify-center hover:bg-primary-700/30 transition"><i class="fab fa-instagram"></i></a>
-                        </div>
+                    <div class="mb-6">
+                        <h3 class="font-bold mb-2"><i class="fas fa-envelope mr-2"></i> Email</h3>
+                        <p>contact@Depensio.com</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-2"><i class="fas fa-map-marker-alt mr-2"></i> Adresse</h3>
+                        <p>123 Rue des Solutions, 75000 Paris, France</p>
                     </div>
                 </div>
-                <div class="md:w-1/2 p-12">
-                    <form id="contactForm" class="space-y-6">
-                        <div>
+                <div class="md:w-1/2 p-10">
+                    <form>
+                        <div class="mb-4">
                             <label for="name" class="block text-gray-700 font-medium mb-2">Nom complet</label>
-                            <input type="text" id="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-700 focus:border-transparent" required aria-required="true" aria-label="Votre nom complet">
+                            <input type="text" id="name" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                         </div>
-                        <div>
+                        <div class="mb-4">
                             <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
-                            <input type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-700 focus:border-transparent" required>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                         </div>
-                        <div>
+                        <div class="mb-4">
                             <label for="subject" class="block text-gray-700 font-medium mb-2">Sujet</label>
-                            <input type="text" id="subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-700 focus:border-transparent" required>
+                            <select id="subject" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                <option>Demande d'information</option>
+                                <option>Support technique</option>
+                                <option>Demande de démo</option>
+                                <option>Autre</option>
+                            </select>
                         </div>
-                        <div>
+                        <div class="mb-6">
                             <label for="message" class="block text-gray-700 font-medium mb-2">Message</label>
-                            <textarea id="message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-700 focus:border-transparent" required></textarea>
+                            <textarea id="message" rows="4" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
                         </div>
-                        <button type="submit" class="w-full px-6 py-3 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-700/90 transition">Envoyer le message</button>
+                        <button type="submit" class="w-full px-4 py-2 bg-primary-700 text-white font-medium rounded-md hover:bg-opacity-90 transition">Envoyer le message</button>
                     </form>
                 </div>
             </div>
@@ -315,9 +201,7 @@
 
 <!-- Chatbot Icon -->
 <div class="chatbot-icon" id="chatbotIcon" aria-label="Ouvrir le chat d'assistance" role="button" tabindex="0">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-    </svg>
+    <i class="fas fa-comment-dots text-white text-2xl"></i>
 </div>
 
 <!-- Chatbot Modal -->
