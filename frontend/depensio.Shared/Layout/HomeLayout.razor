@@ -1,17 +1,23 @@
 @inherits LayoutComponentBase
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
 
 <CascadingAuthenticationState>
-    <header>
+    @*    <header>
+        <NavBar />
+    </header> *@
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
         <NavBar />
     </header>
-
-
-    <div class="flex pt-16 overflow-hidden">
-        <main id ="main-content" class="relative w-full max-w-screen-2xl mx-auto h-full overflow-y-auto dark:bg-gray-900 px-4">
-            @Body
-        </main>
-    </div>
+    @* 
+    <div class="flex pt-16 overflow-hidden"> *@
+    @*         <main id ="main-content" class="relative w-full max-w-screen-2xl mx-auto h-full overflow-y-auto dark:bg-gray-900 px-4">
+ *@            
+    <main>
+        @Body
+    </main>
+    @*     </div> *@
 
     <Footer />
 
@@ -23,8 +29,15 @@
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             isLoggedIn = authState.User.Identity?.IsAuthenticated ?? false;
         }
-    }
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                await JS.InvokeVoidAsync("depensio.initialized");
+            }
+        }
 
+    }
 
 
 </CascadingAuthenticationState>
