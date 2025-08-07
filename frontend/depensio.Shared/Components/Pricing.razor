@@ -6,8 +6,9 @@
 
         <div class="max-w-7xl mx-auto text-center">
             <h3 class="text-2xl sm:text-3xl lg:text-4xl font-medium text-black-600 leading-relaxed">
-                Nos tarifs
+                Des tarifs adaptés à vos besoins
             </h3>
+            <div class="w-20 h-1 bg-primary mx-auto mb-6"></div>
             <p class="leading-normal w-10/12 sm:w-7/12 lg:w-6/12 mx-auto my-2 text-center">
                 Choisissez le plan qui correspond à vos besoins. Tous nos plans incluent un essai gratuit de 3 mois.
             </p>
@@ -35,7 +36,7 @@
                         <h3 class="text-lg font-semibold text-gray-900">@plan.Title</h3>
                         @if (plan.IsPopular)
                         {
-                            <span class="text-xs text-primary-800 bg-primary-300 px-2 py-0.5 rounded-full font-medium">Most popular</span>
+                            <span class="text-xs text-primary-800 bg-primary-300 px-2 py-0.5 rounded-full font-medium">Recommandé</span>
                         }
                     </div>
                     <p class="text-sm text-gray-500 mb-4">@plan.Description</p>
@@ -47,12 +48,14 @@
                     {
                         <div class="text-3xl font-bold text-gray-900 mb-1"> @(plan.Price*12) FCFA<span class="text-base font-normal text-gray-500">/année</span></div>
                     }
-                    <a href="#" class="@GetButtonClasses(plan)">Buy plan</a>
+                    <a href="#" class="@GetButtonClasses(plan)">Choisir ce plan</a>
                     <ul class="mt-6 space-y-2 text-sm text-gray-700">
                         @foreach (var feature in plan.Features)
                         {
                             <li class="flex items-start space-x-2">
-                                <span class="text-primary-700 mt-0.5">✔️</span>
+                                <span class="mt-0.5">
+                                    <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                </span>
                                 <span>@feature</span>
                             </li>
                         }
@@ -64,7 +67,7 @@
         <!-- Comparison Table -->
         <div class="overflow-x-auto rounded-lg w-full mx-auto text-center py-8">
             <div class="inline-block w-full align-middle">
-                <div class="overflow-hidden shadow sm:rounded-lg">
+                <div class="shadow sm:rounded-lg">
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-900">
                             <tr>
