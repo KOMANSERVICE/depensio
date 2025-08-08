@@ -418,7 +418,7 @@
 
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
-        products = await _productService.GetProductsByUserAsync(BoutiqueId);
+        products = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
 
         var setting = await _boutiqueSettingService.GetSettingByBoutique(BoutiqueId, BoutiqueSettingKeys.VENTE_KEY);
         var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);

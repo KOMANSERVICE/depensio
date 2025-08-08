@@ -6,7 +6,8 @@ public class SignUpHandler(
     UserManager<ApplicationUser> _userManager,
     IEmailService _mailService,
     IConfiguration _configuration,
-    IEncryptionService _encryptionService
+    IEncryptionService _encryptionService,
+    ITemplateRendererService _templateRendererService
     )
     : ICommandHandler<SignUpCommand, SignUpResult>
 {
@@ -43,6 +44,14 @@ public class SignUpHandler(
             //await _userManager.AddToRoleAsync(userM, "User");
 
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(userM);
+            var values = new Dictionary<string, string>
+            {
+                { "email", userM.Email },
+                { "date", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm") },
+                { "link", $"{_configuration["JWT:ValidIssuer"]}/verifier-mail/{user.Id}?code={code}" }
+            };
+
+            var mailContent = await _templateRendererService.RenderTemplateAsync("AccountCreated.html", values);
 
             var mail = new EmailModel
             {
@@ -50,8 +59,8 @@ public class SignUpHandler(
                     {
                         userM.Email
                     },
-                Suject = "Vérification de mail",
-                Body = GetBodyMail(userM, code)
+                Suject = mailContent.Subject,
+                Body = mailContent.Body
             };
             
             await _mailService.SendEmailAsync(mail);
@@ -60,15 +69,5 @@ public class SignUpHandler(
         return new SignUpResult(false);
     }
 
-    private string GetBodyMail(ApplicationUser user, string code)
-    {
-        return $"""
-                <p>Bonjour,</p>
-                <p>Bienvenue sur la plateforme de suivi des dépendes.</P>
-                <p>Pour vérifier votre mail {user.Email} ,</p>
-                <p><a href='{_configuration["JWT:ValidIssuer"]}/verifier-mail/{user.Id}?code={code}
-                '>Cliquez ici</a> ou sur le lien ci-dessous</p>
-                <p>{_configuration["JWT:ValidIssuer"]}/verifier-mail/{user.Id}?code={code}</p>
-                """;
-    }
+
 }

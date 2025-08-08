@@ -10,4 +10,6 @@ public interface IProductService
     Task<BaseResponse<CreateProductResponse>> CreateProductAsync(CreateProductRequest request);
     [Get("/product/{boutiqueId}")]
     Task<BaseResponse<GetProductByUserResponse>> GetProductsByUserAsync(Guid boutiqueId);
+    [Get("/product/{boutiqueId}/stock")]
+    Task<BaseResponse<GetProductByUserResponse>> GetProductByBoutiqueWithStockSetting(Guid boutiqueId);
 }
