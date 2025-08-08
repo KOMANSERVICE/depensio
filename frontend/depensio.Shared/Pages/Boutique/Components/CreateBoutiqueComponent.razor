@@ -1,4 +1,4 @@
-@using depensio.Shared.Pages.Boutique.Model
+ï»¿@using depensio.Shared.Pages.Boutique.Model
 @inject IBoutiqueService _boutiqueService
 
 <LoadingComponent IsLoad="@isLoad" />
@@ -11,13 +11,13 @@
 
         <div class="grid grid-cols-6 gap-6">
             <div class="col-span-6 sm:col-span-3">
-                <label for="first-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Libellé</label>
-                <InputText type="text" @bind-Value="boutique.Name" id="Name" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Libellé" required />
+                <label for="first-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">LibellÃ©</label>
+                <InputText type="text" @bind-Value="boutique.Name" id="Name" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="LibellÃ©" required />
                 <ValidationMessage For="@(() => boutique.Name)" />
             </div>
             <div class="col-span-6 sm:col-span-3">
-                <label for="last-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Localité / Adresse</label>
-                <InputText type="text" @bind-Value="boutique.Location" id="Location" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Localité / Adresse" required />
+                <label for="last-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">LocalitÃ© / Adresse</label>
+                <InputText type="text" @bind-Value="boutique.Location" id="Location" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="LocalitÃ© / Adresse" required />
                 <ValidationMessage For="@(() => boutique.Location)" />
             </div>
         </div>
@@ -47,16 +47,16 @@
                     <ValidationMessage For="@(() => boutique.Name)" />
                 </div>
                 <div class="mb-4">
-                    <label for="Location" class="block text-sm font-medium text-gray-700 mb-1">Localité / Adresse</label>
+                    <label for="Location" class="block text-sm font-medium text-gray-700 mb-1">LocalitÃ© / Adresse</label>
                     <InputText type="text" @bind-Value="boutique.Location" id="Location" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
                     <ValidationMessage For="@(() => boutique.Location)" />
                 </div>
                 <div class="mb-4">
-                    <label for="businessType" class="block text-sm font-medium text-gray-700 mb-1">Type d'activité</label>
+                    <label for="businessType" class="block text-sm font-medium text-gray-700 mb-1">Type d'activitÃ©</label>
                     <select id="businessType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
-                        <option value="">Sélectionnez un type</option>
+                        <option value="">SÃ©lectionnez un type</option>
                         <option value="restaurant">Restaurant</option>
-                        <option value="retail">Commerce de détail</option>
+                        <option value="retail">Commerce de dÃ©tail</option>
                         <option value="services">Services</option>
                         <option value="tech">Technologie</option>
                         <option value="other">Autre</option>
@@ -68,7 +68,7 @@
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button type="button" @onclick="closeModal" id="cancelBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Annuler</button>
-                    <button type="submit" class="px-4 py-2 bg-primary-700 hover:bg-amber-800 text-white rounded-lg">Créer l'entreprise</button>
+                    <button type="submit" class="px-4 py-2 bg-primary-700 hover:bg-amber-800 text-white rounded-lg">CrÃ©er l'entreprise</button>
                 </div>
             </EditForm>
         </div>
