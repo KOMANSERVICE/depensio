@@ -134,3 +134,37 @@ html, body {
         transform: scale(1);
     }
 }
+
+
+@media (max-width: 640px) {
+    .desktop-view {
+        display: none;
+    }
+
+    .mobile-view {
+        display: block;
+    }
+
+    .product-card {
+        border-left: 4px solid #825513;
+    }
+}
+
+@media (min-width: 641px) {
+    .desktop-view {
+        display: block;
+    }
+
+    .mobile-view {
+        display: none;
+    }
+}
+
+.product-card {
+    transition: all 0.3s ease;
+}
+
+    .product-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
