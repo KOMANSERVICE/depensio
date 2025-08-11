@@ -2613,6 +2613,7 @@ html, body {
 
   .product-card {
     border-left: 4px solid #825513;
+    border-top: 0.5px solid #825513;
   }
 }
 
