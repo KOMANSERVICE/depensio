@@ -8,7 +8,7 @@ namespace depensio.Shared.Pages.Produits.Models;
 
 public record GetProductByUserResponse(IEnumerable<Product> Products);
 public record CreateProductRequest(Product Product);
-public record CreateProductResponse(Guid Id);
+public record CreateOrUpdateProductResponse(Guid Id);
 public record Product
 {
     public Guid Id { get; set; } = Guid.Empty;
