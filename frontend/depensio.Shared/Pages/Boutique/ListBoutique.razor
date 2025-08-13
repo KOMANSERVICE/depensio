@@ -43,19 +43,24 @@
     </div>
 </div>
 
- <CreateBoutiqueComponent 
+<Modal     
+        OnClockModal="()=>{
+           onShowModal();
+    }"
+    ShowModal="showModal"   
+    ModalTitle="Nouvelle entreprise"
+>
+     <CreateBoutiqueComponent 
      OnAfterSave="async ()=>{
             boutiques = await _boutiqueService.GetBoutiqueByUser();
         onShowModal();
 
     }" 
-    OnClockModal="()=>{
-       onShowModal();
-}"
-ShowModal="showModal"
-/>
-
-
+    OnCancelSave="()=>{
+        onShowModal();
+    }"
+    />
+</Modal>
 
 @code {
 

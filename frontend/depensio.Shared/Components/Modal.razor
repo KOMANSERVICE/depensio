@@ -1,0 +1,77 @@
+<div class="@onShowModal(ShowModal)">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div class="flex justify-between items-center border-b px-6 py-4">
+            <h3 class="text-lg font-semibold text-primary-700" id="modalTitle">@ModalTitle</h3>
+            <button type="button" @onclick="closeModal" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <section>
+            @ChildContent
+        </section>
+       @*  <form id="productForm">
+            <div class="p-6">
+                <input type="hidden" id="productId">
+                <div class="mb-4">
+                    <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Nom du produit</label>
+                    <input type="text" id="productName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent" required>
+                </div>
+                <div class="mb-4">
+                    <label for="productCategory" class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                    <select id="productCategory" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent" required>
+                        <option value="">Sélectionner une catégorie</option>
+                        <option value="Electronique">Electronique</option>
+                        <option value="Vêtements">Vêtements</option>
+                        <option value="Alimentation">Alimentation</option>
+                        <option value="Meubles">Meubles</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="productPrice" class="block text-sm font-medium text-gray-700 mb-1">Prix (€)</label>
+                        <input type="number" id="productPrice" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent" required>
+                    </div>
+                    <div>
+                        <label for="productStock" class="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                        <input type="number" id="productStock" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="productDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="productDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button id="cancelModalBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Annuler</button>
+                <button id="saveProductBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-amber-800">Enregistrer</button>
+            </div>
+        </form> *@
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string ModalTitle { get; set; } = "";
+
+    /// <summary>
+    /// ChildContent contenu de la modal
+    /// </summary>
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
+    
+    [Parameter]
+    public bool ShowModal { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClockModal { get; set; }
+    
+    private void closeModal()
+    {
+        OnClockModal.InvokeAsync(null);
+    }
+
+    private string onShowModal(bool show) =>
+    show
+    ? "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    : "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden";
+}

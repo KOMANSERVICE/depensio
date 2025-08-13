@@ -24,7 +24,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         await _dbSet.AddAsync(entity, cancellationToken);
     }
 
-    public void UpdateData(TEntity entity)
+    public void UpdateData(TEntity entity, CancellationToken cancellationToken = default)
     {
         _dbSet.Update(entity);
     }
