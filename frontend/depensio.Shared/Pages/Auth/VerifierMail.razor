@@ -20,12 +20,12 @@
                         <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animation-pulse">
                             <i class="fas fa-check-circle text-green-500 text-4xl"></i>
                         </div>
-                        <h2 class="text-xl font-bold text-gray-800 mb-2">Email confirm� avec succ�s!</h2>
-                        <p class="text-gray-600">Votre adresse email a �t� v�rifi�e avec succ�s. Vous pouvez maintenant acc�der � toutes les fonctionnalit�s de notre plateforme.</p>
+                        <h2 class="text-xl font-bold text-gray-800 mb-2">Email confirmé avec succès!</h2>
+                        <p class="text-gray-600">Votre adresse email a été vérifiée avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités de notre plateforme.</p>
                     </div>
 
                     <div class="text-center mt-6">
-                        <NavLink href="/login" class="bg-primary-700 text-white px-6 py-2 rounded-md font-medium inline-block transition duration-300">Acc�der � mon compte</NavLink>
+                        <NavLink href="/login" class="bg-primary-700 text-white px-6 py-2 rounded-md font-medium inline-block transition duration-300">Accéder à mon compte</NavLink>
                     </div>
                 </div>
 
@@ -37,7 +37,7 @@
                                 <i class="fas fa-exclamation-circle text-red-500 text-4xl"></i>
                             </div>
                             <h2 class="text-xl font-bold text-gray-800 mb-2">Erreur de confirmation</h2>
-                            <p class="text-gray-600" id="error-text">Le lien de confirmation est invalide ou a expir�. Veuillez demander un nouveau lien de confirmation.</p>
+                            <p class="text-gray-600" id="error-text">Le lien de confirmation est invalide ou a expiré. Veuillez demander un nouveau lien de confirmation.</p>
                         </div>
 
                         <div class="text-center mt-6">
@@ -51,8 +51,8 @@
 
                 <div id="loading" class="text-center">
                     <div class="w-20 h-20 border-4 border-primary-700 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                    <h2 class="text-xl font-bold text-gray-800 mb-2">V�rification en cours...</h2>
-                    <p class="text-gray-600">Nous v�rifions votre lien de confirmation. Veuillez patienter.</p>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Vérification en cours...</h2>
+                    <p class="text-gray-600">Nous vérifions votre lien de confirmation. Veuillez patienter.</p>
                 </div>
             }
 
@@ -60,11 +60,10 @@
 
         <!-- Footer -->
         <div class="bg-gray-50 px-8 py-4 text-center border-t border-gray-200">
-            <p class="text-sm text-gray-600">Si vous rencontrez des probl�mes, contactez notre <a href="#" class="text-primary-700 font-medium">support technique</a>.</p>
+            <p class="text-sm text-gray-600">Si vous rencontrez des problèmes, contactez notre <a href="#" class="text-primary-700 font-medium">support technique</a>.</p>
         </div>
     </div>
 </section>
-
 
 @code {
     [Parameter]
@@ -81,7 +80,6 @@
     protected override void OnInitialized()
     {
         isLoad = true;
-
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -89,10 +87,8 @@
         if (firstRender)
         {
             await VerifMail();
-            StateHasChanged(); // Demander un nouveau rendu pour mettre � jour l'UI
-
+            StateHasChanged(); // Demander un nouveau rendu pour mettre à jour l'UI
         }
-
     }
 
     private string message = "";
@@ -101,7 +97,6 @@
     {
         try
         {
-
             verifyMail = new VerifyMailDTO(userId!, Code!.Replace(" ", "+"));
             var isVerify = await _auth.VerifyMail(new Models.VerifyMailRequest(verifyMail));
             if (isVerify.Result)
