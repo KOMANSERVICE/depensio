@@ -63,11 +63,11 @@
     public bool ShowModal { get; set; } = false;
 
     [Parameter]
-    public EventCallback<MouseEventArgs> OnClockModal { get; set; }
+    public EventCallback<MouseEventArgs> OnCloseModal { get; set; }
     
     private void closeModal()
     {
-        OnClockModal.InvokeAsync(null);
+        OnCloseModal.InvokeAsync(null);
     }
 
     private string onShowModal(bool show) =>
