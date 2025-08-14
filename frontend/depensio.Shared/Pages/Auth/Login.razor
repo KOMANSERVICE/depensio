@@ -1,65 +1,115 @@
 @page "/login"
 @inherits FlowbitePage
 @inject NavigationManager NavManager
-@inject IAuthService _authService;
-@layout SecondaryLayout
+@inject IAuthService _authService
+@layout NoContentLayout
+
+<PageTitle>Depensio - Connexion</PageTitle>
 
 <LoadingComponent IsLoad="@isLoad" />
-
-<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-primary-700/10 to-primary-700/5">
-    <div class="mb-8">
-        <!-- Logo SVG ou image -->
-        <svg class="mx-auto h-12 w-12 text-primary-500" fill="none" viewBox="0 0 48 48">
-            <circle cx="24" cy="24" r="24" fill="currentColor" />
-        </svg>
-    </div>
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h2 class="text-2xl font-bold text-center mb-6">Sign in to your account</h2>
-        <EditForm EditContext="@editContext" OnValidSubmit="HandleLogin">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="email">Email address</label>
-                <InputText @bind-Value="loginModel.Email" id="email" type="email" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => loginModel.Email)" />
+<section class="bg-gradient-to-r from-primary-700/10 to-primary-700/5 min-h-screen">
+    <div class="min-h-screen flex flex-col lg:flex-row">
+        <!-- Section gauche (illustration) -->
+        <div class="lg:w-1/2 bg-primary-700 flex items-center justify-center p-12 text-white">
+            <div class="max-w-md text-center">
+                <div class="text-5xl mb-6">
+                    <i class="fas fa-store"></i>
                 </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="password">Password</label>
-                <InputText @bind-Value="loginModel.Password" id="password" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => loginModel.Password)" /> 
+                <h1 class="text-4xl font-bold mb-4">Depensio</h1>
+                <p class="text-xl opacity-90 mb-8">Pilotez toutes vos entreprises en ligne depuis une seule interface</p>
+                <div class="flex justify-center space-x-4 mb-8">
+                    <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                </div>
+                <NavLink href="/" class="text-xl opacity-90 mb-8">Retour à l'accueil</NavLink>
             </div>
-            <div class="flex items-center justify-between mb-6">
-                <label class="flex items-center">
-                    <input type="checkbox" class="form-checkbox" />
-                    <span class="ml-2 text-gray-600">Remember me</span>
-                </label>
-                <a href="#" class="text-primary-700 hover:underline text-sm">Forgot password?</a>
-            </div>
-            <button type="submit" class="w-full bg-primary-700 text-white py-2 rounded font-semibold hover:bg-primary-800 transition">Sign in</button>
-        </EditForm>
-        <div class="flex items-center my-6">
-            <div class="flex-grow border-t"></div>
-            <span class="mx-4 text-gray-400">Or continue with</span>
-            <div class="flex-grow border-t"></div>
         </div>
-        <div class="flex space-x-4">
-            <button class="flex-1 flex items-center justify-center border rounded py-2 hover:bg-gray-50">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="h-5 w-5 mr-2" />
-                Google
-            </button>
-            <button class="flex-1 flex items-center justify-center border rounded py-2 hover:bg-gray-50">
-                <img src="https://www.svgrepo.com/show/512317/github-142.svg" alt="GitHub" class="h-5 w-5 mr-2" />
-                GitHub
-            </button>
-        </div>
-    </div>
-    <div class="mt-6 text-gray-500">
-        Not a member?
-        <a href="#" class="text-primary-700 font-semibold hover:underline">Start a 14 day free trial</a>
-    </div>
-</div>
 
+        <!-- Section droite (formulaire) -->
+        <div class="lg:w-1/2 flex items-center justify-center p-12">
+            <div class="w-full max-w-md">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-gray-800">Connectez-vous</h2>
+                    <p class="text-gray-600 mt-2">Accédez à votre tableau de bord</p>
+                </div>
+                <EditForm EditContext="@editContext" OnValidSubmit="HandleLogin" class="space-y-6">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <InputText @bind-Value="loginModel.Email" type="email" id="email" name="email" required
+                                   class="pl-10 input-focus block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                   placeholder="votre@email.com" />
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Email)" />
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                            <a href="#" class="text-sm text-primary-700 hover:text-primary-700">Mot de passe oublié?</a>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <InputText @bind-Value="loginModel.Password" type="password" id="password" name="password" required
+                                   class="pl-10 input-focus block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                   placeholder="••••••••" />
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                            </button>
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Password)" />
+                    </div>
+
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox"
+                               class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                            Se souvenir de moi
+                        </label>
+                    </div>
+
+                    <div>
+                        <button type="submit"
+                                class="w-full bg-primary-700 text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition duration-200 flex items-center justify-center space-x-2">
+                            <span>Connexion</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </EditForm>
+
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">
+                        Nouveau sur la plateforme?
+                        <a href="/register" class="text-primary-700 font-medium hover:text-primary-700">Créer un compte</a>
+                    </p>
+                </div>
+
+                <div class="mt-8 border-t border-gray-200 pt-6">
+                    <p class="text-xs text-gray-500 text-center">
+                        En vous connectant, vous acceptez nos
+                        <a href="#" class="text-primary-700 hover:underline">Conditions d'utilisation</a>
+                        et notre
+                        <a href="#" class="text-primary-700 hover:underline">Politique de confidentialité</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 @code {
     private bool isLoad = false;
@@ -102,7 +152,7 @@
                 {
                     messageStore.Add(new FieldIdentifier(loginModel, string.Empty), errorResult.Detail);
                     editContext.NotifyValidationStateChanged();
-                }                
+                }
             }
             catch
             {
@@ -115,14 +165,4 @@
             isLoad = false;
         }
     }
-
-    // Exemple de mod�le d'erreur API
-    // private class ErrorMessage
-    // {
-    //     public List<string>? Errors { get; set; }
-    // }
-    // catch (ApiException ex)
-    // {
-    //     errorMessage = JsonSerializer.Deserialize<ErrorMessage>(ex.Content);
-    // }
 }

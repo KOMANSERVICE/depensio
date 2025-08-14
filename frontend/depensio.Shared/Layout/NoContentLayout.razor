@@ -1,3 +1,7 @@
-@inherits LayoutComponentBase
+@inherits AuthLayoutBase
 
-@Body
+<CascadingAuthenticationState>
+    <RouteGuardNotConnected>
+        @Body
+    </RouteGuardNotConnected>
+</CascadingAuthenticationState>

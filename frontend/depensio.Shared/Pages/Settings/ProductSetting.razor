@@ -9,9 +9,8 @@
 @inherits FlowbitePage
 @layout MainLayout
 @inject IBoutiqueSettingService _boutiqueSettingService
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-
+<PageTitle>Depensio - ParamÃ¨tres des produits</PageTitle>
 
 <LoadingComponent IsLoad="@isLoad" />
 <div class="border-b border-gray-200 dark:border-gray-700">
@@ -166,14 +165,14 @@
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                Console.Error.WriteLine("Erreur : Valeur des paramètres produit non disponible ou invalide.");
+                Console.Error.WriteLine("Erreur : Valeur des paramï¿½tres produit non disponible ou invalide.");
                 return;
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de désérialisation des paramètres.");
+                Console.Error.WriteLine("Erreur de dï¿½sï¿½rialisation des paramï¿½tres.");
                 return;
             }
 
@@ -211,14 +210,14 @@
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                Console.Error.WriteLine("Erreur : Valeur des paramètres produit non disponible ou invalide.");
+                Console.Error.WriteLine("Erreur : Valeur des paramï¿½tres produit non disponible ou invalide.");
                 return;
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de désérialisation des paramètres.");
+                Console.Error.WriteLine("Erreur de dï¿½sï¿½rialisation des paramï¿½tres.");
                 return;
             }
 

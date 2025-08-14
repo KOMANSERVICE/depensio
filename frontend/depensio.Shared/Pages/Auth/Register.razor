@@ -1,8 +1,10 @@
 @page "/register"
 @inherits FlowbitePage
 @inject NavigationManager NavManager
-@inject IAuthHttpService _authService;
-@layout SecondaryLayout
+@inject IAuthHttpService _authService
+@layout NoContentLayout
+
+<PageTitle>Depensio - Inscription</PageTitle>
 
 <LoadingComponent IsLoad="@isLoad" />
 
@@ -14,13 +16,13 @@
         </svg>
     </div>
     <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h2 class="text-2xl font-bold text-center mb-6">Sign in to your account</h2>
+        <h2 class="text-2xl font-bold text-center mb-6">Créer un compte</h2>
         <EditForm EditContext="@editContext" OnValidSubmit="HandleRegister">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="email">Email address</label>
+                <label class="block text-gray-700 mb-1" for="email">Adresse email</label>
                 <InputText @bind-Value="registerModel.Email" id="email" type="email" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <ValidationMessage For="@(() => registerModel.Email)" />
             </div>
@@ -30,38 +32,37 @@
                 <ValidationMessage For="@(() => registerModel.LastName)" />
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="fistName">Pr�nom</label>
+                <label class="block text-gray-700 mb-1" for="firstName">Prénom</label>
                 <InputText @bind-Value="registerModel.FirstName" id="firstName" type="text" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <ValidationMessage For="@(() => registerModel.FirstName)" />
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="tel">T�l�phone</label>
+                <label class="block text-gray-700 mb-1" for="tel">Téléphone</label>
                 <InputText @bind-Value="registerModel.Tel" id="tel" type="text" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <ValidationMessage For="@(() => registerModel.Tel)" />
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="password">Password</label>
+                <label class="block text-gray-700 mb-1" for="password">Mot de passe</label>
                 <InputText @bind-Value="registerModel.Password" id="password" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <ValidationMessage For="@(() => registerModel.Password)" />
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="confirmPasswords">Password confirme</label>
+                <label class="block text-gray-700 mb-1" for="confirmPasswords">Confirmer le mot de passe</label>
                 <InputText @bind-Value="registerModel.ConfirmPasswords" id="confirmPasswords" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <ValidationMessage For="@(() => registerModel.ConfirmPasswords)" />
             </div>
             <div class="flex items-center justify-between mb-6">
                 <label class="flex items-center">
                     <input type="checkbox" class="form-checkbox" />
-                    <span class="ml-2 text-gray-600">Remember me</span>
+                    <span class="ml-2 text-gray-600">Se souvenir de moi</span>
                 </label>
-                <a href="#" class="text-primary-700 hover:underline text-sm">Forgot password?</a>
-                @* <a href="#" class="text-primary-700 hover:underline text-sm">Forgot password?</a> *@
+                <a href="#" class="text-primary-700 hover:underline text-sm">Mot de passe oublié?</a>
             </div>
-            <button type="submit" class="w-full bg-primary-700 text-white py-2 rounded font-semibold hover:bg-primary-800 transition">S'inscrire'</button>
+            <button type="submit" class="w-full bg-primary-700 text-white py-2 rounded font-semibold hover:bg-primary-800 transition">S'inscrire</button>
         </EditForm>
         <div class="flex items-center my-6">
             <div class="flex-grow border-t"></div>
-            <span class="mx-4 text-gray-400">Or continue with</span>
+            <span class="mx-4 text-gray-400">Ou continuer avec</span>
             <div class="flex-grow border-t"></div>
         </div>
         <div class="flex space-x-4">
@@ -76,8 +77,8 @@
         </div>
     </div>
     <div class="mt-6 text-gray-500">
-        Not a member?
-        <a href="#" class="text-primary-700 font-semibold hover:underline">Start a 14 day free trial</a>
+        Déjà un membre?
+        <a href="/login" class="text-primary-700 font-semibold hover:underline">Se connecter</a>
     </div>
 </div>
 
@@ -142,5 +143,4 @@
             isLoad = false;
         }
     }
-
 }
