@@ -24,23 +24,32 @@ builder.Services.AddApexCharts();
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IGraphComponent, WebGraphComponentService>();
 
+// Configuration JWT
 var JWTValidIssuer = builder.Configuration["JWT:ValidIssuer"];
 var JWTValidAudience = builder.Configuration["JWT:ValidAudience"];
 var JWTSecret = builder.Configuration["JWT:Secret"];
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+if (!string.IsNullOrEmpty(JWTSecret))
+{
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidIssuer = JWTValidIssuer,
-            ValidAudience = JWTValidAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(JWTSecret!))
-        };
-    });
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = JWTValidIssuer,
+                ValidAudience = JWTValidAudience,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(JWTSecret))
+            };
+        });
+}
+else
+{
+    // Fallback si pas de configuration JWT
+    builder.Services.AddAuthentication();
+}
 
 var app = builder.Build();
 
@@ -52,15 +61,15 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
-app.UseAuthentication(); // ?? obligatoire
+
+// Middleware d'authentification
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorComponents<App>()

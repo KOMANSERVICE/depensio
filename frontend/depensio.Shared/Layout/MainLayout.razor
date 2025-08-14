@@ -1,6 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@inherits AuthLayoutBase
 @inject NavigationManager NavManager
 @inject IJSRuntime JS
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <NavBarDashboard OnAfterToggleSidebar="()=>{
     isSidebarOpen = !isSidebarOpen;
@@ -38,14 +39,6 @@
             {
                 boutiqueId = id;
             }
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await JS.InvokeVoidAsync("depensio.initialized");
         }
     }
 }
