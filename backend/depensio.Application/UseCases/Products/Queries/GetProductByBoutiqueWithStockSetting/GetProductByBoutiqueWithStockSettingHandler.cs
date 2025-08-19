@@ -13,58 +13,33 @@ namespace depensio.Application.UseCases.Products.Queries.GetProductByBoutiqueWit
 public class GetProductByBoutiqueWithStockSettingHandler(
     IDepensioDbContext dbContext,
     IBoutiqueSettingService _settingService,
-    IUserContextService _userContextService)
+    IUserContextService _userContextService, 
+    IProductService _productService)
     : IQueryHandler<GetProductByBoutiqueWithStockSettingQuery, GetProductByBoutiqueWithStockSettingResult>
 {
     public async Task<GetProductByBoutiqueWithStockSettingResult> Handle(GetProductByBoutiqueWithStockSettingQuery request, CancellationToken cancellationToken)
     {
-
-        var userId = _userContextService.GetUserId();
-
-        var config = await _settingService.GetSettingAsync(
-            request.BoutiqueId,
-            BoutiqueSettingKeys.PRODUCT_KEY
-        );
-
-        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
-
-        var stockSetting = result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
-        var stockIsAuto = BoolHelper.ToBool(stockSetting.Value.ToString());
-              
+                      
         var productZeroStock = await AutoriserLesProduitAvecStockZero(request.BoutiqueId); // à ajouter dans ton DTO de requête
 
-        var productsQuery = dbContext.Boutiques
-            .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId)
-                        && b.UsersBoutiques.Any(ub => ub.UserId == userId))
-            .Include(b => b.Products)
-                .ThenInclude(p => p.PurchaseItems)
-            .Include(b => b.Products)
-                .ThenInclude(p => p.SaleItems)
-            .SelectMany(b => b.Products)
-            .Select(p => new
-            {
-                Product = p,
-                CalculatedStock = stockIsAuto
-                    ? p.PurchaseItems.Sum(pi => pi.Quantity) - p.SaleItems.Sum(si => si.Quantity)
-                    : p.Stock
-            });
+        var productsQuery = await _productService.GetProductsAsync(request.BoutiqueId);
 
         if (!productZeroStock)
         {
-            productsQuery = productsQuery.Where(p => p.CalculatedStock > 0);
+            productsQuery = productsQuery.Where(p => p.Stock > 0);
         }
 
-        var products = await productsQuery
+        var products = productsQuery
             .Select(p => new ProductDTO(
-                p.Product.Id.Value,
-                p.Product.BoutiqueId.Value,
-                p.Product.Name,
-                p.Product.Barcode,
-                p.Product.Price,
-                p.Product.CostPrice,
-                p.CalculatedStock
+                p.Id.Value,
+                p.BoutiqueId.Value,
+                p.Name,
+                p.Barcode,
+                p.Price,
+                p.CostPrice,
+                p.Stock
             ))
-            .ToListAsync();
+            .ToList();
 
 
         return new GetProductByBoutiqueWithStockSettingResult(products);
