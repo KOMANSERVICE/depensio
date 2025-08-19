@@ -23,7 +23,7 @@ public class GetProductByBoutiqueWithStockSettingHandler(
         var productZeroStock = await AutoriserLesProduitAvecStockZero(request.BoutiqueId); // à ajouter dans ton DTO de requête
 
         var productsQuery = await _productService.GetProductsAsync(request.BoutiqueId);
-
+         
         if (!productZeroStock)
         {
             productsQuery = productsQuery.Where(p => p.Stock > 0);
