@@ -11,3 +11,6 @@ global using depensio.Application.UserCases.Boutiques.DTOs;
 global using depensio.Application.Data;
 global using depensio.Application.Interfaces;
 global using depensio.Application.DTOs;
+global using depensio.Domain.ValueObjects;
+global using depensio.Domain.Constants;
+global using depensio.Application.Helpers;

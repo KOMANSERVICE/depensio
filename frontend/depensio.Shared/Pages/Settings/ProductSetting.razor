@@ -1,4 +1,4 @@
-@page "/settings/{boutiqueId:guid}/product"
+﻿@page "/settings/{boutiqueId:guid}/product"
 @using System.ComponentModel.DataAnnotations
 @using System.Reflection
 @using depensio.Shared.Enums
@@ -6,12 +6,14 @@
 @using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Components
 @using depensio.Shared.Pages.Produits.Models
+@inject ToastService ToastService
 @inherits FlowbitePage
 @layout MainLayout
 @inject IBoutiqueSettingService _boutiqueSettingService
 
 <PageTitle>Depensio - Paramètres des produits</PageTitle>
 
+<ToastContainer />
 <LoadingComponent IsLoad="@isLoad" />
 <div class="border-b border-gray-200 dark:border-gray-700">
     <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
@@ -172,8 +174,7 @@
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de d�s�rialisation des param�tres.");
-                return;
+                throw new InvalidOperationException("Erreur de d�s�rialisation des param�tres.");
             }
 
             var stockSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
@@ -188,10 +189,11 @@
             var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
                 new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
             );
+            ShowSuccess();
         }
         catch
         {
-
+            ShowError();
         }
         finally
         {
@@ -210,15 +212,13 @@
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                Console.Error.WriteLine("Erreur : Valeur des param�tres produit non disponible ou invalide.");
-                return;
+                throw new InvalidOperationException("Valeur des param�tres produit non disponible ou invalide.");
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de d�s�rialisation des param�tres.");
-                return;
+                throw new InvalidOperationException("Erreur de d�s�rialisation des param�tres.");
             }
 
             var barcodeSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
@@ -233,10 +233,12 @@
             var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
                 new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
             );
+
+            ShowSuccess();
         }
         catch
         {
-
+            ShowError();
         }
         finally
         {
@@ -252,6 +254,17 @@
         var field = value.GetType().GetField(value.ToString());
         var attr = field?.GetCustomAttribute<DisplayAttribute>();
         return attr?.Name ?? value.ToString();
+    }
+
+
+    private void ShowSuccess()
+    {
+        ToastService.ShowToast("Succès", "Paramètre enregistré avec succès", "success");
+    }
+
+    private void ShowError()
+    {
+        ToastService.ShowToast("Erreur", "Une erreur est survenue", "error");
     }
 
 }

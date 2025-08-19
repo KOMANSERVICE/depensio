@@ -2,12 +2,14 @@
 @using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Components
 @using depensio.Shared.Pages.Produits.Models
+@inject ToastService ToastService
 @inherits FlowbitePage
 @layout MainLayout
 @inject IBoutiqueSettingService _boutiqueSettingService
 
 <PageTitle>Depensio - Paramètres des ventes</PageTitle>
 
+<ToastContainer />
 <div class="border-b border-gray-200 dark:border-gray-700">
     <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
         <li class="me-2">
@@ -156,14 +158,14 @@
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                Console.Error.WriteLine("Erreur : Valeur des param�tres produit non disponible ou invalide.");
+                ShowError();
                 return;
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de d�s�rialisation des param�tres.");
+                ShowError();
                 return;
             }
 
@@ -179,10 +181,11 @@
             var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
                 new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
             );
+            ShowSuccess();
         }
         catch
         {
-
+            ShowError();
         }
         finally
         {
@@ -201,14 +204,14 @@
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                Console.Error.WriteLine("Erreur : Valeur des param�tres produit non disponible ou invalide.");
+                ShowError();
                 return;
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de d�s�rialisation des param�tres.");
+                ShowError();
                 return;
             }
 
@@ -224,10 +227,12 @@
             var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
                 new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
             );
+
+            ShowSuccess();
         }
         catch
         {
-
+            ShowError();
         }
         finally
         {
@@ -243,6 +248,16 @@
         var field = value.GetType().GetField(value.ToString());
         var attr = field?.GetCustomAttribute<DisplayAttribute>();
         return attr?.Name ?? value.ToString();
+    }
+
+    private void ShowSuccess()
+    {
+        ToastService.ShowToast("Succès", "Paramètre enregistré avec succès", "success");
+    }
+
+    private void ShowError()
+    {
+        ToastService.ShowToast("Erreur", "Une erreur est survenue", "error");
     }
 
 }

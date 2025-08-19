@@ -4,53 +4,11 @@
 @layout MainLayout
 @inject ISaleService _saleService;
 @inject IBoutiqueSettingService _boutiqueSettingService
+@inject ToastService ToastService
 
 <PageTitle>Depensio - Caisse</PageTitle>
 
-
-@* <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
-    <div class="w-full mb-1">
-        <nav class="flex mb-5" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
-                <li class="inline-flex items-center">
-                    <a href="#"
-                       class="inline-flex items-center text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-white">
-                        <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
-                            </path>
-                        </svg>
-                        Home
-                    </a>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                  clip-rule="evenodd"></path>
-                        </svg>
-                        <a href="#"
-                           class="ml-1 text-gray-700 hover:text-primary-600 md:ml-2 dark:text-gray-300 dark:hover:text-white">Users</a>
-                    </div>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                  clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="ml-1 text-gray-400 md:ml-2 dark:text-gray-500" aria-current="page">List</span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
-        <h1 class="text-xl font-semibold text-primary-700 sm:text-2xl dark:text-white">Caisse</h1>
-    </div>
-</div> *@
+<ToastContainer />
 <EditForm EditContext="@editContext" OnValidSubmit="HandleCreateSale">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -181,7 +139,7 @@
                                 <td class="py-3 text-right">@item.Quantity</td>
                                 <td class="py-3 text-right">@(item.Quantity* item.Price)  FCFA</td>
                                 <td class="py-3 text-center">
-                                    <button type="button" class="remove-item text-red-500 hover:text-red-700" data-id="@item.Id">
+                                    <button type="button" @onclick="() => { RemoveItem(item);}" class="remove-item text-red-500 hover:text-red-700" data-id="@item.Id">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </td>
@@ -226,7 +184,7 @@
 
             <!-- Action Buttons -->
             <div class="grid grid-cols-2 gap-3">
-                <button type="button" id="cancel-btn" class="bg-gray-200 text-gray-800 p-3 rounded-lg font-medium hover:bg-gray-300 transition">
+                <button type="button" @onclick="Cancel" id="cancel-btn" class="bg-gray-200 text-gray-800 p-3 rounded-lg font-medium hover:bg-gray-300 transition">
                     <i class="fas fa-times mr-2"></i> Annuler
                 </button>
                 <button type="submit" id="pay-btn" class="bg-primary-700 text-white p-3 rounded-lg font-medium hover:bg-opacity-90 transition disabled:opacity-50" disabled="@(sale.TotalPrice < 1)">
@@ -235,134 +193,7 @@
             </div>
         </div>
     </div>
-@* 
-    <div class="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-            <h2>Articles</h2>
-            <div class="overflow-x-auto">
-                <div class="inline-block min-w-full align-middle">
-                    <div class="overflow-hidden shadow">
-                        <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
-                            <thead class="bg-gray-100 dark:bg-gray-700">
-                                <tr>
-                                    <th scope="col" class="p-4">
-                                        <div class="flex items-center">
-                                            <input id="checkbox-all" aria-describedby="checkbox-1" type="checkbox"
-                                                   class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                                            <label for="checkbox-all" class="sr-only">checkbox</label>
-                                        </div>
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Produit
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Prix
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Quantité
-                                    </th>
 
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                                @foreach (var item in sale.Items)
-                                {
-                                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <td class="w-4 p-4">
-                                            <div class="flex items-center">
-                                                <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
-                                                       class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
-                                            </div>
-                                        </td>
-                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                            @(products.Data.Products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
-                                        </td>
-                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                            @item.Price FCFA
-                                        </td>
-                                        <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                            @item.Quantity
-                                        </td>
-                                    </tr>
-
-                                }
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-
-            <div>
-                <div class="grid grid-cols-6 gap-6">
-                    <div class="col-span-6">
-                        <label for="prodctId"
-                               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Liste des produits</label>
-                        <select id="prodctId" @onchange="OnSelectedProductChanged" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                            <option selected="">Choix de produit</option>
-                            @foreach (var prod in products.Data.Products)
-                            {
-                                <option value="@prod.Id">@prod.Name</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-span-6 sm:col-span-3">
-                        <label for="price"
-                               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix</label>
-                        <input @bind="saleItem.Price" type="number" name="price" id="price"
-                               class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                               placeholder="e.g. Prix d'achat'">
-                    </div>
-
-                    <div class="col-span-6 sm:col-span-3">
-                        <label for="quatite"
-                               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantité</label>
-
-                        <input @bind="saleItem.Quantity" type="number" name="quatite" id="quatite"
-                               class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                               placeholder="e.g. Quantité">
-                    </div>
-                    <div class="col-span-6 sm:col-span-3">
-
-
-                        <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                                type="button" @onclick="AddItem">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd"
-                                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                      clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="grid grid-cols-6 gap-2 mt-4">
-                <h3 class="col-span-6">Recapitulatif</h3>
-                <div class="col-span-6 flex items-center">
-                    <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nombre article : @sale.Items.Sum(i => i.Quantity)</p>
-                </div>
-                <div class="col-span-6 flex items-center">
-                    <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total : @sale.TotalPrice FCFA</p>
-                </div>
-                <div class="col-span-6 flex items-center">
-                    <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                            type="submit">
-                        Payer
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </div>
- *@
     @if (saleItem != null)
     {
         <!-- Quantity Modal -->
@@ -439,6 +270,8 @@
                 messageStore.Clear();
                 editContext.NotifyValidationStateChanged();
                 sale = new(); // Reset the boutique object
+                ShowSuccess();
+                products = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
             }
 
         }
@@ -453,26 +286,37 @@
 
                 if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
-                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
-                }
-
-                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
-                {
-                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
+                    ShowError(errorResult.Detail);
+                    // messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
+                    // editContext.NotifyValidationStateChanged();
                 }
             }
             catch
             {
-                messageStore.Add(new FieldIdentifier(sale, string.Empty), "Une erreur est survenue.");
-                editContext.NotifyValidationStateChanged();
+
+                ShowError("Une erreur est survenue.");
+                // messageStore.Add(new FieldIdentifier(sale, string.Empty), "Une erreur est survenue.");
+                // editContext.NotifyValidationStateChanged();
             }
+
         }
         finally
         {
             isLoad = false;
         }
+    }
+
+    private void RemoveItem(SaleItem item)
+    {
+        sale.Items.Remove(item);
+        TotalPriceSale();
+    }
+
+    private void TotalPriceSale()
+    {
+        sale.TotalPrice = sale.Items.Sum(x => x.Price * x.Quantity);
+        saleItem.ProductId = Guid.Empty;
+        saleItem = new();
     }
 
     private void AddItem()
@@ -499,10 +343,7 @@
             });
         }
 
-
-        sale.TotalPrice = sale.Items.Sum(x => x.Price * x.Quantity);
-        saleItem.ProductId = Guid.Empty;
-        saleItem = new();
+        TotalPriceSale();
 
         closeAddQuantityModal();
     }
@@ -536,6 +377,21 @@
     {
         var product = products.Data.Products.FirstOrDefault(p => p.Id == productId);
         return product?.Name ?? "";
+    }
+
+    private void Cancel()
+    {
+        sale = new();
+    }
+
+    private void ShowSuccess()
+    {
+        ToastService.ShowToast("Succès", "Paramètre enregistré avec succès", "success");
+    }
+
+    private void ShowError(string message)
+    {
+        ToastService.ShowToast("Erreur", message, "error");
     }
 
 }
