@@ -1,4 +1,4 @@
-name: 🚀 Deploy on Main PR Merge
+name: 🚀 Deploy DEV on Main PR Merge
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  deploy:
+  deploy-dev:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
@@ -31,6 +31,23 @@ jobs:
             chmod +x /home/komanatse/depensio/vault/policies/setup.deploy.sh
             echo "➡️ Créer le dossier shared"
             mkdir -p /home/komanatse/depensio/vault/shared
+            JSON_PATH="/home/komanatse/depensio/vault/shared/vault-depensio-env.json"
+            
+            # ✅ Création du fichier s'il n'existe pas
+            if [ ! -f "$JSON_PATH" ]; then
+              echo "📄 Création du fichier $JSON_PATH"
+              touch "$JSON_PATH"
+              chmod +x  "$JSON_PATH"
+            fi
+            
+            cat <<EOF > /home/komanatse/depensio/vault/shared/vault-depensio-env.json
+            {
+              "Vault__Uri": "${{ secrets.VAULT_ADDR }}",
+              "Vault__RoleId": "${{ secrets.ROLE_ID }}",
+              "Vault__SecretId": "${{ secrets.SECRET_ID }}"
+            }
+            EOF
+            
             echo "➡️ Passage au dossier projet"
             cd /home/komanatse/depensio
             echo "📦 Pull du nouveau contenu"
