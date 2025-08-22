@@ -31,21 +31,37 @@ jobs:
             chmod +x /home/komanatse/depensio/vault/policies/setup.deploy.sh
             echo "➡️ Créer le dossier shared"
             mkdir -p /home/komanatse/depensio/vault/shared
-            JSON_PATH="/home/komanatse/depensio/vault/shared/vault-depensio-env.json"
             
+            JSON_PATH="/home/komanatse/depensio/vault/shared/vault-depensio-env.json"            
             # ✅ Création du fichier s'il n'existe pas
             if [ ! -f "$JSON_PATH" ]; then
               echo "📄 Création du fichier $JSON_PATH"
               touch "$JSON_PATH"
               chmod +x  "$JSON_PATH"
-            fi
-            
+            fi            
             cat <<EOF > /home/komanatse/depensio/vault/shared/vault-depensio-env.json
             {
               "Vault__Uri": "${{ secrets.VAULT_ADDR }}",
               "Vault__RoleId": "${{ secrets.ROLE_ID }}",
               "Vault__SecretId": "${{ secrets.SECRET_ID }}"
             }
+            EOF
+
+            ENV_PATH="/home/komanatse/depensio/.env"            
+            # ✅ Création du fichier s'il n'existe pas
+            if [ ! -f "$ENV_PATH" ]; then
+              echo "📄 Création du fichier $ENV_PATH"
+              touch "$ENV_PATH"
+              chmod +x  "$ENV_PATH"
+            fi
+            cat <<EOF > /home/komanatse/depensio/.env
+            # Base de données PostgreSQL
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            
+            # Vault secret path
+            VAULT_PATH=${{ vars.VAULT_PATH }}
             EOF
             
             echo "➡️ Passage au dossier projet"
