@@ -30,14 +30,21 @@ jobs:
             if [ -d "$TARGET_DIR" ]; then
               echo "📂 Le dossier $TARGET_DIR existe déjà."
               if [ -d "$TARGET_DIR/.git" ]; then
-                echo "✅ Dépôt Git trouvé, mise à jour..."
+                echo "✅ Dépôt Git trouvé, tentative de mise à jour..."
                 cd "$TARGET_DIR"
+                
+                # reset + pull avec gestion d'erreur
                 git reset --hard
-                git pull origin main
+                if ! git pull origin main; then
+                  echo "❌ Pull échoué (token peut-être expiré). Suppression et reclonage..."
+                  cd ..
+                  rm -rf "$TARGET_DIR"
+                  git clone "$REPO_URL" "$TARGET_DIR"
+                  cd "$TARGET_DIR"
+                fi
               else
-                echo "⚠️ Dossier existe mais n'est pas un dépôt Git → suppression"
+                echo "⚠️ Dossier existe mais n'est pas un dépôt Git → suppression et clonage"
                 rm -rf "$TARGET_DIR"
-                echo "⬇️ Clonage du dépôt..."
                 git clone "$REPO_URL" "$TARGET_DIR"
                 cd "$TARGET_DIR"
               fi
