@@ -26,7 +26,6 @@ jobs:
             echo "➡️ Récupérer le pojet sur github"            
             REPO_URL="https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git"
             TARGET_DIR="/home/komanatse/depensio"
-
             # Vérifier si le dossier existe
             if [ -d "$TARGET_DIR" ]; then
               echo "📂 Le dossier $TARGET_DIR existe déjà."
@@ -47,7 +46,6 @@ jobs:
               git clone "$REPO_URL" "$TARGET_DIR"
               cd "$TARGET_DIR"
             fi
-
             
             echo "➡️ Copier le fichier setup.deploy.sh"
             cp /home/komanatse/vaultdepensio/setup.deploy.sh /home/komanatse/depensio/vault/policies
