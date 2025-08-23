@@ -89,13 +89,13 @@ jobs:
             # depensio.api
             CONNECTION_STRING_API=${{ secrets.CONNECTION_STRING_API }}
             MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID_PROD }}
-            MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD_PROD }}
-            MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME_PROD }}
+            MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD }}
+            MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME }}
             MAIL_CONFIG_HOST=${{ vars.MAIL_CONFIG_HOST }}
             MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
             JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API_PROD }}
             JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API_PROD }}
-            JWT_SECRET_API=${{ secrets.JWT_SECRET_API_PROD }}
+            JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}
             
             # depensio.web
             API_SETTINGS_URL=${{ vars.API_SETTINGS_URL_PROD }}
