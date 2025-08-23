@@ -259,3 +259,10 @@ Clé de contrôle	1	Calculée avec l’algorithme modulo
 Le format du fichier est correct pour Linux
 file .env          # doit indiquer UTF-8 text
 dos2unix .env      # convertit les retours Windows \r\n en Linux \n
+
+
+# Generation de cle
+    openssl rand -base64 32
+
+# Generation de mot de passe 
+    openssl rand -hex 32
