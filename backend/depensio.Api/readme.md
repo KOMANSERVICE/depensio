@@ -28,6 +28,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 docker compose down // facultative
 docker compose build --no-cache // facultative
 docker compose up -d // facultative
+
 vault kv get -format=json secret/depensio
 
 # ✅ Pour aller plus loin : supprimer aussi les images
@@ -58,6 +59,7 @@ vault write auth/approle/role/my-role token_policies="depensio-policy" token_ttl
 
 ou 
 vault write auth/approle/role/my-role token_policies="depensio-policy"  token_ttl=0   token_max_ttl=0   token_explicit_max_ttl=0  token_period=0
+vault write auth/approle/role/my-role token_policies="depensio"  token_ttl=0   token_max_ttl=0   token_explicit_max_ttl=0  token_period=0
 
 vault write -f auth/approle/role/my-role/secret-id
 vault read auth/approle/role/my-role/role-id
@@ -112,7 +114,7 @@ server {
     }
 }
 
-ou 
+ou pour n8n
 
 server {
     listen 80;
@@ -168,6 +170,8 @@ sudo systemctl enable nginx
 
 1. repart de zero
 sudo mv /etc/nginx/sites-enabled/vename.com /etc/nginx/sites-enabled/vename.com.bak
+sudo rm /etc/nginx/sites-enabled/nom_du_site
+sudo rm /etc/nginx/sites-available/nom_du_site
 
 statut des site
 ls -l /etc/nginx/sites-enabled/

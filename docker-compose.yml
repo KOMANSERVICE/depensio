@@ -1,8 +1,8 @@
 services:
 
 
-  depensioVault:
-    image: hashicorp/vault:1.13.3
+  # depensioVault:
+  #   image: hashicorp/vault:1.13.3
 
   depensio.web:
     image: ${DOCKER_REGISTRY-}depensioweb

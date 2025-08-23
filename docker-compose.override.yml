@@ -1,40 +1,22 @@
-services:
-  depensioVault:
-    container_name: depensioVault
-    restart: always
-    ports:
-      - "8201:8200"
-    environment:
-      VAULT_DEV_ROOT_TOKEN_ID: root-token
-      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8201"
-    volumes:
-      - ./vault/policies:/vault/policies:ro
-      - ./vault/shared:/vault/shared
-    cap_add:
-      - IPC_LOCK
-    entrypoint: /vault/policies/setup.deploy.sh
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8201/v1/sys/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-          
+services:          
   depensioDB:
     container_name: depensioDB
     restart: always
     environment:
-      POSTGRES_DB: depensioDB
-      POSTGRES_USER: testRoot
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5436:5432"
     volumes:
       - pgdata_depensio:/var/lib/postgresql/data  
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "testRoot"]
-      interval: 30s
-      timeout: 15s
-      retries: 10
+      test: ["CMD-SHELL", "PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1;' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - vault-net
 
   depensio.web:
     environment:
@@ -57,11 +39,11 @@ services:
     depends_on:
       depensio.api:
         condition: service_started
+    networks:
+      - vault-net
 
   depensio.api:
     depends_on:
-      depensioVault:
-        condition: service_healthy
       depensioDB:
         condition: service_healthy
     restart: always
@@ -69,16 +51,16 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081      
-      - ConnectionStrings__Database=DataBase
-      - Vault__Uri=http://depensioVault:8201
-      - MailConfig__FromMailId=noreplytest@depensio.com
-      - MailConfig__FromMailIdPassword=FromMailIdPassword
-      - MailConfig__FromMailName=depensio
-      - MailConfig__Host=mail.depensio.com
-      - MailConfig__Ports=25
-      - JWT__ValidAudience=User
-      - JWT__ValidIssuer=https://localhost:9002
-      - JWT__Secret=Secret
+      - ConnectionStrings__Database=${CONNECTION_STRING_API}
+      - Vault__Path=${VAULT_PATH}
+      - MailConfig__FromMailId=${MAIL_CONFIG_ID}
+      - MailConfig__FromMailIdPassword=${MAIL_CONFIG_PASSWORD}
+      - MailConfig__FromMailName=${MAIL_CONFIG_NAME}
+      - MailConfig__Host=${MAIL_CONFIG_HOST}
+      - MailConfig__Ports=${MAIL_CONFIG_PORT}
+      - JWT__ValidAudience=${JWT_VALID_AUDIENCE}
+      - JWT__ValidIssuer=${JWT_VALID_ISSUER}
+      - JWT__Secret=${JWT_SECRET}
     ports:
       - "9101:8080"
       - "9102:8081"
@@ -87,6 +69,12 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ./vault/shared:/app/vault/shared:ro
-      - ./vault/shared:/app/depensio/depensio/backend/depensio.Api/vault/shared:ro
+      - ./vault/shared:/app/vault/shared
+    networks:
+      - vault-net
+
+      
+networks:
+  vault-net:
+    external: true 
 

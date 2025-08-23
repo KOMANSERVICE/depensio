@@ -28,12 +28,15 @@ public static class DependencyInjection
         (this IServiceCollection services, IConfiguration configuration)
     {
 
-        //var vaultUri = configuration["Vault:Uri"];
-        //var vaultSecrets = LoadVaultSecrets(configuration);
-        var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "vault/shared/vault-depensio-env.json");
-        var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(File.ReadAllText(jsonPath.Replace(@"backend\depensio.Api\", "")))!;
+        //var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\..\"));
+        //var path = Path.Combine(solutionRoot, "vault", "shared");
+        //var jsonPath = Path.Combine(path, "vault-depensio-env.json");
+        var jsonPath = configuration["Vault:Path"]!;
 
-        File.WriteAllText("ef-erroruri.log", vaultSecrets.Vault__Uri);
+        var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(
+            File.ReadAllText(jsonPath)
+        )!;
+
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
                 vaultUri: vaultSecrets.Vault__Uri,
@@ -104,32 +107,5 @@ public static class DependencyInjection
     {
         app.UseMiddleware<UserContextMiddleware>();
         return app;
-    }
-
-    private static VaultSecretsConfig LoadVaultSecrets(IConfiguration configuration)
-    {
-        var uri = "http://127.0.0.1:8200";
-        var roleId = configuration["Vault:RoleId"]!;
-        var secretId = configuration["Vault:SecretId"]!;
-       
-        if (!string.IsNullOrWhiteSpace(uri) && !string.IsNullOrWhiteSpace(roleId) && !string.IsNullOrWhiteSpace(secretId))
-        {
-            return new VaultSecretsConfig
-            {
-                Vault__Uri = uri,
-                Vault__RoleId = roleId,
-                Vault__SecretId = secretId
-            };
-        }
-
-        // Fallback: lecture du JSON en local
-        var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "vault/shared/vault-depensio-env.json");
-        jsonPath = jsonPath.Replace(@"backend\depensio.Api\", "");
-        if (!File.Exists(jsonPath))
-            throw new FileNotFoundException($"Vault secrets file not found at: {jsonPath}");
-
-        var json = File.ReadAllText(jsonPath);
-        return JsonSerializer.Deserialize<VaultSecretsConfig>(json)
-            ?? throw new InvalidOperationException("Vault secrets JSON is invalid.");
     }
 }
