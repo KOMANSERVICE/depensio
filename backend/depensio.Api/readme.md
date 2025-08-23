@@ -255,3 +255,7 @@ Préfixe (GS1)	3	Pays ou organisation (ex: 613)
 Code entreprise	4–5	Code assigné à l’entreprise
 Code produit	5–4	ID unique pour le produit
 Clé de contrôle	1	Calculée avec l’algorithme modulo
+
+Le format du fichier est correct pour Linux
+file .env          # doit indiquer UTF-8 text
+dos2unix .env      # convertit les retours Windows \r\n en Linux \n

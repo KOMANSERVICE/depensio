@@ -4,7 +4,9 @@ using depensio.Infrastructure.Data.Extensions;
 using Depensio.Application;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddEnvironmentVariables();
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddEnvironmentVariables();
 // Add services to the container.
 
 //builder.Services.AddControllers();

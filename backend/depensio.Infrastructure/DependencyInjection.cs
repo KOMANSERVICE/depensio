@@ -27,10 +27,6 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices
         (this IServiceCollection services, IConfiguration configuration)
     {
-
-        //var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\..\"));
-        //var path = Path.Combine(solutionRoot, "vault", "shared");
-        //var jsonPath = Path.Combine(path, "vault-depensio-env.json");
         var jsonPath = configuration["Vault:Path"]!;
 
         var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(
@@ -51,21 +47,11 @@ public static class DependencyInjection
         var connectionString = vaultSecretProvider.GetSecretAsync(configuration.GetConnectionString("DataBase")!).Result;
         var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(configuration["MailConfig:FromMailIdPassword"]!).Result;
 
-        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        services.AddScoped<IDepensioDbContext, DepensioDbContext>();
-
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             options.UseNpgsql(connectionString);
         });
-
-
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-            .AddEntityFrameworkStores<DepensioDbContext>()
-            .AddDefaultTokenProviders();
-
-
 
         services.Configure<IdentityOptions>(options =>
         {
@@ -87,6 +73,16 @@ public static class DependencyInjection
             options.IsBodyHtml = true;
             options.EnableSsl = true;
         });
+
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<IDepensioDbContext, DepensioDbContext>();
+
+
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<DepensioDbContext>()
+            .AddDefaultTokenProviders();
+
+
 
         services.AddTransient<ISendMailService, SendMailService>();
         services.AddTransient<IEmailService, EmailService>();
