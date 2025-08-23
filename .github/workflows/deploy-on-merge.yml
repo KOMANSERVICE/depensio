@@ -62,6 +62,23 @@ jobs:
             
             # Vault secret path
             VAULT_PATH=${{ vars.VAULT_PATH }}
+
+            # depensio.api
+            CONNECTION_STRING_API=${{ vars.CONNECTION_STRING_API }}
+            MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID }}
+            MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD }}
+            MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME }}
+            MAIL_CONFIG_HOST=${{ vars.MAIL_CONFIG_HOST }}
+            MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
+            JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API }}
+            JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API }}
+            JWT_SECRET_API=${{ vars.JWT_SECRET_API }}
+            
+            # depensio.web<
+            API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
+            JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
+            JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
+            JWT_SECRET_WEB=${{ vars.JWT_SECRET_WEB }}
             EOF
             
             echo "➡️ Passage au dossier projet"
