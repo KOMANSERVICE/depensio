@@ -23,10 +23,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - ApiSettings__Uri=https://depensio.api:9102
-      - JWT__ValidAudience=depensio.web
-      - JWT__ValidIssuer=depensio.client
-      - JWT__Secret=SuperSecureKeyThatMatchesClientAndServer
+      - ApiSettings__Uri=${API_SETTINGS_URL}
+      - JWT__ValidAudience=${JWT_VALID_AUDIENCE_WEB}
+      - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
+      - JWT__Secret=${JWT_SECRET_WEB}
     restart: always
     ports:
       - "9001:8080"
@@ -58,9 +58,9 @@ services:
       - MailConfig__FromMailName=${MAIL_CONFIG_NAME}
       - MailConfig__Host=${MAIL_CONFIG_HOST}
       - MailConfig__Ports=${MAIL_CONFIG_PORT}
-      - JWT__ValidAudience=${JWT_VALID_AUDIENCE}
-      - JWT__ValidIssuer=${JWT_VALID_ISSUER}
-      - JWT__Secret=${JWT_SECRET}
+      - JWT__ValidAudience=${JWT_VALID_AUDIENCE_API}
+      - JWT__ValidIssuer=${JWT_VALID_ISSUER_API}
+      - JWT__Secret=${JWT_SECRET_API}
     ports:
       - "9101:8080"
       - "9102:8081"

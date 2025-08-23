@@ -31,7 +31,7 @@ services:
     working_dir: /src
     entrypoint: sh -c "
       echo '? Attente des secrets Vault...' &&
-      until [ -f /app/vault/shared/vault-depensio-env.json ]; do sleep 1; done &&
+      until [ -f ${VAULT_PATH} ]; do sleep 1; done &&
       dotnet tool install --global dotnet-ef &&
       export PATH=$PATH:/root/.dotnet/tools &&
       dotnet ef database update --project backend/depensio.Infrastructure --startup-project backend/depensio.Api"
@@ -47,10 +47,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
-      - ApiSettings__Uri=https://apidemo.depensio.com
-      - JWT__ValidAudience=depensio.web
-      - JWT__ValidIssuer=depensio.client
-      - JWT__Secret=SuperSecureKeyThatMatchesClientAndServer
+      - ApiSettings__Uri=${API_SETTINGS_URL}
+      - JWT__ValidAudience=${JWT_VALID_AUDIENCE_WEB}
+      - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
+      - JWT__Secret=${JWT_SECRET_WEB}
     ports:
       - "9001:8080"
     volumes:
@@ -75,17 +75,17 @@ services:
         condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
-      - ASPNETCORE_HTTP_PORTS=8080   
-      - ConnectionStrings__Database=DataBase
+      - ASPNETCORE_HTTP_PORTS=8080     
+      - ConnectionStrings__Database=${CONNECTION_STRING_API}
       - Vault__Path=${VAULT_PATH}
-      - MailConfig__FromMailId=noreplytest@depensio.com
-      - MailConfig__FromMailIdPassword=FromMailIdPassword
-      - MailConfig__FromMailName=depensio
-      - MailConfig__Host=mail.depensio.com
-      - MailConfig__Ports=25
-      - JWT__ValidAudience=User
-      - JWT__ValidIssuer=https://demo.depensio.com
-      - JWT__Secret=Secret
+      - MailConfig__FromMailId=${MAIL_CONFIG_ID}
+      - MailConfig__FromMailIdPassword=${MAIL_CONFIG_PASSWORD}
+      - MailConfig__FromMailName=${MAIL_CONFIG_NAME}
+      - MailConfig__Host=${MAIL_CONFIG_HOST}
+      - MailConfig__Ports=${MAIL_CONFIG_PORT}
+      - JWT__ValidAudience=${JWT_VALID_AUDIENCE}
+      - JWT__ValidIssuer=${JWT_VALID_ISSUER}
+      - JWT__Secret=${JWT_SECRET}
     ports:
       - "9101:8080"
     volumes:

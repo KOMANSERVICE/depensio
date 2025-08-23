@@ -206,41 +206,6 @@ sudo chown -R komanatse:komanatse /home/
 Cloner le projet depensio depuis GitHub avec un token d'accès personnel
 git clone https://<USERNAME>:<TOKEN>@github.com/KOMANSERVICE/depensio.git
 
- 
-# Pour utiliser SSH_PRIVATE_KEY dans ton GitHub Actions afin de te connecter à ton VPS via SSH, voici comment faire étape par étape 🔐📦 :
-
-✅ 1. Générer une clé SSH sur ta machine locale (si pas déjà fait)
-bash
-Copier
-Modifier
-ssh-keygen -t rsa -b 4096 -C "github-actions"
-⬇️ Cela va générer deux fichiers :
-
-Clé privée : ~/.ssh/id_rsa ➡️ à ajouter dans GitHub Secrets
-
-Clé publique : ~/.ssh/id_rsa.pub ➡️ à copier sur ton VPS
-
-✅ 2. Copier la clé publique dans le VPS
-bash
-Copier
-Modifier
-ssh-copy-id -i ~/.ssh/id_rsa.pub user@your-vps-ip
-Cela va ajouter la clé dans ~/.ssh/authorized_keys sur ton serveur Linux 🛡️
-
-✅ 3. Ajouter SSH_PRIVATE_KEY dans GitHub Secrets
-Va dans ton repo GitHub
-
-Settings ➡️ Secrets and variables ➡️ Actions ➡️ New repository secret
-
-Nom : SSH_PRIVATE_KEY
-
-Valeur : colle le contenu de ~/.ssh/id_rsa
-
-bash
-Copier
-Modifier
-cat ~/.ssh/id_rsa
-
 
 # Github Actions Workflow Ajouter un cle private SSH 
 
@@ -253,10 +218,36 @@ Ajouter la cle dans ~/.ssh/authorized_keys sur le serveur distant
 ssh-keygen -t rsa -b 4096 -C "ci-deploy@yourdomain.com" -N "" -f ~/.ssh/yourdomain.com
 Ajouter la cle dans ~/.ssh/authorized_keys sur le serveur distant
 
+ 
+# Pour utiliser SSH_PRIVATE_KEY dans ton GitHub Actions afin de te connecter à ton VPS via SSH, voici comment faire étape par étape 🔐📦 :
+
+✅ 1. Générer une clé SSH sur ta machine locale (si pas déjà fait)
+ssh-keygen -t rsa -b 4096 -C "github-actions"
+⬇️ Cela va générer deux fichiers :
+
+Clé privée : ~/.ssh/id_rsa ➡️ à ajouter dans GitHub Secrets
+
+Clé publique : ~/.ssh/id_rsa.pub ➡️ à copier sur ton VPS
+
+✅ 2. Copier la clé publique dans le VPS
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@your-vps-ip
+Cela va ajouter la clé dans ~/.ssh/authorized_keys sur ton serveur Linux 🛡️
+
+✅ 3. Ajouter SSH_PRIVATE_KEY dans GitHub Secrets
+Va dans ton repo GitHub
+
+Settings ➡️ Secrets and variables ➡️ Actions ➡️ New repository secret
+
+Nom : SSH_PRIVATE_KEY
+
+Valeur : colle le contenu de ~/.ssh/id_rsa
+
+cat ~/.ssh/id_rsa
+
+
 # Probleme d'installation image docker
 sudo systemctl daemon-reexec
 sudo systemctl restart docker
-
 
 ✅ Structure d’un code EAN-13 :
 Partie	Longueur	Description
