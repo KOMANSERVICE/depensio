@@ -41,7 +41,7 @@ jobs:
             fi            
             cat <<EOF > /home/komanatse/depensio/vault/shared/vault-depensio-env.json
             {
-              "Vault__Uri": "${{ secrets.VAULT_ADDR }}",
+              "Vault__Uri": "${{ vars.VAULT_ADDR }}",
               "Vault__RoleId": "${{ secrets.ROLE_ID }}",
               "Vault__SecretId": "${{ secrets.SECRET_ID }}"
             }
