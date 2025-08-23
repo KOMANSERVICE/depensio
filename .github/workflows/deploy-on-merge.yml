@@ -32,12 +32,11 @@ jobs:
               if [ -d "$TARGET_DIR/.git" ]; then
                 echo "✅ Dépôt Git trouvé, tentative de mise à jour..."
                 cd "$TARGET_DIR"
-                
+                docker compose -f docker-compose.prod.yml down
                 # reset + pull avec gestion d'erreur
                 git reset --hard
                 if ! git pull origin main; then
                   echo "❌ Pull échoué (token peut-être expiré). Suppression et reclonage..."
-                  docker compose -f docker-compose.prod.yml down
                   cd ..
                   rm -rf "$TARGET_DIR"
                   git clone "$REPO_URL" "$TARGET_DIR"
