@@ -112,6 +112,36 @@ jobs:
 
             chmod 644 /home/komanatse/depensio/.env
             dos2unix /home/komanatse/depensio/.env
+
+            cat <<EOF > /home/komanatse/depensio/frontend/depensio.Web.Client/wwwroot/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": ${{ vars.API_SETTINGS_URL }}
+              }
+            }
+            EOF
+            
+            cat <<EOF > /home/komanatse/depensio/frontend/depensio.Web/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": ${{ vars.API_SETTINGS_URL }}
+              }
+            }
+            EOF
             
             echo "➡️ Passage au dossier projet"
             cd /home/komanatse/depensio
