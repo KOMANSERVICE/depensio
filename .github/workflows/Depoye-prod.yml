@@ -1,0 +1,115 @@
+name: 🚀 Deploy to PROD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v3
+
+      - name: 🚀 Deploy to Prod
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST_PROD }}
+          username: ${{ secrets.SSH_USER_PROD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE_PROD }}
+          port: 22
+          script: |           
+            echo "➡️ Récupérer le pojet sur github"            
+            REPO_URL="https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git"
+            TARGET_DIR="/home/komanatse/depensio"
+            # Vérifier si le dossier existe
+            if [ -d "$TARGET_DIR" ]; then
+              echo "📂 Le dossier $TARGET_DIR existe déjà."
+              if [ -d "$TARGET_DIR/.git" ]; then
+                echo "✅ Dépôt Git trouvé, tentative de mise à jour..."
+                cd "$TARGET_DIR"
+                docker compose -f docker-compose.prod.yml down
+                # reset + pull avec gestion d'erreur
+                git reset --hard
+                if ! git pull origin main; then
+                  echo "❌ Pull échoué (token peut-être expiré). Suppression et reclonage..."
+                  cd ..
+                  rm -rf "$TARGET_DIR"
+                  git clone "$REPO_URL" "$TARGET_DIR"
+                  cd "$TARGET_DIR"
+                fi
+              else
+                echo "⚠️ Dossier existe mais n'est pas un dépôt Git → suppression et clonage"
+                rm -rf "$TARGET_DIR"
+                git clone "$REPO_URL" "$TARGET_DIR"
+                cd "$TARGET_DIR"
+              fi
+            else
+              echo "⬇️ Clonage du dépôt..."
+              git clone "$REPO_URL" "$TARGET_DIR"
+              cd "$TARGET_DIR"
+            fi
+            
+            echo "➡️ Créer le dossier shared"
+            mkdir -p /home/komanatse/depensio/vault/shared
+            
+            JSON_PATH="/home/komanatse/depensio/vault/shared/vault-depensio-env.json"            
+            # ✅ Création du fichier s'il n'existe pas
+            if [ ! -f "$JSON_PATH" ]; then
+              echo "📄 Création du fichier $JSON_PATH"
+              touch "$JSON_PATH"
+              chmod +x  "$JSON_PATH"
+            fi            
+            cat <<EOF > /home/komanatse/depensio/vault/shared/vault-depensio-env.json
+            {
+              "Vault__Uri": "${{ vars.VAULT_ADDR }}",
+              "Vault__RoleId": "${{ secrets.ROLE_ID_PROD }}",
+              "Vault__SecretId": "${{ secrets.SECRET_ID_PROD }}"
+            }
+            EOF
+
+            ENV_PATH="/home/komanatse/depensio/.env"            
+            # ✅ Création du fichier s'il n'existe pas
+            if [ ! -f "$ENV_PATH" ]; then
+              echo "📄 Création du fichier $ENV_PATH"
+              touch "$ENV_PATH"
+              chmod +x  "$ENV_PATH"
+            fi
+            
+            cat <<EOF > /home/komanatse/depensio/.env
+            # Base de données PostgreSQL
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_PROD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER_PROD }}
+            
+            # Vault secret path
+            VAULT_PATH=${{ vars.VAULT_PATH }}
+
+            # depensio.api
+            CONNECTION_STRING_API=${{ secrets.CONNECTION_STRING_API }}
+            MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID_PROD }}
+            MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD_PROD }}
+            MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME_PROD }}
+            MAIL_CONFIG_HOST=${{ vars.MAIL_CONFIG_HOST }}
+            MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
+            JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API_PROD }}
+            JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API_PROD }}
+            JWT_SECRET_API=${{ secrets.JWT_SECRET_API_PROD }}
+            
+            # depensio.web
+            API_SETTINGS_URL=${{ vars.API_SETTINGS_URL_PROD }}
+            JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
+            JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
+            JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
+            EOF
+
+            chmod 644 /home/komanatse/depensio/.env
+            
+            echo "➡️ Passage au dossier projet"
+            cd /home/komanatse/depensio
+            echo "📦 Pull du nouveau contenu"
+            git pull origin main
+            echo "♻️ Rebuild & redeploy"
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build
