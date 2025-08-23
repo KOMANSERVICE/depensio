@@ -83,6 +83,7 @@ jobs:
               touch "$ENV_PATH"
               chmod +x  "$ENV_PATH"
             fi
+            chmod 644 /home/komanatse/depensio/.env
             cat <<EOF > /home/komanatse/depensio/.env
             # Base de données PostgreSQL
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
@@ -103,7 +104,7 @@ jobs:
             JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API }}
             JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}
             
-            # depensio.web<
+            # depensio.web
             API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
             JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
             JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
