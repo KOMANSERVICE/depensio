@@ -1,4 +1,5 @@
-﻿using depensio.Shared.Services;
+﻿using depensio.Shared.Components.Toast;
+using depensio.Shared.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,7 @@ public static class DependencyInjection
         services.AddScoped<JwtAuthorizationHandler>();
         services.AddScoped<CustomAuthStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
-
+        services.AddScoped<ToastService>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFlowbiteService, FlowbiteService>();

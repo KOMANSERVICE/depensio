@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compte créé</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            background-color: #825513;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .body {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .left,
+        .right {
+            flex: 1 1 50%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .left {
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .footer {
+            background-color: #fafafa;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+
+        @media (max-width: 600px) {
+            .left,
+            .right {
+                flex: 1 1 100%;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bienvenue sur Depensio 🎉</h1>
+        </div>
+        <div class="body">
+            <div class="left">
+                <h2>Votre compte est prêt !</h2>
+                <p>
+                    Bonjour 👋,<br>
+                    Nous avons le plaisir de vous informer que votre compte a été créé avec succès.<br>
+                    Vous pouvez désormais accéder à votre espace personnel et commencer à utiliser nos services.
+                </p>
+                <p>
+                    <a href='{{link}}'>Cliquez ici</a> ou sur le lien ci-dessous pour confirmé votre mail
+                </p>
+                <p>{{link}}</p>
+            </div>
+            <div class="right">
+                <h2>Informations utiles :</h2>
+                <ul>
+                    <li><strong>Email :</strong> {{email}}</li>
+                    <li><strong>Date de création :</strong> {{date}}</li>
+                    <li><strong>Support :</strong> support@depensio.ci</li>
+                </ul>
+                <p>
+                    Besoin d’aide ? Notre équipe est à votre écoute.
+                </p>
+            </div>
+        </div>
+        <div class="footer">
+            © 2025 Depensio. Tous droits réservés.
+        </div>
+    </div>
+</body>
+</html>

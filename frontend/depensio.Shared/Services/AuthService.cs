@@ -1,4 +1,6 @@
 ﻿using depensio.Shared.Pages.Auth.Models;
+using System.Net.Http.Headers;
+using static System.Net.WebRequestMethods;
 //using Microsoft.AspNetCore.Components.Authorization;
 
 namespace depensio.Shared.Services;
@@ -47,5 +49,10 @@ public class AuthService : IAuthService
     {
         return await _storage.GetAsync(TOKEN_KEY);
     }
-   
+
+    public async Task LoadTokenAsync()
+    {
+        await _authStateProvider.LoadTokenAsync();
+    }
+
 }

@@ -7,7 +7,13 @@ namespace depensio.Shared.Services;
 public interface IProductService
 {
     [Post("/product")]
-    Task<BaseResponse<CreateProductResponse>> CreateProductAsync(CreateProductRequest request);
+    Task<BaseResponse<CreateOrUpdateProductResponse>> CreateProductAsync(CreateProductRequest request);
+    [Patch("/product")]
+    Task<BaseResponse<CreateOrUpdateProductResponse>> UpdateProductByBoutique(CreateProductRequest request);
     [Get("/product/{boutiqueId}")]
     Task<BaseResponse<GetProductByUserResponse>> GetProductsByUserAsync(Guid boutiqueId);
+    [Get("/product/{boutiqueId}/stock")]
+    Task<BaseResponse<GetProductByUserResponse>> GetProductByBoutiqueWithStockSetting(Guid boutiqueId);
+
+    
 }

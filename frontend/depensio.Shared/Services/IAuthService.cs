@@ -9,4 +9,5 @@ public interface IAuthService
     Task<bool> SignInAsync(SignInRequest request);
     Task LogoutAsync();
     Task<string?> GetTokenAsync();
+    Task LoadTokenAsync();
 }

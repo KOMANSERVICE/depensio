@@ -1,195 +1,231 @@
-@page "/caisse/{boutiqueId:guid}"
-@using depensio.Shared.Pages.Produits.Models
+﻿@page "/caisse/{boutiqueId:guid}"
 @inject IProductService _productService
 @inherits FlowbitePage
 @layout MainLayout
 @inject ISaleService _saleService;
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IBoutiqueSettingService _boutiqueSettingService
+@inject ToastService ToastService
 
+<PageTitle>Depensio - Caisse</PageTitle>
 
-<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
-    <div class="w-full mb-1">
-        <div class="mb-4">
-            <nav class="flex mb-5" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
-                    <li class="inline-flex items-center">
-                        <a href="#"
-                           class="inline-flex items-center text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-white">
-                            <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
-                                </path>
-                            </svg>
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <div class="flex items-center">
-                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd"
-                                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                      clip-rule="evenodd"></path>
-                            </svg>
-                            <a href="#"
-                               class="ml-1 text-gray-700 hover:text-primary-600 md:ml-2 dark:text-gray-300 dark:hover:text-white">Users</a>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="flex items-center">
-                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd"
-                                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                      clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="ml-1 text-gray-400 md:ml-2 dark:text-gray-500" aria-current="page">List</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
-            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Caisse</h1>
-        </div>
-    </div>
-</div>
-
+<ToastContainer />
 <EditForm EditContext="@editContext" OnValidSubmit="HandleCreateSale">
     <DataAnnotationsValidator />
     <ValidationSummary />
-
-    <div class="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-            <h2>Articles</h2>
-            <div class="overflow-x-auto">
-                <div class="inline-block min-w-full align-middle">
-                    <div class="overflow-hidden shadow">
-                        <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
-                            <thead class="bg-gray-100 dark:bg-gray-700">
-                                <tr>
-                                    <th scope="col" class="p-4">
-                                        <div class="flex items-center">
-                                            <input id="checkbox-all" aria-describedby="checkbox-1" type="checkbox"
-                                                   class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                                            <label for="checkbox-all" class="sr-only">checkbox</label>
-                                        </div>
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Produit
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Prix
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Quantit�
-                                    </th>
-
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                                @foreach (var item in sale.Items)
-                                {
-                                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <td class="w-4 p-4">
-                                            <div class="flex items-center">
-                                                <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
-                                                       class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
-                                            </div>
-                                        </td>
-                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                            @(products.Data.Products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
-                                        </td>
-                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                            @item.Price FCFA
-                                        </td>
-                                        <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                            @item.Quantity
-                                        </td>
-                                    </tr>
-
-                                }
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-            
-            <div>
-                <div class="grid grid-cols-6 gap-6">
-                    <div class="col-span-6">
-                        <label for="prodctId"
-                               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Liste des produits</label>
-                        <select id="prodctId"  @onchange="OnSelectedProductChanged" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                            <option selected="">Choix de produit</option>
-                            @foreach (var prod in products.Data.Products)
-                            {
-                                <option value="@prod.Id">@prod.Name</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-span-6 sm:col-span-3">
-                        <label for="price"
-                               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix</label>
-                        <input @bind="saleItem.Price" type="number" name="price" id="price"
-                               class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                               placeholder="e.g. Prix d'achat'">
-                    </div>
-
-                    <div class="col-span-6 sm:col-span-3">
-                        <label for="quatite"
-                               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantit�</label>
-
-                        <input @bind="saleItem.Quantity" type="number" name="quatite" id="quatite"
-                               class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                               placeholder="e.g. Quantit�">
-                    </div>
-                   @*  <div class="col-span-6 flex gap-2 justify-center items-center">
-                        <label for="total"
-                               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label> :
-                        <span>@sale.TotalPrice FCFA</span>
-                    </div> *@
-                    <div class="col-span-6 sm:col-span-3">
-                        
-                        
-                        <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                                type="button" @onclick="AddItem">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd"
-                                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                      clip-rule="evenodd"></path>
-                            </svg>
+    <div class="flex-grow container mx-auto p-4 flex flex-col md:flex-row gap-6">
+        <!-- Product Selection Section -->
+        <div class="w-full md:w-3/5 bg-white rounded-lg shadow-md p-4">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-primary-700 mb-4 md:mb-0">
+                    <i class="fas fa-barcode mr-2"></i> Scanner/Rechercher produit
+                </h2>
+                <div class="relative w-full md:w-1/2">
+                    <div class="flex items-center">
+                        <input type="text" id="barcode-input" placeholder="Code barre ou nom du produit..."
+                               class="flex-grow border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-700">
+                        <button type="button" class="bg-primary-700 text-white px-4 py-2 rounded-r-lg hover:bg-amber-700">
+                            <i class="fas fa-search"></i>
                         </button>
                     </div>
                 </div>
             </div>
-            <div class="grid grid-cols-6 gap-2 mt-4">
-                <h3 class="col-span-6">Recapitulatif</h3>
-                <div class="col-span-6 flex items-center">
-                    <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nombre article : @sale.Items.Sum(i => i.Quantity)</p>
+
+            <!-- Scanner Simulation -->
+            <div class="scanner-animation scan-animation border-2 border-dashed border-primary-700 rounded-lg p-8 text-center mb-4">
+                <i class="fas fa-barcode text-4xl text-primary-700 mb-2"></i>
+                <p class="text-gray-600">Présentez le code-barres du produit</p>
+            </div>
+
+            <!-- Product Categories -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-700 mb-2 text-primary-700">Catégories</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" class="bg-primary-700 text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Tous</button>
+                    <button type="button" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 transition">Alimentation</button>
+                    <button type="button" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 transition">Boissons</button>
+                    <button type="button" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 transition">Épicerie</button>
+                    <button type="button" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 transition">Hygiène</button>
                 </div>
-                <div class="col-span-6 flex items-center">
-                    <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total : @sale.TotalPrice FCFA</p>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[390px] overflow-y-auto">
+                <!-- Product items would be dynamically added here -->
+                @foreach (var prod in products.Data.Products)
+                {
+                    <div @onclick="() => showAddQuantityModal(prod.Id)"
+                         class="product-item bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition"
+                         data-id="@prod.Id" data-name="Pâtes Barilla" data-price="@prod.Price">
+                        <div class="bg-gray-100 h-24 mb-2 rounded flex items-center justify-center">
+                            <i class="fas fa-box-open text-3xl text-primary-700"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-800 truncate">@prod.Name</h4>
+                        <p class="text-primary-700 font-bold">@prod.Price FCFA</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center mt-6">
+                <nav class="inline-flex rounded-md shadow">
+                    <button type="button" class="px-3 py-1 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="px-3 py-1 border-t border-b border-gray-300 bg-primary-700 text-white">
+                        1
+                    </button>
+                    <button type="button"  class="px-3 py-1 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                        2
+                    </button>
+                    <button type="button"  class="px-3 py-1 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                        3
+                    </button>
+                    <button type="button" class="px-3 py-1 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Cart Section -->
+        <div class="w-full md:w-2/5 bg-white rounded-lg shadow-md p-4 flex flex-col">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4">
+                <i class="fas fa-shopping-cart mr-2"></i> Panier
+            </h2>
+
+            <!-- Customer Info -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Client:</span>
+                    <button type="button" id="customer-btn" class="text-primary-700 hover:underline">Ajouter un client</button>
                 </div>
-                <div class="col-span-6 flex items-center">
-                    <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                            type="submit">
-                        Payer
+                <div id="customer-info" class="hidden mt-2 p-2 bg-gray-50 rounded">
+                    <!-- Customer info would appear here -->
+                </div>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="flex-grow overflow-y-auto mb-4 border-b  max-h-[430px]">
+                <table class="w-full">
+                    <thead>
+                        <tr class="sticky top-0 z-10 bg-white border-b text-gray-600 text-sm">
+                            <th class="text-left pb-2">Produit</th>
+                            <th class="text-right pb-2">Prix</th>
+                            <th class="text-right pb-2">Qté</th>
+                            <th class="text-right pb-2">Total</th>
+                            <th class="pb-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cart-items">
+                        <!-- Cart items will be added here dynamically -->
+                        @if (sale.Items.Count < 1)
+                        {
+                            <tr class="text-sm">
+                                <td colspan="5" class="py-8 text-center text-gray-500">
+                                    <i class="fas fa-shopping-cart text-3xl mb-2 text-gray-300"></i>
+                                    <p>Aucun produit ajouté</p>
+                                </td>
+                            </tr>
+                        }
+
+                        @foreach (var item in sale.Items)
+                        {
+                            <tr class="text-sm">
+                                <td class="py-3">
+                                    @(products.Data.Products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
+                                    <p class="text-[10px] text-gray-500"> @(products.Data.Products.FirstOrDefault(p => p.Id == @item.ProductId).Barcode ?? "")</p>
+                                </td>
+                                <td class="py-3 text-right">@item.Price FCFA</td>
+                                <td class="py-3 text-right">@item.Quantity</td>
+                                <td class="py-3 text-right">@(item.Quantity* item.Price)  FCFA</td>
+                                <td class="py-3 text-center">
+                                    <button type="button" @onclick="() => { RemoveItem(item);}" class="remove-item text-red-500 hover:text-red-700" data-id="@item.Id">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="mb-4">
+                <div class="flex justify-between py-2">
+                    <span class="font-medium">Sous-total:</span>
+                    <span id="subtotal" class="font-medium">@sale.TotalPrice FCFA</span>
+                </div>
+                @* <div class="flex justify-between py-2">
+                    <span class="font-medium">TVA:</span>
+                    <span id="tax" class="font-medium">0.00€</span>
+                </div> *@
+                <div class="flex justify-between py-2 border-t border-b border-gray-200">
+                    <span class="font-bold">Total:</span>
+                    <span id="total" class="font-bold text-primary-700 text-xl">@sale.TotalPrice FCFA</span>
+                </div>
+            </div>
+
+            <!-- Payment Options -->
+            <div class="mb-4">
+                <h3 class="font-medium text-gray-700 mb-2 text-primary-700 ">Moyen de paiement</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" class="payment-btn bg-gray-100   p-2 rounded hover:bg-primary-500 transition" data-method="cash">
+                        <i class="fas fa-money-bill-wave mr-1 text-primary-700"></i> Espèces
+                    </button>
+                    <button type="button" class="payment-btn bg-gray-100 p-2 rounded hover:bg-primary-500 transition" data-method="card">
+                        <i class="fas fa-credit-card mr-1 text-primary-700"></i> Carte
+                    </button>
+                    <button type="button" class="payment-btn bg-gray-100  p-2 rounded hover:bg-primary-500 transition" data-method="check">
+                        <i class="fas fa-mobile-alt text-primary-700"></i>
+                        Mobile
                     </button>
                 </div>
+            </div>
 
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" @onclick="Cancel" id="cancel-btn" class="bg-gray-200 text-gray-800 p-3 rounded-lg font-medium hover:bg-gray-300 transition">
+                    <i class="fas fa-times mr-2"></i> Annuler
+                </button>
+                <button type="submit" id="pay-btn" class="bg-primary-700 text-white p-3 rounded-lg font-medium hover:bg-opacity-90 transition disabled:opacity-50" disabled="@(sale.TotalPrice < 1)">
+                    <i class="fas fa-check mr-2"></i> Payer (@sale.TotalPrice FCFA)
+                </button>
             </div>
         </div>
     </div>
 
+    @if (saleItem != null)
+    {
+        <!-- Quantity Modal -->
+        <div id="quantity-modal" class="@showModal(quantityModalVisible)">
+            <div class="bg-white rounded-lg p-6 w-80">
+                <h3 class="text-lg font-semibold text-primary-700 mb-4" id="modal-product-name">@getProductName(saleItem.ProductId)</h3>
+                <div class="flex items-center justify-between mb-6">
+                    <button type="button" id="decrement-qty" class="bg-gray-200 w-10 h-10 rounded-full text-xl flex items-center justify-center hover:bg-gray-300">-</button>
+                    <input @bind="saleItem.Quantity" type="number" name="quatite" id="quatite"  class="w-20 text-center border-b-2 border-primary-700 text-xl font-bold focus:outline-none">
+                    <button type="button" id="increment-qty" class="bg-gray-200 w-10 h-10 rounded-full text-xl flex items-center justify-center hover:bg-gray-300">+</button>
+                </div>
+                @if (displayPrixVente)
+                {
+
+                    <div class="mb-4  mb-6">
+                        <label class="block text-gray-700 mb-2">Prix de vente:</label>
+                        <input @bind="saleItem.Price" type="text" name="price" id="price" class="w-full p-2 border border-gray-300 rounded font-bold text-xl">
+                    </div>
+                }
+    
+                <div class="flex gap-3">
+                    <button type="button" @onclick="closeAddQuantityModal" class="flex-grow bg-gray-200 text-gray-800 p-2 rounded hover:bg-gray-300">Annuler</button>
+                    <button type="button" @onclick="AddItem" class="flex-grow bg-primary-700 text-white p-2 rounded hover:bg-opacity-90">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+    }
+
 </EditForm>
+
+
 @code {
     [Parameter]
     public Guid BoutiqueId { get; set; }
@@ -197,12 +233,15 @@
     private BaseResponse<GetProductByUserResponse> products;
 
     private bool isLoad = false;
+    private bool quantityModalVisible = false;
     private Sale sale = new();
     private SaleItem saleItem = new();
     private ErrorMessage errorMessage = new();
 
     private EditContext editContext;
     private ValidationMessageStore messageStore;
+
+    private bool displayPrixVente = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -211,7 +250,12 @@
 
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
-        products = await _productService.GetProductsByUserAsync(BoutiqueId);
+        products = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
+
+        var setting = await _boutiqueSettingService.GetSettingByBoutique(BoutiqueId, BoutiqueSettingKeys.VENTE_KEY);
+        var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);
+        var settingSaisiePrix = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
+        displayPrixVente = BoolHelper.ToBool(settingSaisiePrix?.Value.ToString());
     }
 
     private async Task HandleCreateSale()
@@ -226,6 +270,8 @@
                 messageStore.Clear();
                 editContext.NotifyValidationStateChanged();
                 sale = new(); // Reset the boutique object
+                ShowSuccess();
+                products = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
             }
 
         }
@@ -240,21 +286,19 @@
 
                 if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
-                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
-                }
-
-                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
-                {
-                    messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
+                    ShowError(errorResult.Detail);
+                    // messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
+                    // editContext.NotifyValidationStateChanged();
                 }
             }
             catch
             {
-                messageStore.Add(new FieldIdentifier(sale, string.Empty), "Une erreur est survenue.");
-                editContext.NotifyValidationStateChanged();
+
+                ShowError("Une erreur est survenue.");
+                // messageStore.Add(new FieldIdentifier(sale, string.Empty), "Une erreur est survenue.");
+                // editContext.NotifyValidationStateChanged();
             }
+
         }
         finally
         {
@@ -262,42 +306,92 @@
         }
     }
 
-    private void AddItem()
-    {                                                                                                                                         
-        if (saleItem.ProductId == Guid.Empty || saleItem.Quantity <= 0 || saleItem.Price <= 0)
-            return;
+    private void RemoveItem(SaleItem item)
+    {
+        sale.Items.Remove(item);
+        TotalPriceSale();
+    }
 
-        bool alreadyExists = sale.Items.Any(i => i.ProductId == saleItem.ProductId);
-
-        if (alreadyExists)
-        {
-            // Option : afficher un message d'erreur, toast, etc.
-            Console.WriteLine("Sale d�j� ajout�.");
-            return;
-        }
-
-        sale.Items.Add(new()
-        {
-            ProductId = saleItem.ProductId,
-            Price = saleItem.Price,
-            Quantity = saleItem.Quantity
-        });
-
+    private void TotalPriceSale()
+    {
         sale.TotalPrice = sale.Items.Sum(x => x.Price * x.Quantity);
         saleItem.ProductId = Guid.Empty;
         saleItem = new();
     }
 
-    private async Task OnSelectedProductChanged(ChangeEventArgs e)
+    private void AddItem()
     {
-        var selectedId = Guid.Parse(e.Value?.ToString() ?? Guid.Empty.ToString());
-        saleItem.ProductId = selectedId;
+        if (saleItem.ProductId == Guid.Empty || saleItem.Quantity <= 0 || saleItem.Price <= 0)
+            return;
 
-        var selectedProduct = products.Data.Products.FirstOrDefault(p => p.Id == selectedId);
+        var alreadyExists = sale.Items.FirstOrDefault(i => i.ProductId == saleItem.ProductId);
+
+        if (alreadyExists != null)
+        {
+            alreadyExists.Quantity += saleItem.Quantity;
+            alreadyExists.Price = saleItem.Price;
+
+        }
+        else
+        {
+
+            sale.Items.Add(new()
+            {
+                ProductId = saleItem.ProductId,
+                Price = saleItem.Price,
+                Quantity = saleItem.Quantity
+            });
+        }
+
+        TotalPriceSale();
+
+        closeAddQuantityModal();
+    }
+
+
+    private void showAddQuantityModal(Guid productId)
+    {
+        quantityModalVisible = true;
+
+        saleItem.ProductId = productId;
+        var selectedProduct = products.Data.Products.FirstOrDefault(p => p.Id == productId);
         if (selectedProduct is not null)
         {
             saleItem.Price = selectedProduct.Price;
+            saleItem.Quantity = 1;
         }
+    }
+
+    private void closeAddQuantityModal()
+    {
+        quantityModalVisible = false;
+    }
+
+    private string showModal(bool show) =>
+    show
+        ? "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        : "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50";
+
+
+    private string getProductName(Guid productId)
+    {
+        var product = products.Data.Products.FirstOrDefault(p => p.Id == productId);
+        return product?.Name ?? "";
+    }
+
+    private void Cancel()
+    {
+        sale = new();
+    }
+
+    private void ShowSuccess()
+    {
+        ToastService.ShowToast("Succès", "Paramètre enregistré avec succès", "success");
+    }
+
+    private void ShowError(string message)
+    {
+        ToastService.ShowToast("Erreur", message, "error");
     }
 
 }

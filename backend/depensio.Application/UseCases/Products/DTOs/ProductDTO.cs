@@ -7,3 +7,9 @@ public record ProductDTO(
     string Barcode, decimal Price, 
     decimal CostPrice, int Stock);
 
+public record ProductUpdateDTO(
+    Guid Id,
+    Guid BoutiqueId,
+    string Name, decimal Price,
+    decimal CostPrice, int Stock);
+

@@ -1,15 +1,25 @@
-﻿using depensio.Application.UseCases.Sales.Commands.CreateSale;
+﻿using BuildingBlocks.Exceptions;
+using depensio.Application.Helpers;
+using depensio.Application.Models;
+using depensio.Application.UseCases.Sales.Commands.CreateSale;
 using depensio.Application.UseCases.Sales.DTOs;
+using depensio.Domain.Constants;
+using depensio.Domain.Models;
 using depensio.Domain.ValueObjects;
-using BuildingBlocks.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Text.Json;
+using System.Threading;
 
 namespace depensio.Application.UseCases.Sales.Commands.CreateSale;
 
 public class CreateSaleHandler(
     IDepensioDbContext _depensioRepository,
     IGenericRepository<Sale> _saleRepository,
-    IUnitOfWork _unitOfWork
+    IGenericRepository<Product> _productRepository,
+    IBoutiqueSettingService _settingService,
+    IUnitOfWork _unitOfWork,
+    IProductService _productService
     )
     : ICommandHandler<CreateSaleCommand, CreateSaleResult>
 {
@@ -40,7 +50,7 @@ public class CreateSaleHandler(
             throw new NotFoundException($"Any product does not exist.", nameof(command.Sale.BoutiqueId));
         }
 
-        var sale = CreateNewSale(command.Sale);
+        var sale = await CreateNewSaleAsync(command.Sale);
 
         await _saleRepository.AddDataAsync(sale, cancellationToken);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
@@ -48,25 +58,99 @@ public class CreateSaleHandler(
         return new CreateSaleResult(sale.Id.Value);
     }
 
-    private Sale CreateNewSale(SaleDTO saleDTO)
+    private async Task<Sale> CreateNewSaleAsync(SaleDTO saleDTO)
     {
         var saleId = SaleId.Of(Guid.NewGuid());
+
+        // Étape 1: Récupérer les ID des produits demandés
+        var productIds = saleDTO.Items.Select(i => i.ProductId).Distinct().ToList();
+        // Étape 2: Charger les produits depuis le contexte (tu dois avoir un dbContext ici)
+
+        var stockIsAuto = await GetStockAuto(saleDTO.BoutiqueId);
+        var productResult = await _productService.GetProductsAsync(saleDTO.BoutiqueId);
+        var products = productResult // ⚠️ déclenche la requête immédiatement
+            .Where(p => productIds.Contains(p.Id.Value))
+            .ToDictionary(p => p.Id.Value); // clé = Guid
+
+        var autoSaisiePrix = await GetAutoSaisiePrixConfigAsync(saleDTO.BoutiqueId);
+        var autoVenteStockZero = await GetAutoVenteStockZeroConfigAsync(saleDTO.BoutiqueId);
+        // Étape 3: Construire la vente
+        var saleItems = saleDTO.Items.Select(i =>
+        {
+            if (!products.TryGetValue(i.ProductId, out var product))
+                throw new InternalServerException($"Produit avec ID {i.ProductId} introuvable");
+
+            // Vérifier le prix
+            var productPrice = autoSaisiePrix ? i.Price : product.Price;
+
+            // Vérifier le stock si autoVenteStockZero est désactivé
+            if (!autoVenteStockZero && i.Quantity > product.Stock)
+            {
+                throw new BadRequestException(
+                    $"Stock insuffisant pour le produit '{product.Name}'. " +
+                    $"Demandé: {i.Quantity}, Disponible: {product.Stock}"
+                );
+            }
+
+            if(!stockIsAuto)
+                product.Stock -= i.Quantity; // Mettre à jour le stock du produit
+
+            _productRepository.UpdateData(product);
+
+            return new SaleItem
+            {
+                Id = SaleItemId.Of(Guid.NewGuid()),
+                ProductId = ProductId.Of(i.ProductId),
+                Price = productPrice, // TODO a revoir
+                Quantity = i.Quantity,
+                SaleId = saleId
+            };
+        }).ToList();
 
         return new Sale
         {
             Id = saleId,
             Date = DateTime.UtcNow,
-            //Title = saleDTO.Title,
-            //Description = saleDTO.Description,
-            SaleItems = saleDTO.Items.Select(i => new SaleItem
-            {
-                Id = SaleItemId.Of(Guid.NewGuid()),
-                ProductId = ProductId.Of(i.ProductId),
-                Price = i.Price,
-                Quantity = i.Quantity,
-                SaleId = saleId
-            }).ToList(),
             BoutiqueId = BoutiqueId.Of(saleDTO.BoutiqueId),
+            SaleItems = saleItems
         };
     }
+
+    private async Task<bool> GetAutoSaisiePrixConfigAsync(Guid boutiqueId)
+    {
+        var config = await _settingService.GetSettingAsync(
+            boutiqueId,
+            BoutiqueSettingKeys.VENTE_KEY
+        );
+
+        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
+        var autoSaisiePrix = result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
+
+        return BoolHelper.ToBool(autoSaisiePrix?.Value.ToString());
+    }
+
+    private async Task<bool> GetAutoVenteStockZeroConfigAsync(Guid boutiqueId)
+    {
+        var config = await _settingService.GetSettingAsync(
+            boutiqueId,
+            BoutiqueSettingKeys.VENTE_KEY
+        );
+
+        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
+        var autoVenteStockZero = result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO);
+
+        return BoolHelper.ToBool(autoVenteStockZero?.Value.ToString());
+    }
+
+    private async Task<bool> GetStockAuto(Guid boutiqueId)
+    {
+        var config = await _settingService.GetSettingAsync(
+            boutiqueId,
+            BoutiqueSettingKeys.PRODUCT_KEY
+        );
+        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
+        var stockSetting = result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
+        return BoolHelper.ToBool(stockSetting?.Value.ToString());
+    }
+
 }

@@ -1,4 +1,4 @@
-@page "/settings/{boutiqueId:guid}/product"
+ï»¿@page "/settings/{boutiqueId:guid}/product"
 @using System.ComponentModel.DataAnnotations
 @using System.Reflection
 @using depensio.Shared.Enums
@@ -6,13 +6,14 @@
 @using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Components
 @using depensio.Shared.Pages.Produits.Models
+@inject ToastService ToastService
 @inherits FlowbitePage
 @layout MainLayout
 @inject IBoutiqueSettingService _boutiqueSettingService
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
+<PageTitle>Depensio - ParamÃ¨tres des produits</PageTitle>
 
-
+<ToastContainer />
 <LoadingComponent IsLoad="@isLoad" />
 <div class="border-b border-gray-200 dark:border-gray-700">
     <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
@@ -166,15 +167,14 @@
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                Console.Error.WriteLine("Erreur : Valeur des paramètres produit non disponible ou invalide.");
+                Console.Error.WriteLine("Erreur : Valeur des paramï¿½tres produit non disponible ou invalide.");
                 return;
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de désérialisation des paramètres.");
-                return;
+                throw new InvalidOperationException("Erreur de dï¿½sï¿½rialisation des paramï¿½tres.");
             }
 
             var stockSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
@@ -189,10 +189,11 @@
             var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
                 new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
             );
+            ShowSuccess();
         }
         catch
         {
-
+            ShowError();
         }
         finally
         {
@@ -211,15 +212,13 @@
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                Console.Error.WriteLine("Erreur : Valeur des paramètres produit non disponible ou invalide.");
-                return;
+                throw new InvalidOperationException("Valeur des paramï¿½tres produit non disponible ou invalide.");
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                Console.Error.WriteLine("Erreur de désérialisation des paramètres.");
-                return;
+                throw new InvalidOperationException("Erreur de dï¿½sï¿½rialisation des paramï¿½tres.");
             }
 
             var barcodeSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
@@ -234,10 +233,12 @@
             var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
                 new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
             );
+
+            ShowSuccess();
         }
         catch
         {
-
+            ShowError();
         }
         finally
         {
@@ -253,6 +254,17 @@
         var field = value.GetType().GetField(value.ToString());
         var attr = field?.GetCustomAttribute<DisplayAttribute>();
         return attr?.Name ?? value.ToString();
+    }
+
+
+    private void ShowSuccess()
+    {
+        ToastService.ShowToast("SuccÃ¨s", "ParamÃ¨tre enregistrÃ© avec succÃ¨s", "success");
+    }
+
+    private void ShowError()
+    {
+        ToastService.ShowToast("Erreur", "Une erreur est survenue", "error");
     }
 
 }

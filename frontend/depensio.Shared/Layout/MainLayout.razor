@@ -1,5 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@inherits AuthLayoutBase
 @inject NavigationManager NavManager
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <NavBarDashboard OnAfterToggleSidebar="()=>{
     isSidebarOpen = !isSidebarOpen;

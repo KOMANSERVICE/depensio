@@ -26,6 +26,8 @@ public static class DependencyInjection
         services.AddScoped<IBarcodeService, Ean13GeneratorService>();
         services.AddScoped<IBoutiqueSettingService, BoutiqueSettingService>();
         services.AddScoped<ISettingService, SettingService>();
+        services.AddScoped<ITemplateRendererService, TemplateRendererService>();
+        services.AddScoped<IProductService, ProductService>();
         
         return services;
     }
