@@ -37,7 +37,7 @@ jobs:
                 git reset --hard
                 if ! git pull origin main; then
                   echo "❌ Pull échoué (token peut-être expiré). Suppression et reclonage..."
-                  ocker compose -f docker-compose.prod.yml down
+                  docker compose -f docker-compose.prod.yml down
                   cd ..
                   rm -rf "$TARGET_DIR"
                   git clone "$REPO_URL" "$TARGET_DIR"
