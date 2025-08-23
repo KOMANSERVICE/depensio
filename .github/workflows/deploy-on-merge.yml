@@ -111,8 +111,8 @@ jobs:
             JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
             EOF
 
-            dos2unix /home/komanatse/depensio/.env
             chmod 644 /home/komanatse/depensio/.env
+            dos2unix /home/komanatse/depensio/.env
             
             echo "➡️ Passage au dossier projet"
             cd /home/komanatse/depensio
