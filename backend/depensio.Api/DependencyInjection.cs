@@ -20,7 +20,6 @@ public static class DependencyInjection
         
         var JWT_ValidIssuer = configuration["JWT:ValidIssuer"];
         var JWT_ValidAudience = configuration["JWT:ValidAudience"];
-        //var BackOfficeURL = configuration["BackOfficeURL"]!;
 
         services.AddCarter();
 

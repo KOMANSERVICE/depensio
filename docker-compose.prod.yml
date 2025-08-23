@@ -38,6 +38,7 @@ services:
       until [ -f ${VAULT_PATH} ]; do sleep 1; done &&
       dotnet tool install --global dotnet-ef &&
       export PATH=$PATH:/root/.dotnet/tools &&
+      export Vault__Path=${VAULT_PATH} &&
       dotnet ef database update --project backend/depensio.Infrastructure --startup-project backend/depensio.Api"
     networks:
       - vault-net
@@ -82,16 +83,16 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
       - ASPNETCORE_HTTP_PORTS=8080     
-      - ConnectionStrings__Database=${CONNECTION_STRING_API}
+      - ConnectionStrings__DataBase=${CONNECTION_STRING_API}
       - Vault__Path=${VAULT_PATH}
       - MailConfig__FromMailId=${MAIL_CONFIG_ID}
       - MailConfig__FromMailIdPassword=${MAIL_CONFIG_PASSWORD}
       - MailConfig__FromMailName=${MAIL_CONFIG_NAME}
       - MailConfig__Host=${MAIL_CONFIG_HOST}
       - MailConfig__Ports=${MAIL_CONFIG_PORT}
-      - JWT__ValidAudience=${JWT_VALID_AUDIENCE}
-      - JWT__ValidIssuer=${JWT_VALID_ISSUER}
-      - JWT__Secret=${JWT_SECRET}
+      - JWT__ValidAudience=${JWT_VALID_AUDIENCE_API}
+      - JWT__ValidIssuer=${JWT_VALID_ISSUER_API}
+      - JWT__Secret=${JWT_SECRET_API}
     ports:
       - "9101:8080"
     volumes:
