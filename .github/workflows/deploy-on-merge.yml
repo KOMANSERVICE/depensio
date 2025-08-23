@@ -23,7 +23,7 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |           
-            echo "➡️ Récupérer le pojet sur github"
+            echo "➡️ Récupérer le pojet sur github"            
             REPO_URL="https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git"
             TARGET_DIR="/home/komanatse/depensio"
             # Vérifier si le dossier existe
