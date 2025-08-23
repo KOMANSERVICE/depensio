@@ -24,8 +24,32 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |           
-            echo "➡️ Récupérer le pojet sur github"
-            git clone https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git
+            echo "➡️ Récupérer le pojet sur github"            
+            REPO_URL="https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git"
+            TARGET_DIR="/home/komanatse/depensio"
+
+            # Vérifier si le dossier existe
+            if [ -d "$TARGET_DIR" ]; then
+              echo "📂 Le dossier $TARGET_DIR existe déjà."
+              if [ -d "$TARGET_DIR/.git" ]; then
+                echo "✅ Dépôt Git trouvé, mise à jour..."
+                cd "$TARGET_DIR"
+                git reset --hard
+                git pull origin main
+              else
+                echo "⚠️ Dossier existe mais n'est pas un dépôt Git → suppression"
+                rm -rf "$TARGET_DIR"
+                echo "⬇️ Clonage du dépôt..."
+                git clone "$REPO_URL" "$TARGET_DIR"
+                cd "$TARGET_DIR"
+              fi
+            else
+              echo "⬇️ Clonage du dépôt..."
+              git clone "$REPO_URL" "$TARGET_DIR"
+              cd "$TARGET_DIR"
+            fi
+
+            
             echo "➡️ Copier le fichier setup.deploy.sh"
             cp /home/komanatse/vaultdepensio/setup.deploy.sh /home/komanatse/depensio/vault/policies
             chmod +x /home/komanatse/depensio/vault/policies/setup.deploy.sh
