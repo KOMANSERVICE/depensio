@@ -80,7 +80,7 @@ jobs:
             cat <<EOF > /home/komanatse/depensio/.env
             # Base de données PostgreSQL
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_PROD }}
-            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB_PROD }}
             POSTGRES_USER=${{ vars.POSTGRES_USER_PROD }}
             
             # Vault secret path
