@@ -16,6 +16,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+    env_file:
+      - ./.env
     networks:
       - vault-net
     
@@ -29,6 +31,8 @@ services:
       - ./vault/shared:/app/vault/shared
       - .:/src
     working_dir: /src
+    env_file:
+      - ./.env
     entrypoint: sh -c "
       echo '? Attente des secrets Vault...' &&
       until [ -f ${VAULT_PATH} ]; do sleep 1; done &&
@@ -61,6 +65,8 @@ services:
     depends_on:
       depensio.api:
         condition: service_started
+    env_file:
+      - ./.env
     networks:
       - vault-net
 
@@ -94,6 +100,8 @@ services:
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ./vault/shared:/app/vault/shared
+    env_file:
+      - ./.env
     networks:
       - vault-net
 
