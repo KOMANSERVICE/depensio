@@ -8,6 +8,7 @@
 
 <PageTitle>Depensio - Caisse</PageTitle>
 
+<LoadingComponent IsLoad="@isLoad" />
 <ToastContainer />
 <EditForm EditContext="@editContext" OnValidSubmit="HandleCreateSale">
     <DataAnnotationsValidator />
@@ -188,7 +189,7 @@
                     <i class="fas fa-times mr-2"></i> Annuler
                 </button>
                 <button type="submit" id="pay-btn" class="bg-primary-700 text-white p-3 rounded-lg font-medium hover:bg-opacity-90 transition disabled:opacity-50" disabled="@(sale.TotalPrice < 1)">
-                    <i class="fas fa-check mr-2"></i> Payer (@sale.TotalPrice FCFA)
+                    <i class="fas fa-check mr-2"></i> Valider (@sale.TotalPrice FCFA)
                 </button>
             </div>
         </div>
@@ -386,7 +387,7 @@
 
     private void ShowSuccess()
     {
-        ToastService.ShowToast("Succès", "Paramètre enregistré avec succès", "success");
+        ToastService.ShowToast("Succès", "Enregistré avec succès", "success");
     }
 
     private void ShowError(string message)
