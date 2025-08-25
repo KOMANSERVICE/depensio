@@ -266,3 +266,120 @@ dos2unix .env      # convertit les retours Windows \r\n en Linux \n
 
 # Generation de mot de passe 
     openssl rand -hex 32
+
+
+# Code barre
+    https://serratus.github.io/quaggaJS/
+
+
+# 1. Scanner avec une douchette (USB ou Bluetooth)
+
+    👉 La douchette agit comme un clavier : elle écrit le code-barres dans un <input>.
+
+    Exemple Blazor
+    <InputText @bind-Value="ScannedCode"
+               @onkeydown="HandleKeyDown"
+               placeholder="Scannez un produit..."
+               class="border p-2 rounded w-full" />
+
+    @if (!string.IsNullOrEmpty(ProductName))
+    {
+        <p class="mt-2 text-green-600 font-bold">Produit trouvé : @ProductName</p>
+    }
+
+    @code {
+        private string ScannedCode { get; set; } = "";
+        private string ProductName { get; set; } = "";
+
+        private async Task HandleKeyDown(KeyboardEventArgs e)
+        {
+            // La douchette termine souvent par "Enter"
+            if (e.Key == "Enter")
+            {
+                // Ici tu recherches ton produit via le code scanné
+                var product = await ProductService.GetByBarcodeAsync(ScannedCode);
+
+                if (product != null)
+                    ProductName = product.Name;
+                else
+                    ProductName = "Produit introuvable";
+
+                // Reset pour le prochain scan
+                ScannedCode = "";
+            }
+        }
+    }
+
+
+    ✅ Avec une douchette USB, ça marche direct sans JavaScript.
+
+# 2. Scanner avec la caméra du navigateur
+
+    👉 Là, il faut utiliser une librairie JS comme QuaggaJS
+     ou ZXing-js
+    .
+    Ensuite, tu fais un interop JS ↔️ Blazor.
+
+    Étape 1 : Ajouter le script (ex. wwwroot/js/barcodeScanner.js)
+    window.barcodeScanner = {
+        start: function (dotnetHelper) {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner')
+                },
+                decoder: {
+                    readers: ["ean_reader", "code_128_reader"] // formats supportés
+                }
+            }, function (err) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function (result) {
+                if (result.codeResult && result.codeResult.code) {
+                    dotnetHelper.invokeMethodAsync('OnBarcodeScanned', result.codeResult.code);
+                }
+            });
+        }
+    };
+
+    Étape 2 : Créer un composant Blazor BarcodeScanner.razor
+    <div>
+        <div id="scanner" style="width: 100%; height: 300px; border: 2px solid #ccc;"></div>
+        <p class="mt-2">Dernier code : <strong>@ScannedCode</strong></p>
+    </div>
+
+    @code {
+        private string ScannedCode { get; set; } = "";
+
+        [JSInvokable]
+        public void OnBarcodeScanned(string code)
+        {
+            ScannedCode = code;
+
+            // 👉 Cherche ton produit dans la DB
+            // var product = await ProductService.GetByBarcodeAsync(code);
+            // ...
+            StateHasChanged();
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                var dotnetRef = DotNetObjectReference.Create(this);
+                await JSRuntime.InvokeVoidAsync("barcodeScanner.start", dotnetRef);
+            }
+        }
+    }
+
+# Résumé
+
+    Douchette USB/Bluetooth → pas besoin de JS, ça marche comme un clavier (input + enter).
+
+    Caméra smartphone / PC → JS interop avec QuaggaJS ou ZXing.
