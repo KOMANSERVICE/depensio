@@ -23,7 +23,8 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |      
-            echo "Sauvegader des volumes"
+            echo "🚀 Lancement du script de sauvegarde des volumes Docker"
+            chmod +x /home/savevolume/backup_docker_volumes.sh
             /home/savevolume/backup_docker_volumes.sh
             
             echo "➡️ Récupérer le pojet sur github"            
