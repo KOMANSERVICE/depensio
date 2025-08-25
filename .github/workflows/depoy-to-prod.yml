@@ -1,7 +1,9 @@
 name: 🚀 Deploy to PROD
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'   # Se déclenche automatiquement sur tous les tags v*
 
 jobs:
   deploy-prod:
@@ -20,13 +22,35 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE_PROD }}
           port: 22
           script: |      
+            TARGET_DIR="/home/komanatse/depensio"
+            mkdir -p $TARGET_DIR/deploy
+            CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+            LAST_TAG_FILE="$TARGET_DIR/deploy/last_deployed_tag"
+
+            # Si fichier n'existe pas encore, on le crée avec une version très basse
+            if [ ! -f "$LAST_TAG_FILE" ]; then
+              echo "v0.0.0" > "$LAST_TAG_FILE"
+            fi          
+            
+            LAST_DEPLOYED_TAG=$(cat "$LAST_TAG_FILE")
+            CURRENT_TAG="${{ github.ref_name }}"
+            
+            echo "Dernier tag déployé : $LAST_DEPLOYED_TAG"
+            echo "Tag actuel : $CURRENT_TAG"
+            
+            # Comparer les versions (supérieur uniquement)
+            if [ "$(printf '%s\n' "$CURRENT_TAG" "$LAST_DEPLOYED_TAG" | sort -V | tail -n1)" != "$CURRENT_TAG" ]; then
+              echo "⚠️ Ce tag est inférieur au dernier déployé : $LAST_DEPLOYED_TAG"
+              exit 1
+            fi
+            
             echo "🚀 Lancement du script de sauvegarde des volumes Docker"
             chmod +x /home/savevolume/backup_docker_volumes.sh
             /home/savevolume/backup_docker_volumes.sh
             
             echo "➡️ Récupérer le pojet sur github"            
             REPO_URL="https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git"
-            TARGET_DIR="/home/komanatse/depensio"
+            
             # Vérifier si le dossier existe
             if [ -d "$TARGET_DIR" ]; then
               echo "📂 Le dossier $TARGET_DIR existe déjà."
@@ -148,3 +172,7 @@ jobs:
             echo "♻️ Rebuild & redeploy"
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml  --env-file .env up -d --build
+
+            # Sauvegarde du tag actuel pour éviter redeploiement
+            echo "$CURRENT_TAG" > "$LAST_TAG_FILE"
+            echo "✅ Tag $CURRENT_TAG marqué comme déployé."
