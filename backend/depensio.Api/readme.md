@@ -270,6 +270,7 @@ dos2unix .env      # convertit les retours Windows \r\n en Linux \n
 
 # Code barre
     https://serratus.github.io/quaggaJS/
+    https://github.com/zxing-js/library
 
 
 # 1. Scanner avec une douchette (USB ou Bluetooth)
