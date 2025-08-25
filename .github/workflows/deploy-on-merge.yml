@@ -22,7 +22,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
-          script: |           
+          script: |      
+            echo "Sauvegader des volumes"
+            /home/savevolume/backup_docker_volumes.sh
+            
             echo "➡️ Récupérer le pojet sur github"            
             REPO_URL="https://laserda:${{ secrets.TOKEN }}@github.com/KOMANSERVICE/depensio.git"
             TARGET_DIR="/home/komanatse/depensio"
