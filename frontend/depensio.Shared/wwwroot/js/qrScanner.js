@@ -10,11 +10,22 @@ window.qrScanner = {
             return;
         }
 
-        const selectedDeviceId = videoInputDevices[0].deviceId;
+        //const selectedDeviceId = videoInputDevices[0].deviceId;
+
+        // ?? Choisir une caméra arrière si dispo
+        let backCamera = videoInputDevices.find(device =>
+            device.label.toLowerCase().includes('back')
+        );
+
+        if (!backCamera && videoInputDevices.length > 0) {
+            // fallback ? prend la première caméra
+            backCamera = videoInputDevices[0];
+        }
+
         const previewElem = document.getElementById("qr-video");
 
         codeReader.decodeFromVideoDevice(
-            selectedDeviceId,
+            backCamera.deviceId,
             previewElem,
             (result, err) => {
                 if (result) {
