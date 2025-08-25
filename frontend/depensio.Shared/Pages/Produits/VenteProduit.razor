@@ -5,6 +5,7 @@
 @inject ISaleService _saleService;
 @inject IBoutiqueSettingService _boutiqueSettingService
 @inject ToastService ToastService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Depensio - Caisse</PageTitle>
 
@@ -32,7 +33,7 @@
             </div>
 
             <!-- Scanner Simulation -->
-            <div class="scanner-animation scan-animation border-2 border-dashed border-primary-700 rounded-lg p-8 text-center mb-4">
+            <div @onclick="StartScan" class="scanner-animation scan-animation border-2 border-dashed border-primary-700 rounded-lg p-8 text-center mb-4">
                 <i class="fas fa-barcode text-4xl text-primary-700 mb-2"></i>
                 <p class="text-gray-600">Présentez le code-barres du produit</p>
             </div>
@@ -227,6 +228,26 @@
 </EditForm>
 
 
+<!-- Add User Modal -->
+<Modal
+    ShowModal="@showModalCodeQR"
+    OnCloseModal="()=>{
+           StopScan();
+    }"
+    ModalTitle="Scanne code barre produit"
+>
+    <div class="p-6">
+        <video id="qr-video"  class="w-full h-full" style="border:1px solid #ccc"></video>
+
+        @if (!string.IsNullOrEmpty(ScannedCode))
+        {
+            <p class="mt-3 text-green-600 font-bold">✅ Code détecté : @ScannedCode</p>
+        }
+    </div>    
+
+</Modal>
+          
+
 @code {
     [Parameter]
     public Guid BoutiqueId { get; set; }
@@ -243,6 +264,10 @@
     private ValidationMessageStore messageStore;
 
     private bool displayPrixVente = false;
+
+    private string ScannedCode { get; set; }
+
+    private bool showModalCodeQR = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -393,6 +418,46 @@
     private void ShowError(string message)
     {
         ToastService.ShowToast("Erreur", message, "error");
+    }
+
+
+    [JSInvokable]
+    public void OnQrCodeScanned(string code)
+    {
+        if (!string.IsNullOrEmpty(code))
+        {
+            ScannedCode = code;
+        }
+        else
+        {
+            ScannedCode = "Aucun QR code détecté ❌";
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task StartScan()
+    {
+        onShowModalCodeQr();
+        var dotnetRef = DotNetObjectReference.Create(this);
+        await JSRuntime.InvokeVoidAsync("qrScanner.start", dotnetRef);
+
+    }
+    private async Task StopScan()
+    {
+        onShowModalCodeQr();
+        await JSRuntime.InvokeVoidAsync("qrScanner.stop");
+    }
+
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopScan();
+    }
+
+    private void onShowModalCodeQr()
+    {
+        showModalCodeQR = !showModalCodeQR;
     }
 
 }
