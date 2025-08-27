@@ -4,6 +4,7 @@ using depensio.Application.Interfaces;
 using depensio.Application.Models;
 using depensio.Application.UseCases.Products.DTOs;
 using depensio.Application.UseCases.Sales.DTOs;
+using System.Linq.Expressions;
 using System.Text.Json;
 
 namespace depensio.Application.Services;
@@ -13,6 +14,24 @@ public class ProductService(
     IUserContextService _userContextService,
     IBoutiqueSettingService _settingService) : IProductService
 {
+
+
+    private Expression<Func<Product, Product>> productSelector(bool stockIsAuto)
+    {
+        return p => new Product
+        {
+            Id = p.Id,
+            BoutiqueId = p.BoutiqueId,
+            Name = p.Name,
+            Barcode = p.Barcode,
+            Price = p.Price,
+            CostPrice = p.CostPrice,
+            Stock = (stockIsAuto
+                ? p.PurchaseItems.Sum(pi => pi.Quantity) - p.SaleItems.Sum(si => si.Quantity) :
+                p.Stock)
+        };
+    }
+
     public async Task<IEnumerable<Product>> GetProductsAsync(Guid boutiqueId)
     {
 
@@ -27,23 +46,26 @@ public class ProductService(
                    .Include(b => b.Products)
                        .ThenInclude(p => p.SaleItems)
                    .SelectMany(b => b.Products)
-                   .Select(p => new Product
-                   {
-                        Id = p.Id,
-                        BoutiqueId = p.BoutiqueId,
-                        Name = p.Name,
-                        Barcode = p.Barcode,
-                        Price = p.Price,
-                        CostPrice = p.CostPrice,
-                        Stock = (stockIsAuto
-                            ? p.PurchaseItems.Sum(pi => pi.Quantity) - p.SaleItems.Sum(si => si.Quantity) :
-                            p.Stock)
-                   }
-                   );
+                   .Select(productSelector(stockIsAuto));
 
         return products;
     }
 
+    public async Task<Product?> GetOneProductAsync(Guid boutiqueId, Guid productId)
+    {
+
+        var stockIsAuto = await GetStockAuto(boutiqueId);
+
+        var userId = _userContextService.GetUserId();
+        var product = await dbContext.Boutiques
+                   .Where(b => b.Id == BoutiqueId.Of(boutiqueId)
+                               && b.UsersBoutiques.Any(ub => ub.UserId == userId))                   
+                   .SelectMany(b => b.Products)
+                    .Where(p => p.Id == ProductId.Of(productId))
+                   .Select(productSelector(stockIsAuto)).FirstOrDefaultAsync();
+
+        return product;
+    }
 
     private async Task<bool> GetStockAuto(Guid boutiqueId)
     {

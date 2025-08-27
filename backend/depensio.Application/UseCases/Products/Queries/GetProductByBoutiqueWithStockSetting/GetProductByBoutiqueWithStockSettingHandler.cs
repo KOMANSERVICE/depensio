@@ -11,9 +11,7 @@ namespace depensio.Application.UseCases.Products.Queries.GetProductByBoutiqueWit
 
 
 public class GetProductByBoutiqueWithStockSettingHandler(
-    IDepensioDbContext dbContext,
     IBoutiqueSettingService _settingService,
-    IUserContextService _userContextService, 
     IProductService _productService)
     : IQueryHandler<GetProductByBoutiqueWithStockSettingQuery, GetProductByBoutiqueWithStockSettingResult>
 {

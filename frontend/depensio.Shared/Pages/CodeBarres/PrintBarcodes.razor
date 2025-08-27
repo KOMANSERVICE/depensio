@@ -1,0 +1,78 @@
+@page "/print-barcodes"
+@using System.Security.Cryptography
+@using System.Text
+@layout MainLayout
+
+<h3 class="text-lg font-bold mb-4">Générateur d’étiquettes de codes-barres</h3>
+
+<div class="flex items-center gap-4 mb-4">
+    <label>Nombre d’étiquettes : </label>
+    <input type="number" @bind="NumberOfCodes" min="1" max="100" class="border px-2 py-1 rounded"/>
+    <button @onclick="GenerateBarcodes" class="bg-blue-600 text-white px-4 py-1 rounded">Générer</button>
+    <button @onclick="PrintBarcode" class="bg-green-600 text-white px-4 py-1 rounded">Imprimer</button>
+</div>
+
+<div id="barcode-container" class="grid grid-cols-4 gap-4">
+    @foreach (var item in BarcodeList)
+    {
+        <div class="border p-2 flex flex-col items-center justify-center">
+            <svg id="svg-@item"></svg>
+            <p class="mt-1 text-sm font-mono">@item</p>
+        </div>
+    }
+</div>
+
+@code {
+    private const string GS1Prefix = "123456"; // Remplace par ton préfixe officiel GS1
+    private int NumberOfCodes = 8;
+    private List<string> BarcodeList = new();
+
+    [Inject] private IJSRuntime JS { get; set; }
+
+    private async Task GenerateBarcodes()
+    {
+        BarcodeList.Clear();
+        for (int i = 0; i < NumberOfCodes; i++)
+        {
+            var ean = GenerateEAN13(GS1Prefix);
+            BarcodeList.Add(ean);
+        }
+
+
+        // Met à jour le DOM
+        StateHasChanged();
+        // Attend 1 seconde pour que le DOM se mette à jour
+        await Task.Delay(1000);
+
+        // Générer les SVG via JS
+        foreach (var code in BarcodeList)
+        {
+            JS.InvokeVoidAsync("renderBarcode", code, $"svg-{code}");
+        }
+    }
+
+    private string GenerateEAN13(string prefix)
+    {
+        var randomNumber = RandomNumberGenerator.GetInt32(0, 999999);
+        var productCode = randomNumber.ToString("D6");
+        var partialCode = prefix + productCode;
+        var checkDigit = ComputeEAN13CheckDigit(partialCode);
+        return partialCode + checkDigit;
+    }
+
+    private int ComputeEAN13CheckDigit(string code12)
+    {
+        int sum = 0;
+        for (int i = 0; i < 12; i++)
+        {
+            int digit = int.Parse(code12[i].ToString());
+            sum += (i % 2 == 0) ? digit : digit * 3;
+        }
+        return (10 - (sum % 10)) % 10;
+    }
+
+    private void PrintBarcode()
+    {
+        JS.InvokeVoidAsync("printBarcodes");
+    }
+}
