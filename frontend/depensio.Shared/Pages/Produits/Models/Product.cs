@@ -20,9 +20,23 @@ public record Product
     public int Stock { get; set; } = 0;
 }
 
-public record ProductBarcodeDTO(Guid ProductId, string Name, List<ProductItemBarcodeDTO> ProductItems);
+public record ProductBarcode(Guid ProductId, string Name, List<ProductItemBarcode> ProductItems);
 
-public record GetProductItemByBoutiqueResponse(IEnumerable<ProductBarcodeDTO> ProductBarcodes);
+public record GetProductItemByBoutiqueResponse(IEnumerable<ProductBarcode> ProductBarcodes);
 
-public record ProductItemBarcodeDTO(Guid Id, string Barcode);
+public record ProductItemBarcode(Guid Id, string Barcode);
+public record ProductItem
+{
+    public Guid Id { get; set; } = Guid.Empty;
+    public Guid BoutiqueId { get; set; } = Guid.Empty;
+    public Guid ProductId { get; set; } = Guid.Empty;
+    public int BarcodeCount { get; set; }
+    public decimal DiscountValue { get; set; }
+    public DiscountType DiscountType { get; set; }
+}
+
+
+public record Barcode(Guid ProductId, List<string> Barcodes);
+public record CreateCodeBarreRequest(ProductItem ProductItem);
+public record CreateCodeBarreResponse(Barcode Barcode);
 
