@@ -19,6 +19,8 @@ public record ProductItemDTO(
     Guid ProductId, int BarcodeCount, 
     decimal DiscountValue, DiscountType DiscountType);
 
-public record BarcodeDTO(Guid BoutiqueId,List<string> Barcodes);
+public record BarcodeDTO(Guid ProductId, List<string> Barcodes);
+public record ProductItemBarcodeDTO(Guid Id, string Barcode);
+public record ProductBarcodeDTO(Guid ProductId, string Name, List<ProductItemBarcodeDTO> ProductItems);
 
 

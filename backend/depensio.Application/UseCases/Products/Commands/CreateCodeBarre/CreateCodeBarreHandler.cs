@@ -31,8 +31,9 @@ public class CreateCodeBarreHandler(
         }
 
         var product = await _productService.GetOneProductAsync(boutiqueId, productId);
-        if (productItem.BarcodeCount > product?.Stock)
-            throw new BadRequestException($"BarcodeCount cannot be greater than product stock ({product?.Stock}).");
+        var codebar = await  _dbContext.ProductItems.Where(x => x.ProductId == ProductId.Of(productId) && x.Status == ProductStatus.Available).ToListAsync();
+        if (productItem.BarcodeCount + codebar.Count > product?.Stock)
+            throw new BadRequestException($"BarcodeCount cannot be greater than product stock ({product?.Stock - codebar.Count}).");
 
 
         var existingBarcodes = new HashSet<string>(
@@ -52,7 +53,7 @@ public class CreateCodeBarreHandler(
             existingBarcodes.Add(code);
             newBarcodes.Add(code);
 
-            _dbContext.ProductItems.Add(new ProductItem
+            productItems.Add(new ProductItem
             {
                 Id = ProductItemId.Of(Guid.NewGuid()),
                 ProductId = ProductId.Of(productItem.ProductId),
