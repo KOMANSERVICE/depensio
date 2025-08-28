@@ -1,114 +1,94 @@
-@page "/print-barcodes"
+ï»¿@page "/print-barcodes/{BoutiqueId:guid}"
 @using System.Security.Cryptography
 @using System.Text
+@inject IProductService _productService
 @layout MainLayout
 
-<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
-    <div class="w-full">
-        <nav class="flex mb-5" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
-                <li class="inline-flex items-center">
-                    <a href="#"
-                       class="inline-flex items-center text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-white">
-                        <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
-                            </path>
-                        </svg>
-                        Acceuil
-                    </a>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                  clip-rule="evenodd"></path>
-                        </svg>
-                        <a href="#"
-                           class="ml-1 text-gray-700 hover:text-primary-600 md:ml-2 dark:text-gray-300 dark:hover:text-white">Produit</a>
-                    </div>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                  clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="ml-1 text-gray-400 md:ml-2 dark:text-gray-500" aria-current="page">Liste</span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
-        <h1 class="text-xl font-semibold text-primary-700 text-gray-900 sm:text-2xl dark:text-white">Liste des codes-barre</h1>
-    </div>
-</div>
+
+<HeaderPage 
+    Title="Gestion des codes-barres"
+    SubTitle="GÃ©nÃ©rez et imprimez des codes-barres pour vos produits"/>
+
 <div class="bg-white rounded-lg shadow-md p-4 mb-6">
- 
-    <!-- Controls Section -->
-    <div class="bg-white rounded-lg mb-8 no-print">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div class="w-full md:w-auto">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Rechercher un produit</label>
-                <div class="relative">
-                    <input type="text" id="search" placeholder="Nom du produit..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700">
-                    <button id="searchBtn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary-700 text-white px-3 py-1 rounded-md hover:bg-[#6a460d]">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex items-center">
+            <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
+            <select id="itemsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+                <option>100</option>
+            </select>
+            <span class="ml-2 text-sm text-gray-600">Ã©lÃ©ments</span>
+        </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" placeholder="Rechercher un produit..."
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" 
+                @onclick="()=>{
+                    onShowModal();
+                }"
+                class="bg-primary-700 hover:bg-amber-800 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button
+                type="button" 
+                @onclick="onShowPrintModal"
+                class="border border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white px-3 py-2 rounded-md flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+     <!-- Barcode List -->
+    <div id="barcodeList" class="bg-white rounded-lg shadow overflow-hidden">
+        @if(productBarcodes == null || productBarcodes.Count < 1)
+        {
+            <div class="p-8 text-center text-gray-500">Aucun code-barre trouvÃ©</div>
+        }
+        @foreach(var item in productBarcodes)
+        {
+             <div class="border-b border-gray-200">
+                <div class="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 dep-toggle-panel" data-product="@item.ProductId">
+                    <div>
+                        <h3 class="font-medium text-primary-700">@item.Name</h3>
+                        <p class="text-sm text-gray-500">@item.ProductItems.Count codes-barres (${availableCount} disponibles)</p>
+                    </div>
+                    <svg id="svg-icon" class="h-5 w-5 text-gray-500 transform transition-transform" data-product-icon="@item.ProductId" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="hidden product-content" data-product-item="@item.ProductId">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50">
+                        @foreach(var barcode in item.ProductItems)
+                        {
+                           <div class="barcode-container bg-white p-3 rounded border border-gray-200 relative" data-id="@barcode.Id">
+                               <svg id="svg-@barcode.Barcode"></svg>
+                                @* <div class="barcode-overlay">
+                                    <div class="text-xs font-medium">@barcode.Barcode</div>
+                                    <div class="text-[10px]">${barcode.type === 'amount' ? `${barcode.value}â‚¬` : `${barcode.value}%`}</div>
+                                </div>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-xs px-2 py-1 rounded-full ${barcode.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                        ${barcode.status === 'available' ? 'Disponible' : 'UtilisÃ©'}
+                                    </span>
+                                    <button class="text-gray-400 hover:text-gray-600 status-toggle" data-id="${barcode.id}">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                </div> *@
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
+        }
 
-            <div class="w-full md:w-auto">
-                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-1">Filtrer par statut</label>
-                <select id="statusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700">
-                    <option value="all">Tous les statuts</option>
-                    <option value="available">Disponible</option>
-                    <option value="used">Utilisé</option>
-                    <option value="expired">Expiré</option>
-                </select>
-            </div>
-
-            <button id="openModalBtn" @onclick="onShowModal" class="w-full md:w-auto bg-primary-700 text-white px-6 py-2 rounded-md hover:bg-[#6a460d] transition flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                Nouveau Code-Barre
-            </button>
-        </div>
-
-        <div class="flex flex-wrap gap-4 no-print">
-            <button id="printWithInfoBtn" class="bg-primary-700 text-white px-4 py-2 rounded-md hover:bg-[#6a460d] transition flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
-                </svg>
-                Imprimer avec infos
-            </button>
-            <button id="printWithoutInfoBtn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
-                </svg>
-                Imprimer sans infos
-            </button>
-        </div>
-    </div>
-
-    <!-- Barcodes List -->
-    <div id="barcodesList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <!-- Barcodes will be dynamically inserted here -->
-    </div>
-
-    <!-- No Results Message -->
-    <div id="noResults" class="hidden text-center py-12">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h3 class="mt-4 text-lg font-medium text-gray-700">Aucun code-barre trouvé</h3>
-        <p class="mt-1 text-gray-500">Essayez de modifier vos critères de recherche ou créez un nouveau code-barre.</p>
     </div>
 </div>
 
@@ -119,160 +99,109 @@
     OnCloseModal="()=>{
            onShowModal();
     }"
-    ModalTitle="Générer un nouveau code-barre"
+    ModalTitle="GÃ©nÃ©rer un nouveau code-barre"
 >
     <div class="px-6 py-4">
-            <div class="mb-4">
-                <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Produit</label>
-                <input type="text" id="productName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="Nom du produit">
-            </div>
+        <div class="mb-4">
+            <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Produit</label>
+            <input type="text" id="productName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="Nom du produit">
+        </div>
 
-            <div class="mb-4">
-                <label for="barcodeCount" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'éléments</label>
-                <input type="number" id="barcodeCount" min="1" max="100" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700">
-            </div>
+        <div class="mb-4">
+            <label for="barcodeCount" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'Ã©lÃ©ments</label>
+            <input type="number" id="barcodeCount" min="1" max="100" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700">
+        </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <div class="flex gap-4">
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="discountType" value="amount" checked class="text-primary-700 focus:ring-primary-700">
-                        <span class="ml-2">Montant</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="discountType" value="percentage" class="text-primary-700 focus:ring-primary-700">
-                        <span class="ml-2">Pourcentage</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label for="discountValue" class="block text-sm font-medium text-gray-700 mb-1">Valeur</label>
-                <input type="number" id="discountValue" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="0">
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <div class="flex gap-4">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="discountType" value="amount" checked class="text-primary-700 focus:ring-primary-700">
+                    <span class="ml-2">Montant</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="discountType" value="percentage" class="text-primary-700 focus:ring-primary-700">
+                    <span class="ml-2">Pourcentage</span>
+                </label>
             </div>
         </div>
 
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-            <button id="cancelBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-            <button id="generateBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460d]">Générer</button>
-        </div>
-</Modal>
-@* <div id="barcodeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-primary-700">Générer un nouveau code-barre</h3>
-        </div>
-
-        <div class="px-6 py-4">
-            <div class="mb-4">
-                <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Produit</label>
-                <input type="text" id="productName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="Nom du produit">
-            </div>
-
-            <div class="mb-4">
-                <label for="barcodeCount" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'éléments</label>
-                <input type="number" id="barcodeCount" min="1" max="100" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700">
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <div class="flex gap-4">
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="discountType" value="amount" checked class="text-primary-700 focus:ring-primary-700">
-                        <span class="ml-2">Montant</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="discountType" value="percentage" class="text-primary-700 focus:ring-primary-700">
-                        <span class="ml-2">Pourcentage</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label for="discountValue" class="block text-sm font-medium text-gray-700 mb-1">Valeur</label>
-                <input type="number" id="discountValue" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="0">
-            </div>
-        </div>
-
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-            <button id="cancelBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-            <button id="generateBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460d]">Générer</button>
+        <div class="mb-6">
+            <label for="discountValue" class="block text-sm font-medium text-gray-700 mb-1">Valeur</label>
+            <input type="number" id="discountValue" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="0">
         </div>
     </div>
-</div>
- *@
+
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+        <button id="cancelBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
+        <button id="generateBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460d]">GÃ©nÃ©rer</button>
+    </div>
+</Modal>
+
+<Modal
+    ShowModal="@showPrintModal"
+    OnCloseModal="()=>{
+           onShowPrintModal();
+    }"
+    ModalTitle="Options d'impression"
+>
+     <div class="p-6">        
+        <div class="space-y-4">
+            <div class="flex items-center">
+                <input type="checkbox" id="printWithInfo" checked class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
+                <label for="printWithInfo" class="ml-2 block text-sm text-gray-700">Afficher les informations du produit</label>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" id="cancelPrintBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                    Annuler
+                </button>
+                <button type="button" id="confirmPrintBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460f] transition-colors">
+                    Imprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</Modal>
 <!-- Print Section (hidden by default) -->
 <div id="printSection" class="hidden print-section">
     <div id="printContent" class="p-4"></div>
 </div>
 
-<h3 class="text-lg font-bold mb-4">Générateur d’étiquettes de codes-barres</h3>
-
-<div class="flex items-center gap-4 mb-4">
-    <label>Nombre d’étiquettes : </label>
-    <input type="number" @bind="NumberOfCodes" min="1" max="100" class="border px-2 py-1 rounded"/>
-    <button @onclick="GenerateBarcodes" class="bg-blue-600 text-white px-4 py-1 rounded">Générer</button>
-    <button @onclick="PrintBarcode" class="bg-green-600 text-white px-4 py-1 rounded">Imprimer</button>
-</div>
-
-<div id="barcode-container" class="grid grid-cols-4 gap-4">
-    @foreach (var item in BarcodeList)
-    {
-        <div class="border p-2 flex flex-col items-center justify-center">
-            <svg id="svg-@item"></svg>
-            <p class="mt-1 text-sm font-mono">@item</p>
-        </div>
-    }
-</div>
 
 @code {
-    private const string GS1Prefix = "123456"; // Remplace par ton préfixe officiel GS1
-    private int NumberOfCodes = 8;
-    private List<string> BarcodeList = new();
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+    private List<ProductBarcodeDTO> productBarcodes = new();
+    [Inject] private IJSRuntime JS { get; set; }    
     private bool showModal = false;
+    private bool showPrintModal = false;
 
-    [Inject] private IJSRuntime JS { get; set; }
 
-    private async Task GenerateBarcodes()
+    protected override async Task OnInitializedAsync()
     {
-        BarcodeList.Clear();
-        for (int i = 0; i < NumberOfCodes; i++)
-        {
-            var ean = GenerateEAN13(GS1Prefix);
-            BarcodeList.Add(ean);
-        }
+        await GetProductItemsAsync();
+    }
 
-
-        // Met à jour le DOM
+    private async Task GetProductItemsAsync()
+    {
+        var result = await _productService.GetProductItemByBoutiqueAsync(BoutiqueId);
+        productBarcodes = result.Data.ProductBarcodes.ToList(); 
+        // Met Ã  jour le DOM
         StateHasChanged();
-        // Attend 1 seconde pour que le DOM se mette à jour
         await Task.Delay(1000);
 
-        // Générer les SVG via JS
-        foreach (var code in BarcodeList)
+        // GÃ©nÃ©rer les SVG via JS
+        foreach (var items in productBarcodes)
         {
-            JS.InvokeVoidAsync("renderBarcode", code, $"svg-{code}");
+            foreach (var pItems in items.ProductItems)
+            {                
+                JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-{pItems.Barcode}");
+            }            
         }
-    }
 
-    private string GenerateEAN13(string prefix)
-    {
-        var randomNumber = RandomNumberGenerator.GetInt32(0, 999999);
-        var productCode = randomNumber.ToString("D6");
-        var partialCode = prefix + productCode;
-        var checkDigit = ComputeEAN13CheckDigit(partialCode);
-        return partialCode + checkDigit;
-    }
-
-    private int ComputeEAN13CheckDigit(string code12)
-    {
-        int sum = 0;
-        for (int i = 0; i < 12; i++)
-        {
-            int digit = int.Parse(code12[i].ToString());
-            sum += (i % 2 == 0) ? digit : digit * 3;
-        }
-        return (10 - (sum % 10)) % 10;
+        JS.InvokeVoidAsync("togglePanel");
+        
     }
 
     private void PrintBarcode()
@@ -284,4 +213,9 @@
     {
         showModal = !showModal;
     }
+    
+    private void onShowPrintModal()
+    {
+        showPrintModal = !showPrintModal;
+    }    
 }

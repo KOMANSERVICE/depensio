@@ -25,7 +25,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Business Card 1 -->      
         
-            @foreach(var boutique in boutiques.Data.Boutiques)
+            @foreach(var boutique in boutiques)
             {
                 <CardBoutique Boutique="@boutique" />
             }
@@ -50,7 +50,7 @@
 >
      <CreateBoutiqueComponent 
      OnAfterSave="async ()=>{
-            boutiques = await _boutiqueService.GetBoutiqueByUser();
+        await GetBoutiquesAsync();
         onShowModal();
 
     }" 
@@ -62,19 +62,25 @@
 
 @code {
 
-    private BaseResponse<GetBoutiqueByUserResponse> boutiques;
+    private List<BoutiqueDTO> boutiques = new();
     private bool showModal = false;
 
 
     protected override async Task OnInitializedAsync()
     {
-        boutiques = await _boutiqueService.GetBoutiqueByUser();
 
+        await GetBoutiquesAsync();
         // if(boutiques != null || boutiques.Data != null || boutiques.Data.Boutiques.Any())
         // {
         //     _navigationManager.NavigateTo($"/dashboard/{boutiques.Data.Boutiques.First().Id}", true);
         // }
-        
+
+    }
+
+    private async Task GetBoutiquesAsync()
+    {
+         var result = await _boutiqueService.GetBoutiqueByUser();
+        boutiques = result.Data.Boutiques.ToList();
     }
 
     

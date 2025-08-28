@@ -20,5 +20,9 @@ public record Product
     public int Stock { get; set; } = 0;
 }
 
+public record ProductBarcodeDTO(Guid ProductId, string Name, List<ProductItemBarcodeDTO> ProductItems);
 
+public record GetProductItemByBoutiqueResponse(IEnumerable<ProductBarcodeDTO> ProductBarcodes);
+
+public record ProductItemBarcodeDTO(Guid Id, string Barcode);
 

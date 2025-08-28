@@ -2,24 +2,29 @@
 @inject NavigationManager NavManager
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-<NavBarDashboard OnAfterToggleSidebar="()=>{
+<CascadingAuthenticationState>
+    <RouteGuard>
+       <NavBarDashboard OnAfterToggleSidebar="()=>{
     isSidebarOpen = !isSidebarOpen;
 }" IsSidebarOpen="@isSidebarOpen" />
 
-<div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
 
-    <Sidebar boutiqueId="@boutiqueId" IsSidebarOpen="@isSidebarOpen" OnClose="()=>{
- isSidebarOpen = !isSidebarOpen;
-}" />
+        <Sidebar boutiqueId="@boutiqueId" IsSidebarOpen="@isSidebarOpen" OnClose="()=>{
+     isSidebarOpen = !isSidebarOpen;
+    }" />
 
-    <div id="main-content" class="relative w-full min-h-screen overflow-y-auto bg-gray-50 lg:ml-64 dark:bg-gray-900">
-        <main>
-            @Body
-        </main>
-        <FooterDashboard />
+        <div id="main-content" class="relative w-full min-h-screen overflow-y-auto bg-gray-50 lg:ml-64 dark:bg-gray-900">
+            <main>
+                @Body
+            </main>
+            <FooterDashboard />
+        </div>
+
     </div>
+    </RouteGuard>
+</CascadingAuthenticationState>
 
-</div>
 
 @code {
     private bool isSidebarOpen = false;
