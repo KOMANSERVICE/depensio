@@ -4,6 +4,7 @@ using depensio.Domain.Constants;
 using depensio.Domain.Enums;
 using depensio.Domain.Settings;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Text;
 using System.Text.Json;
 
@@ -25,16 +26,26 @@ public class Ean13GeneratorService(
                 return manualBarcode;
 
             case BarcodeGenerationMode.Auto:
-                return await GenerateAutoBarcodeAsync(boutiqueId, config);
+                return await GenerateAutoBarcodeAsync(boutiqueId);
 
             case BarcodeGenerationMode.Hybrid:
                 return !string.IsNullOrEmpty(manualBarcode)
                     ? manualBarcode
-                    : await GenerateAutoBarcodeAsync(boutiqueId, config);
+                    : await GenerateAutoBarcodeAsync(boutiqueId);
 
             default:
                 throw new InternalServerException($"Mode de génération non supporté: {config.Value}");
         }
+    }
+
+    public string GetBarcodeValue()
+    {
+        string baseCode;
+        string fullCode;
+        baseCode = GenerateRandomBase(); // 12 chiffres
+        var checksum = CalculateChecksum(baseCode);
+        fullCode = baseCode + checksum;
+        return fullCode;
     }
 
     private async Task<BoutiqueValue> GetBarcodeConfigAsync(Guid boutiqueId)
@@ -48,27 +59,15 @@ public class Ean13GeneratorService(
 
         return result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.PRODUCT_BARCODE_GENERATION_MODE);
     }
-  
-    private async Task<string> GenerateAutoBarcodeAsync(Guid boutiqueId, BoutiqueValue config)
+
+      
+    private async Task<string> GenerateAutoBarcodeAsync(Guid boutiqueId)
     {
-        //var barcode = $"{config.Text}{config.NextBarcodeNumber:D8}";
-
-        //if (config.AutoIncrement)
-        //{
-        //    config.NextBarcodeNumber++;
-        //    await _settingService.SetSettingAsync(boutiqueId, BoutiqueSettingKeys.PRODUCT_KEY, config);
-        //}
-
-        //return barcode;
-
-        string baseCode;
         string fullCode;
 
         do
-        {
-            baseCode = GenerateRandomBase(); // 12 chiffres
-            var checksum = CalculateChecksum(baseCode);
-            fullCode = baseCode + checksum;
+        {            
+            fullCode = GetBarcodeValue();
 
         } while (await CodeExistsInDatabaseAsync(fullCode));
 

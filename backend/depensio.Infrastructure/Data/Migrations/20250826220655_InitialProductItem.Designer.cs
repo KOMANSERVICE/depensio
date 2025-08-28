@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using depensio.Infrastructure.Data;
@@ -11,9 +12,11 @@ using depensio.Infrastructure.Data;
 namespace depensio.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(DepensioDbContext))]
-    partial class DepensioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250826220655_InitialProductItem")]
+    partial class InitialProductItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -269,7 +272,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Boutiques", (string)null);
+                    b.ToTable("Boutiques");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.BoutiqueSetting", b =>
@@ -307,7 +310,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("BoutiqueId");
 
-                    b.ToTable("BoutiqueSettings", (string)null);
+                    b.ToTable("BoutiqueSettings");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.Product", b =>
@@ -354,7 +357,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("BoutiqueId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.ProductItem", b =>
@@ -391,7 +394,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductItems", (string)null);
+                    b.ToTable("ProductItems");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.Purchase", b =>
@@ -436,7 +439,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("BoutiqueId");
 
-                    b.ToTable("Purchase", (string)null);
+                    b.ToTable("Purchase");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.PurchaseItem", b =>
@@ -477,7 +480,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("PurchaseId");
 
-                    b.ToTable("PurchaseItem", (string)null);
+                    b.ToTable("PurchaseItem");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.Sale", b =>
@@ -510,7 +513,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("BoutiqueId");
 
-                    b.ToTable("Sales", (string)null);
+                    b.ToTable("Sales");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.SaleItem", b =>
@@ -551,7 +554,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("SaleItems", (string)null);
+                    b.ToTable("SaleItems");
                 });
 
             modelBuilder.Entity("depensio.Domain.Models.UsersBoutique", b =>
@@ -584,7 +587,7 @@ namespace depensio.Infrastructure.Data.Migrations
 
                     b.HasIndex("BoutiqueId");
 
-                    b.ToTable("UsersBoutiques", (string)null);
+                    b.ToTable("UsersBoutiques");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

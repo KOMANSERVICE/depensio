@@ -14,6 +14,10 @@ public interface IProductService
     Task<BaseResponse<GetProductByUserResponse>> GetProductsByUserAsync(Guid boutiqueId);
     [Get("/product/{boutiqueId}/stock")]
     Task<BaseResponse<GetProductByUserResponse>> GetProductByBoutiqueWithStockSetting(Guid boutiqueId);
+    [Get("/product/{boutiqueId}/barcodes")]
+    Task<BaseResponse<GetProductItemByBoutiqueResponse>> GetProductItemByBoutiqueAsync(Guid boutiqueId);
+    [Post("/product/generate-barcodes")]
+    Task<BaseResponse<CreateCodeBarreResponse>> CreateCodeBarreAsync(CreateCodeBarreRequest request);
 
     
 }

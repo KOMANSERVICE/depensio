@@ -150,4 +150,6 @@ window.depensio.initialized = function () {
             barcodeInput.focus();
         });
     }
+
+    
 }

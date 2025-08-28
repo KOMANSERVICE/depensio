@@ -16,4 +16,5 @@ public class Product : Entity<ProductId>
     //public ICollection<StockMovement> StockMovements { get; set; }
     public ICollection<SaleItem> SaleItems { get; set; }
     public ICollection<PurchaseItem> PurchaseItems { get; set; }
+    public ICollection<ProductItem> ProductItems { get; set; }
 }

@@ -5,7 +5,7 @@
 dotnet tool install --global dotnet-ef
 
 # commande de migration
-dotnet ef migrations add InitialCreate --project backend/depensio.Infrastructure  --startup-project backend/depensio.Api --output-dir Data/Migrations
+dotnet ef migrations add InitialCreate --project backend/depensio.Infrastructure --startup-project backend/depensio.Api --output-dir Data/Migrations
 
 dotnet ef database update  --project backend/depensio.Infrastructure  --startup-project backend/depensio.Api
 
@@ -13,7 +13,8 @@ dotnet ef database update  --project backend/depensio.Infrastructure  --startup-
 dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startup-project backend/depensio.Api  --output ./deploiementsql/deploy-20260606.sql  --idempotent
 
 # Remove migration
-dotnet ef migrations remove  --project backend/depensio.Infrastructure   --startup-project backend/depensio.Api
+dotnet ef migrations remove --project backend/depensio.Infrastructure --startup-project backend/depensio.Api
+dotnet ef migrations remove --force --project backend/depensio.Infrastructure --startup-project backend/depensio.Api
 docker compose exec depensio.api dotnet ef migrations remove  --project backend/depensio.Infrastructure   --startup-project backend/depensio.Api
 ## Configuration des secrets
 

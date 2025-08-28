@@ -1,0 +1,310 @@
+﻿@page "/print-barcodes/{BoutiqueId:guid}"
+@using System.Security.Cryptography
+@using System.Text
+@inject IProductService _productService
+@layout MainLayout
+@inject ToastService ToastService
+
+
+<LoadingComponent IsLoad="@isLoad" />
+<ToastContainer />
+
+<HeaderPage 
+    Title="Gestion des codes-barres"
+    SubTitle="Générez et imprimez des codes-barres pour vos produits"/>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex items-center">
+            <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
+            <select id="itemsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+                <option>100</option>
+            </select>
+            <span class="ml-2 text-sm text-gray-600">éléments</span>
+        </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" placeholder="Rechercher un produit..."
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" 
+                @onclick="()=>{
+                    onShowModal();
+                }"
+                class="bg-primary-700 hover:bg-amber-800 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button
+                type="button" 
+                @onclick="onShowPrintModal"
+                class="border border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white px-3 py-2 rounded-md flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+     <!-- Barcode List -->
+    <div id="barcodeList" class="bg-white rounded-lg shadow overflow-hidden">
+        @if(productBarcodes == null || productBarcodes.Count < 1)
+        {
+            <div class="p-8 text-center text-gray-500">Aucun code-barre trouvé</div>
+        }
+        @foreach(var item in productBarcodes)
+        {
+             <div class="border-b border-gray-200">
+                <div class="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 dep-toggle-panel" data-product="@item.ProductId">
+                    <div>
+                        <h3 class="font-medium text-primary-700">@item.Name</h3>
+                        <p class="text-sm text-gray-500">@item.ProductItems.Count codes-barres (${availableCount} disponibles)</p>
+                    </div>
+                    <svg id="svg-icon" class="h-5 w-5 text-gray-500 transform transition-transform" data-product-icon="@item.ProductId" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="hidden product-content" data-product-item="@item.ProductId">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50">
+                        @foreach(var barcode in item.ProductItems)
+                        {
+                           <div class="barcode-container bg-white p-3 rounded border border-gray-200 relative" data-id="@barcode.Id">
+                               <svg id="svg-@barcode.Barcode"></svg>
+                                @* <div class="barcode-overlay">
+                                    <div class="text-xs font-medium">@barcode.Barcode</div>
+                                    <div class="text-[10px]">${barcode.type === 'amount' ? `${barcode.value}€` : `${barcode.value}%`}</div>
+                                </div>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-xs px-2 py-1 rounded-full ${barcode.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                        ${barcode.status === 'available' ? 'Disponible' : 'Utilisé'}
+                                    </span>
+                                    <button class="text-gray-400 hover:text-gray-600 status-toggle" data-id="${barcode.id}">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                </div> *@
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+<!-- Modal for generating new barcode -->
+<!-- Add User Modal -->
+<Modal
+    ShowModal="@showModal"
+    OnCloseModal="()=>{
+           onShowModal();
+    }"
+    ModalTitle="Générer un nouveau code-barre"
+>
+    <EditForm EditContext="@editContext" OnValidSubmit="HandleCreate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="px-6 py-4">
+            <div class="mb-4">
+                <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Produit</label>
+                <select @bind="productItem.ProductId"  id="productName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="Nom du produit">
+                     <option selected="">Choix de produit</option>
+                    @foreach (var prod in products)
+                    {
+                        <option value="@prod.Id">@prod.Name</option>
+                    }
+                </select>
+            
+            </div>
+
+            <div class="mb-4">
+                <label for="barcodeCount" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'éléments</label>
+                <InputNumber @bind-Value="productItem.BarcodeCount" type="number" id="barcodeCount" min="1" max="100"  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" />
+            </div>
+
+           @*  <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <div class="flex gap-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="discountType" value="amount" checked class="text-primary-700 focus:ring-primary-700">
+                        <span class="ml-2">Montant</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="discountType" value="percentage" class="text-primary-700 focus:ring-primary-700">
+                        <span class="ml-2">Pourcentage</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="discountValue" class="block text-sm font-medium text-gray-700 mb-1">Valeur</label>
+                <input type="number" id="discountValue" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="0">
+            </div> *@
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <button type="button" id="cancelBtn" @onclick="onShowModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
+            <button type="submit" id="generateBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460d]">Générer</button>
+        </div>
+    </EditForm>
+</Modal>
+
+<Modal
+    ShowModal="@showPrintModal"
+    OnCloseModal="()=>{
+           onShowPrintModal();
+    }"
+    ModalTitle="Options d'impression"
+>
+     <div class="p-6">        
+        <div class="space-y-4">
+            <div class="flex items-center">
+                <input type="checkbox" id="printWithInfo" checked class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
+                <label for="printWithInfo" class="ml-2 block text-sm text-gray-700">Afficher les informations du produit</label>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" id="cancelPrintBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                    Annuler
+                </button>
+                <button type="button" id="confirmPrintBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460f] transition-colors">
+                    Imprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</Modal>
+<!-- Print Section (hidden by default) -->
+<div id="printSection" class="hidden print-section">
+    <div id="printContent" class="p-4"></div>
+</div>
+
+
+@code {
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+    private List<ProductBarcode> productBarcodes = new();
+    private List<Product> products = new();
+    [Inject] private IJSRuntime JS { get; set; }    
+    private bool showModal = false;
+    private bool showPrintModal = false;
+    private ProductItem productItem = new();
+
+    private bool isLoad = false;
+    private EditContext editContext;
+    private ValidationMessageStore messageStore;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        editContext = new EditContext(productItem);        
+
+        messageStore = new ValidationMessageStore(editContext);
+
+        editContext.OnValidationRequested += (s, e) => messageStore.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+
+        var result = await _productService.GetProductsByUserAsync(BoutiqueId);
+        products = result.Data.Products.ToList();
+        await GetProductItemsAsync();
+    }
+
+    private async Task GetProductItemsAsync()
+    {
+        var result = await _productService.GetProductItemByBoutiqueAsync(BoutiqueId);
+        productBarcodes = result.Data.ProductBarcodes.ToList(); 
+        // Met à jour le DOM
+        StateHasChanged();
+        await Task.Delay(1000);
+
+        // Générer les SVG via JS
+        foreach (var items in productBarcodes)
+        {
+            foreach (var pItems in items.ProductItems)
+            {                
+                JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-{pItems.Barcode}");
+            }            
+        }
+
+        JS.InvokeVoidAsync("togglePanel");
+
+    }
+
+    private void PrintBarcode()
+    {
+        JS.InvokeVoidAsync("printBarcodes");
+    }
+
+    private void onShowModal()
+    {
+        showModal = !showModal;
+    }
+
+    private void onShowPrintModal()
+    {
+        showPrintModal = !showPrintModal;
+    }    
+
+    private async Task HandleCreate()
+    {
+        isLoad = true;
+        try
+        {
+            productItem.BoutiqueId = BoutiqueId; // Set the boutique ID for the product
+            var result = await _productService.CreateCodeBarreAsync(new CreateCodeBarreRequest(productItem));
+
+            if (result.Success)
+            {
+                messageStore.Clear();
+                editContext.NotifyValidationStateChanged();
+                productItem = new ProductItem(); // Reset the boutique object
+                await GetProductItemsAsync();
+            }
+            ShowSuccess();
+            onShowModal();
+
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    messageStore.Add(new FieldIdentifier(productItem, string.Empty), errorResult.Detail);
+                    editContext.NotifyValidationStateChanged();
+                }
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    messageStore.Add(new FieldIdentifier(productItem, string.Empty), errorResult.Detail);
+                    editContext.NotifyValidationStateChanged();
+                }
+            }
+            catch
+            {
+                messageStore.Add(new FieldIdentifier(productItem, string.Empty), "Une erreur est survenue.");
+                editContext.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            isLoad = false;
+        }
+    }
+
+    
+    private void ShowSuccess()
+    {
+        ToastService.ShowToast("Succès", "Enregistré avec succès", "success");
+    }
+}

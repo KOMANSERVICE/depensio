@@ -8,4 +8,5 @@ public interface IDepensioDbContext
     DbSet<Sale> Sales { get; }
     DbSet<SaleItem> SaleItems { get; }
     DbSet<BoutiqueSetting> BoutiqueSettings { get; }
+    DbSet<ProductItem> ProductItems { get; }    
 }

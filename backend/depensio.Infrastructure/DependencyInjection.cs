@@ -28,10 +28,64 @@ public static class DependencyInjection
         (this IServiceCollection services, IConfiguration configuration)
     {
         var jsonPath = configuration["Vault:Path"]!;
+        var dataBase = configuration.GetConnectionString("DataBase")!;
+        var mailPassword = configuration["MailConfig:FromMailIdPassword"]!;
+        var fromMailId  = configuration["MailConfig:FromMailId"]!;
+        var fromMailName = configuration["MailConfig:FromMailName"] ?? "Depensio";
+        var host = configuration["MailConfig:Host"]!;
+        var ports = configuration["MailConfig:Ports"]!;
+
+        
+        if (string.IsNullOrEmpty(host))
+        {
+            throw new InvalidOperationException("Mail Host is not provided in configuration");
+        }
+
+        if(string.IsNullOrEmpty(ports))
+        {
+            throw new InvalidOperationException("Mail Ports is not provided in configuration");
+        }
+
+        if (string.IsNullOrEmpty(dataBase))
+        {
+            throw new InvalidOperationException("Database connection string is not provided in configuration");
+        }
+
+        if (string.IsNullOrEmpty(fromMailId))
+        {
+            throw new InvalidOperationException("Mail FromMailId is not provided in configuration");
+        }
+
+        if (string.IsNullOrEmpty(mailPassword)) { 
+            throw new InvalidOperationException("Mail FromMailIdPassword is not provided in configuration");
+        }
+
+        if (string.IsNullOrEmpty(host))
+        {
+            throw new InvalidOperationException("Mail Host is not provided in configuration");
+        }
+
+        if (string.IsNullOrEmpty(jsonPath) )
+        {
+            throw new InvalidOperationException("Vault configuration path is not provided in configuration");
+        }
+
+        if (!File.Exists(jsonPath))
+        {
+            throw new FileNotFoundException($"Vault configuration file not found at path: {jsonPath}");
+        }
 
         var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(
             File.ReadAllText(jsonPath)
         )!;
+
+        if(vaultSecrets == null ||
+            string.IsNullOrEmpty(vaultSecrets.Vault__Uri) ||
+            string.IsNullOrEmpty(vaultSecrets.Vault__RoleId) ||
+            string.IsNullOrEmpty(vaultSecrets.Vault__SecretId))
+        {
+            throw new InvalidOperationException("Invalid Vault configuration");
+        }
 
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
@@ -44,8 +98,8 @@ public static class DependencyInjection
 
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();
-        var connectionString = vaultSecretProvider.GetSecretAsync(configuration.GetConnectionString("DataBase")!).Result;
-        var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(configuration["MailConfig:FromMailIdPassword"]!).Result;
+        var connectionString = vaultSecretProvider.GetSecretAsync(dataBase).Result;
+        var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(mailPassword).Result;
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
@@ -65,11 +119,11 @@ public static class DependencyInjection
 
         services.AddEmailServices((options) =>
         {
-            options.FromMailId = configuration["MailConfig:FromMailId"];
+            options.FromMailId = fromMailId;
             options.FromMailIdPassword = fromMailIdPassword;
-            options.FromMailName = configuration["MailConfig:FromMailName"];
-            options.Host = configuration["MailConfig:Host"];
-            options.Ports = int.Parse(configuration["MailConfig:Ports"]!);
+            options.FromMailName = fromMailName;
+            options.Host = host;
+            options.Ports = int.Parse(ports);
             options.IsBodyHtml = true;
             options.EnableSsl = true;
         });
