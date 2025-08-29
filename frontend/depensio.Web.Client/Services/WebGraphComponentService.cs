@@ -5,7 +5,7 @@ using depensio.Shared.Services;
 using depensio.Web.Client.Components;
 using Microsoft.AspNetCore.Components;
 
-namespace depensio.Web.Components;
+namespace depensio.Web.Client.Services;
 
 public class WebGraphComponentService : IGraphComponent
 {

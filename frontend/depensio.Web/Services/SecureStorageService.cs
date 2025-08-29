@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace depensio.Web.Services;
 
-public class SecureStorageService(ProtectedLocalStorage _storage) : IStorageService
+public class WebSecureStorageService(ProtectedLocalStorage _storage) : IStorageService
 {    
     public async Task SetAsync(string key, string value) => await _storage.SetAsync(key, value);
 
