@@ -239,8 +239,8 @@
     ModalTitle="Scanne code barre produit"
 >
     <div class="p-6 ">
-        <div class="scan-animation border-2 border-dashed border-primary-700 rounded-lg text-center">
-             <video id="qr-video"  class="w-full h-full "></video>
+        <div class="scan-animation border-2 border-dashed border-primary-700 rounded-lg text-center h-[200px] ">
+             <video id="qr-video"  style="width: 100%;"></video>
         </div>
 
         @if (!string.IsNullOrEmpty(ScannedCode))
