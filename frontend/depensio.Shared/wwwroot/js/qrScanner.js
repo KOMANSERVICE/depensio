@@ -1,7 +1,9 @@
 window.qrScanner = window.qrScanner || {};
 let scanning = false;
+let codeReader = null;
 // Charger le son
 const beepSound = new Audio('_content/depensio.Shared/sounds/beep-08b.mp3'); // ? met ton chemin vers le fichier son
+let previewElem = document.getElementById("qr-video");
 
 window.qrScanner = {
     start: async function (dotnetHelper) {
@@ -9,8 +11,10 @@ window.qrScanner = {
             console.log("Déjà en train de scanner...");
             return;
         }
+        previewElem = document.getElementById("qr-video");
+
         scanning = true;
-        const codeReader = new ZXing.BrowserMultiFormatReader();
+        codeReader = new ZXing.BrowserMultiFormatReader();
 
         const videoInputDevices = await codeReader.listVideoInputDevices();
         if (videoInputDevices.length === 0) {
@@ -30,7 +34,6 @@ window.qrScanner = {
             backCamera = videoInputDevices[0];
         }
 
-        const previewElem = document.getElementById("qr-video");
 
         codeReader.decodeFromVideoDevice(
             backCamera.deviceId,
@@ -49,12 +52,16 @@ window.qrScanner = {
       
     },
     stop: function () {
-        const videoElement = document.getElementById('qr-video');
-        if (videoElement && videoElement.srcObject) {
-            scanning = false;
-            let tracks = videoElement.srcObject.getTracks();
+        scanning = false;
+        if (codeReader) {
+            codeReader.reset();
+            codeReader = null;
+        }
+
+        if (previewElem && previewElem.srcObject) {            
+            let tracks = previewElem.srcObject.getTracks();
             tracks.forEach(track => track.stop());
-            videoElement.srcObject = null;
+            previewElem.srcObject = null;
         }
     }
 };
