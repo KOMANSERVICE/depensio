@@ -4,9 +4,19 @@ namespace depensio.Services;
 
 public class SecureStorageService : IStorageService
 {
-    public async Task SetAsync(string key, string value) => await SecureStorage.Default.SetAsync(key, value);
-
-    public async Task<string?> GetAsync(string key) => await SecureStorage.Default.GetAsync(key);
-
-    public async Task RemoveAsync(string key) => SecureStorage.Default.Remove(key);
+    public Task SetAsync(string key, string value)
+    {
+        Preferences.Set(key, value);
+        return Task.CompletedTask;
+    }
+    public Task<string?> GetAsync(string key)
+    {
+        var value = Preferences.Get(key, null);
+        return Task.FromResult<string?>(value);
+    }
+    public Task RemoveAsync(string key)
+    {
+        Preferences.Remove(key);
+        return Task.CompletedTask;
+    }
 }

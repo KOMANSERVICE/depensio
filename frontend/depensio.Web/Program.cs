@@ -1,6 +1,7 @@
 using ApexCharts;
 using depensio.Shared;
 using depensio.Shared.Services;
+using depensio.Web.Client.Services;
 using depensio.Web.Components;
 using depensio.Web.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,10 +17,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 // Add device-specific services used by the depensio.Shared project
-builder.Services.AddSingleton<IFormFactor, FormFactor>()
-                .AddScoped<IStorageService, SecureStorageService>()
+builder.Services.AddSingleton<IFormFactor, WebFormFactor>()
+                .AddScoped<IStorageService, WebSecureStorageService>()
                 .AddHttpClientFactoryServices(builder.Configuration);
 builder.Services.AddScoped<ProtectedLocalStorage>();
+
 
 builder.Services.AddApexCharts();
 builder.Services.AddAuthorization();

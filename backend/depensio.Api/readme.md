@@ -385,3 +385,7 @@ dos2unix .env      # convertit les retours Windows \r\n en Linux \n
     Douchette USB/Bluetooth → pas besoin de JS, ça marche comme un clavier (input + enter).
 
     Caméra smartphone / PC → JS interop avec QuaggaJS ou ZXing.
+
+
+# Graphique
+    https://github.com/apexcharts/Blazor-ApexCharts

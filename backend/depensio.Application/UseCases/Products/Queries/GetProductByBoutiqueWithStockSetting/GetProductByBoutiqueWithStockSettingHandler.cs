@@ -35,7 +35,8 @@ public class GetProductByBoutiqueWithStockSettingHandler(
                 p.Barcode,
                 p.Price,
                 p.CostPrice,
-                p.Stock
+                p.Stock,
+                p.ProductItems.Select(pi => pi.Barcode).ToList()
             ))
             .ToList();
 

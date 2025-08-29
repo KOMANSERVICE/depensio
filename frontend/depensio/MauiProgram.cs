@@ -1,8 +1,13 @@
-﻿using depensio.Components;
+﻿using ApexCharts;
+using depensio.Components;
 using depensio.Services;
 using depensio.Shared;
 using depensio.Shared.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace depensio
 {
@@ -11,6 +16,10 @@ namespace depensio
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
+            // Ajout de la config appsettings.json
+            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
@@ -29,6 +38,14 @@ namespace depensio
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();
 #endif
+
+            // Exemple si tu utilises ApexCharts aussi dans Hybrid
+            builder.Services.AddApexCharts();
+
+            // Auth
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+
 
             return builder.Build();
         }

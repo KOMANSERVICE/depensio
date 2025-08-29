@@ -4,5 +4,6 @@ public record SaleItemDTO
     Guid Id,
     Guid ProductId,
     decimal Price,
-    int Quantity
+    int Quantity,
+    List<string> Barcodes
 );

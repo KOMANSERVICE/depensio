@@ -18,6 +18,7 @@ public record Product
     public decimal Price { get; set; }
     public decimal CostPrice { get; set; }
     public int Stock { get; set; } = 0;
+    public List<string> Barcodes { get; set; } = new();
 }
 
 public record ProductBarcode(Guid ProductId, string Name, List<ProductItemBarcode> ProductItems);

@@ -10,13 +10,15 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace depensio.Application.UseCases.Sales.Commands.CreateSale;
 
 public class CreateSaleHandler(
-    IDepensioDbContext _depensioRepository,
+    IDepensioDbContext _dbContext,
     IGenericRepository<Sale> _saleRepository,
     IGenericRepository<Product> _productRepository,
+    IGenericRepository<ProductItem> _productItemRepository,
     IBoutiqueSettingService _settingService,
     IUnitOfWork _unitOfWork,
     IProductService _productService
@@ -30,7 +32,7 @@ public class CreateSaleHandler(
     {
 
 
-        var boutiqueExite = await _depensioRepository.Boutiques
+        var boutiqueExite = await _dbContext.Boutiques
             .AnyAsync(b => b.Id == BoutiqueId.Of(command.Sale.BoutiqueId), cancellationToken);
         if (!boutiqueExite)
         {
@@ -38,7 +40,7 @@ public class CreateSaleHandler(
         }
 
         // Récupère tous les IDs des produits dans la base
-        var existingProductIds = await _depensioRepository.Products
+        var existingProductIds = await _dbContext.Products
             .Select(p => p.Id.Value)
             .ToListAsync(cancellationToken);
 
@@ -51,7 +53,9 @@ public class CreateSaleHandler(
         }
 
         var sale = await CreateNewSaleAsync(command.Sale);
+        var productItems = await UpdateProductItemAsync(command.Sale);
 
+        _productItemRepository.UpdateRangeData(productItems);
         await _saleRepository.AddDataAsync(sale, cancellationToken);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
@@ -116,6 +120,26 @@ public class CreateSaleHandler(
         };
     }
 
+    private async Task<List<ProductItem>> UpdateProductItemAsync(SaleDTO saleDTO)
+    {
+        // reccuperation des code barres
+        var allBarcodes = saleDTO.Items
+        .SelectMany(item => item.Barcodes)
+        .Distinct()
+        .ToList();
+
+        var productItems = await _dbContext.ProductItems
+        .Where(pi => allBarcodes.Contains(pi.Barcode))
+        .ToListAsync();
+
+        // Mise à jour du statut
+        foreach (var pi in productItems)
+        {
+            pi.Status = ProductStatus.Sold; // ou pi.IsSold = true;
+        }
+
+        return productItems;
+    }
     private async Task<bool> GetAutoSaisiePrixConfigAsync(Guid boutiqueId)
     {
         var config = await _settingService.GetSettingAsync(

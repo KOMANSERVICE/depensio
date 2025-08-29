@@ -50,7 +50,7 @@
     </div>
      <!-- Barcode List -->
     <div id="barcodeList" class="bg-white rounded-lg shadow overflow-hidden">
-        @if(productBarcodes == null || productBarcodes.Count < 1)
+        @if(productBarcodes.Count < 1)
         {
             <div class="p-8 text-center text-gray-500">Aucun code-barre trouvé</div>
         }
@@ -67,10 +67,10 @@
                     </svg>
                 </div>
                 <div class="hidden product-content" data-product-item="@item.ProductId">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4  gap-4 p-4 bg-gray-50">
                         @foreach(var barcode in item.ProductItems)
                         {
-                           <div class="barcode-container bg-white p-3 rounded border border-gray-200 relative" data-id="@barcode.Id">
+                           <div class="barcode-container bg-white p-3 rounded border border-gray-200 relative flex justify-center items-center" data-id="@barcode.Id">
                                <svg id="svg-@barcode.Barcode"></svg>
                                 @* <div class="barcode-overlay">
                                     <div class="text-xs font-medium">@barcode.Barcode</div>
@@ -209,7 +209,7 @@
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
 
-        var result = await _productService.GetProductsByUserAsync(BoutiqueId);
+        var result = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
         products = result.Data.Products.ToList();
         await GetProductItemsAsync();
     }

@@ -53,7 +53,7 @@
             <!-- Product Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[390px] overflow-y-auto">
                 <!-- Product items would be dynamically added here -->
-                @foreach (var prod in products.Data.Products)
+                @foreach (var prod in products)
                 {
                     <div @onclick="() => showAddQuantityModal(prod.Id)"
                          class="product-item bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition"
@@ -134,8 +134,10 @@
                         {
                             <tr class="text-sm">
                                 <td class="py-3">
-                                    @(products.Data.Products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
-                                    <p class="text-[10px] text-gray-500"> @(products.Data.Products.FirstOrDefault(p => p.Id == @item.ProductId).Barcode ?? "")</p>
+                                    @(products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
+                                    <p class="text-[10px] text-gray-500"> 
+                                        @(item.Barcode ?? "")
+                                    </p>
                                 </td>
                                 <td class="py-3 text-right">@item.Price FCFA</td>
                                 <td class="py-3 text-right">@item.Quantity</td>
@@ -231,8 +233,8 @@
 <!-- Add User Modal -->
 <Modal
     ShowModal="@showModalCodeQR"
-    OnCloseModal="()=>{
-           StopScan();
+    OnCloseModal="async ()=>{
+           await StopScan();
     }"
     ModalTitle="Scanne code barre produit"
 >
@@ -243,7 +245,7 @@
 
         @if (!string.IsNullOrEmpty(ScannedCode))
         {
-            <p class="mt-3 text-green-600 font-bold">✅ Code détecté : @ScannedCode</p>
+            <p class="mt-3 text-red-600 font-bold">@ScannedCode</p>
         }
     </div>    
 
@@ -254,7 +256,7 @@
     [Parameter]
     public Guid BoutiqueId { get; set; }
 
-    private BaseResponse<GetProductByUserResponse> products;
+    private List<Product> products = new();
 
     private bool isLoad = false;
     private bool quantityModalVisible = false;
@@ -278,12 +280,19 @@
 
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
-        products = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
+
+        await GetProductsAsync();
 
         var setting = await _boutiqueSettingService.GetSettingByBoutique(BoutiqueId, BoutiqueSettingKeys.VENTE_KEY);
         var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);
         var settingSaisiePrix = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
         displayPrixVente = BoolHelper.ToBool(settingSaisiePrix?.Value.ToString());
+    }
+
+    private async Task GetProductsAsync()
+    {
+        var prodResult = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
+        products = prodResult.Data.Products.ToList();
     }
 
     private async Task HandleCreateSale()
@@ -299,7 +308,7 @@
                 editContext.NotifyValidationStateChanged();
                 sale = new(); // Reset the boutique object
                 ShowSuccess();
-                products = await _productService.GetProductByBoutiqueWithStockSetting(BoutiqueId);
+                await GetProductsAsync();
             }
 
         }
@@ -358,17 +367,30 @@
         {
             alreadyExists.Quantity += saleItem.Quantity;
             alreadyExists.Price = saleItem.Price;
+            if(saleItem.Barcodes.Any())
+                alreadyExists.Barcodes.Add(saleItem.Barcodes.First());
 
         }
         else
         {
-
-            sale.Items.Add(new()
+            var item = new SaleItem
             {
                 ProductId = saleItem.ProductId,
                 Price = saleItem.Price,
-                Quantity = saleItem.Quantity
-            });
+                Quantity = saleItem.Quantity,
+                Barcode = saleItem.Barcode,
+                Barcodes = new List<string>() // s'assure que la liste existe
+            };
+            
+            // si tu veux un seul élément unique dans Barcodes
+            if(saleItem.Barcodes.Any())
+            {
+                item.Barcodes.Add(saleItem.Barcodes.First());
+            }
+
+            sale.Items.Add(item);
+
+
         }
 
         TotalPriceSale();
@@ -382,9 +404,23 @@
         quantityModalVisible = true;
 
         saleItem.ProductId = productId;
-        var selectedProduct = products.Data.Products.FirstOrDefault(p => p.Id == productId);
+        var selectedProduct = products.FirstOrDefault(p => p.Id == productId);
         if (selectedProduct is not null)
         {
+            saleItem.Price = selectedProduct.Price;
+            saleItem.Quantity = 1;
+        }
+    }
+
+    private void AddQuantityBarcode(Guid productId, string barcode)
+    {
+
+        saleItem.ProductId = productId;
+        saleItem.Barcodes.Add(barcode);
+        var selectedProduct = products.FirstOrDefault(p => p.Id == productId);
+        if (selectedProduct is not null)
+        {
+            saleItem.Barcode = selectedProduct.Barcode;
             saleItem.Price = selectedProduct.Price;
             saleItem.Quantity = 1;
         }
@@ -403,7 +439,7 @@
 
     private string getProductName(Guid productId)
     {
-        var product = products.Data.Products.FirstOrDefault(p => p.Id == productId);
+        var product = products.FirstOrDefault(p => p.Id == productId);
         return product?.Name ?? "";
     }
 
@@ -426,13 +462,46 @@
     [JSInvokable]
     public void OnQrCodeScanned(string code)
     {
+        ScannedCode = "";
         if (!string.IsNullOrEmpty(code))
         {
-            ScannedCode = code;
+            var product =  products
+            .Select(p => new
+            {
+                Product = p,
+                Barcode = p.Barcodes.FirstOrDefault(b => b == code)
+            })
+            .FirstOrDefault(p => p.Product.Barcode == code || p.Barcode != null);
+            
+            if(product == null)
+            {
+
+                ScannedCode = "Produit non trouvé ❌";
+                ShowError(ScannedCode);
+                StateHasChanged();
+                return;
+            }
+
+            if(product.Product.Barcode != code)
+            {
+                var alreadyExists = sale.Items.FirstOrDefault(i => i.Barcodes.Contains(code));
+                if(alreadyExists != null)
+                {
+                    ScannedCode = "Article déjà ajouté ❌";
+                    ShowError(ScannedCode);
+                    StateHasChanged();
+                    return;
+                }
+            }
+
+
+            AddQuantityBarcode(product.Product.Id, product?.Barcode);
+            AddItem();
         }
         else
         {
             ScannedCode = "Aucun QR code détecté ❌";
+            ShowError(ScannedCode);
         }
 
         StateHasChanged();
@@ -459,6 +528,7 @@
 
     private void onShowModalCodeQr()
     {
+        ScannedCode = "";
         showModalCodeQR = !showModalCodeQR;
     }
 
