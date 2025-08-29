@@ -29,7 +29,8 @@ public class ProductService(
             Stock = (stockIsAuto
                 ? p.PurchaseItems.Sum(pi => pi.Quantity) - p.SaleItems.Sum(si => si.Quantity) :
                 p.Stock),
-            ProductItems = p.ProductItems
+            ProductItems = p.ProductItems.Where(pi => pi.Status == ProductStatus.Available)
+            .ToList()
         };
     }
 

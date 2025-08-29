@@ -16,7 +16,8 @@ public class GetProductItemByBoutiqueHandler(
                 .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId)
                             && b.UsersBoutiques.Any(ub => ub.UserId == userId))
                 .SelectMany(b => b.Products)
-                .SelectMany(p => p.ProductItems, (p, pi) => new
+                .SelectMany(p => p.ProductItems.Where(pi => pi.Status == ProductStatus.Available)
+                , (p, pi) => new
                 {
                     ProductId = p.Id,
                     ProductName = p.Name,
