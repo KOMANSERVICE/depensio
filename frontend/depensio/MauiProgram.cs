@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 namespace depensio
@@ -16,9 +17,14 @@ namespace depensio
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
-            // Ajout de la config appsettings.json
-            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
+            var assembly = Assembly.GetExecutingAssembly();
+
+            using var stream = assembly.GetManifestResourceStream("depensio.appsettings.json"); // adapte namespace + chemin
+            if (stream != null)
+            {
+                builder.Configuration.AddJsonStream(stream);
+            }
 
             builder
                 .UseMauiApp<App>()

@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using depensio.Shared.Services
-@using depensio.Shared.Components;
+@using depensio.Shared.Components
+@inject NavigationManager Navigation
 @inject IFormFactor FormFactor
 @layout HomeLayout
 
@@ -235,4 +236,13 @@
 @code {
     private string factor => FormFactor.GetFormFactor();
     private string platform => FormFactor.GetPlatform();
+
+    protected override void OnInitialized()
+    {
+        if(!factor.Contains("web", StringComparison.OrdinalIgnoreCase))
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
 }
