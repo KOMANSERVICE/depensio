@@ -43,8 +43,8 @@ namespace depensio
             builder.Services.AddApexCharts();
 
             // Auth
+          
             builder.Services.AddAuthorizationCore();
-            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 
             return builder.Build();

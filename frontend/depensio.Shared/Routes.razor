@@ -1,18 +1,8 @@
-﻿<AuthInitializer>
-    <Router AppAssembly="typeof(Layout.MainLayout).Assembly">
+﻿
+<AuthInitializer>
+    <Router AppAssembly="typeof(Layout.SecondaryLayout).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
-                <NotAuthorized>
-                    @if (!context.User.Identity?.IsAuthenticated == true)
-                    {
-                        <RedirectToLogin />
-                    }
-                    else
-                    {
-                        <RedirectToAccessDenied />
-                    }
-                </NotAuthorized>
-            </AuthorizeRouteView>
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.SecondaryLayout)" />
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         </Found>
         <NotFound>

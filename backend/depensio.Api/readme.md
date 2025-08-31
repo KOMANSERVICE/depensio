@@ -389,3 +389,74 @@ dos2unix .env      # convertit les retours Windows \r\n en Linux \n
 
 # Graphique
     https://github.com/apexcharts/Blazor-ApexCharts
+
+
+# 1️⃣ Blazor WebAssembly (WASM)
+
+    Exécution côté client :
+    Tout le code C# de l’application Blazor s’exécute dans le navigateur via WebAssembly.
+
+    Caractéristiques :
+
+    L’application est complètement téléchargée sur le client.
+
+    Les composants Razor sont exécutés côté navigateur.
+
+    Tu peux faire des appels API HTTP pour récupérer des données.
+
+    Très bien pour les applications offline ou distribuées.
+
+    Nécessite plus de temps de chargement initial (le client télécharge l’assembly + runtime WASM).
+
+    Authentification :
+
+    Le token (JWT, etc.) est géré côté client.
+
+    Tu dois gérer la redirection et les 401 côté client (pas directement via [Authorize] sur la page).
+
+    Exemple d’usage :
+
+    Progressive Web App (PWA)
+
+    App MAUI Hybrid qui doit fonctionner offline
+
+# 2️⃣ Blazor Server
+
+    Exécution côté serveur :
+    Les composants Razor sont exécutés sur le serveur, et le DOM du navigateur est synchronisé via SignalR.
+
+    Caractéristiques :
+
+    Très rapide au chargement initial (juste le JS minimal pour SignalR).
+
+    Toute la logique C# reste côté serveur.
+
+    La communication avec le client est en temps réel via SignalR.
+
+    Les applications sont moins adaptées à l’utilisation offline, car elles dépendent de la connexion serveur.
+
+    Authentification :
+
+    Tu peux utiliser [Authorize] sur les pages et c’est directement pris en compte côté serveur.
+
+    Les 401/403 sont gérés côté serveur → pas de problème de rafraîchissement de page comme en WASM.
+
+    Exemple d’usage :
+
+    App interne d’entreprise avec connexion constante au serveur
+
+    Dashboard temps réel, admin panel
+
+# 3️⃣ Dans un projet MAUI Blazor Hybrid
+
+    Le projet Hybrid lui-même est “hosté” dans MAUI :
+
+    La partie Blazor peut être WebAssembly ou Server.
+
+    Dans la plupart des cas, le code est exécuté localement dans le WebView du MAUI (comme un mini navigateur).
+
+    Différence pratique :
+
+    WASM Hybrid : tout tourne dans le WebView du device (offline possible)
+
+    Server Hybrid : nécessite que le device se connecte à ton serveur Blazor Server (moins courant pour MAUI)
