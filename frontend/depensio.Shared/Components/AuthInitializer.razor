@@ -23,6 +23,7 @@
     {
         if (firstRender)
         {
+            await JSRuntime.InvokeVoidAsync("depensio.initialized");
             try
             {
                 // Attendre que le DOM soit prêt avant d'initialiser l'auth

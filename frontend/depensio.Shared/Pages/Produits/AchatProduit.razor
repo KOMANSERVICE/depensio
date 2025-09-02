@@ -124,7 +124,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                        @foreach(var sale in purchases.Data.Purchases)
+                        @foreach(var sale in purchases)
                         {
                         <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
                             <td class="w-4 p-4">
@@ -356,9 +356,9 @@
             <div class="p-6 space-y-6">
                 <CreatePurchaseComponent 
                     BoutiqueId="@boutiqueId"
-                    products="@products.Data.Products"
+                    products="@products"
                     OnAfterSave="async ()=>{
-                        purchases = await _purchaseService.GetPurchaseByBoutiqueAsync(boutiqueId);
+                        await GetPurchaseAsync();
                     }" />
             </div>
         </div>
@@ -413,12 +413,25 @@
     [Parameter]
     public Guid boutiqueId { get; set; }
 
-    private BaseResponse<GetPurchaseByBoutiqueResponse> purchases;
-     private BaseResponse<GetProductByUserResponse> products;
+    private List<Purchase> purchases = new();
+    private List<Product> products = new();
 
     protected override async Task OnInitializedAsync()
     {
-        purchases = await _purchaseService.GetPurchaseByBoutiqueAsync(boutiqueId);
-        products = await _productService.GetProductsByUserAsync(boutiqueId);
+        await GetPurchaseAsync();
+        await GetProductsAsync();
     }
+
+    private async Task GetProductsAsync()
+    {
+        var productsResponse = await _productService.GetProductsByUserAsync(boutiqueId);
+        products = productsResponse.Data.Products.ToList();
+    }
+
+    private async Task GetPurchaseAsync()
+    {
+        var purchasesReponse = await _purchaseService.GetPurchaseByBoutiqueAsync(boutiqueId);
+        purchases = purchasesReponse.Data.Purchases.ToList();
+    }
+
 }

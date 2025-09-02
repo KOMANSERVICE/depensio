@@ -1,22 +1,38 @@
+@using ApexCharts
 @using depensio.Shared.Pages.Produits.Models
-@using depensio.Shared.Services
-@* @inject IGraphService GraphService
+@using depensio.Shared.Helper
 
-<p class="text-center text-lg">?? Ventes Mobile</p>
+@if (SaleSummarys != null && SaleSummarys.Any())
+{
+    <ApexChart TItem="SaleSummary"
+               Title="Recapitulatif des ventes par produit">
 
-<ul class="list-disc ml-5">
-    @foreach (var item in data)
-    {
-        <li>@item.Product : @item.Total FCFA</li>
-    }
-</ul> *@
+        <ApexPointSeries TItem="SaleSummary"
+                         Items="SaleSummarys"
+                         Name="Montant total"
+                         XValue="@(e => e.ProductName)"
+                         YValue="@(e => e.TotalRevenue)"
+                         OrderByDescending="e=>e.Y"
+                         SeriesType="SeriesType.Bar"
+                         Color="#005ba3"
+                         PointColor="e=> GetColor(e)" />
+    </ApexChart>
+
+
+}
+
 
 @code {
-
-    private List<SaleSummary>? SaleSummarys;
+    [Parameter]
+    public IEnumerable<SaleSummary> SaleSummarys { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        //data = (await GraphService.GetSalesByProductAsync()).ToList();
+    }
+
+
+    private string GetColor(SaleSummary saleSummary)
+    {
+        return saleSummary.Color;
     }
 }

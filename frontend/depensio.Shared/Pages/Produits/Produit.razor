@@ -76,7 +76,7 @@
                 </tr>
             </thead>
             <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
-                @foreach(var Product in products.Data.Products)
+                @foreach(var Product in products)
                 {
                     <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -123,7 +123,7 @@
     <!-- Mobile Cards -->
     <div class="mobile-view">
         <div class="grid grid-cols-1 gap-4" id="mobileProductsList">
-            @foreach (var product in products.Data.Products)
+            @foreach (var product in products)
             {
                 <div class="product-card bg-white rounded-lg shadow-md p-4">
                     <div class="flex justify-between items-start mb-2">
@@ -193,7 +193,7 @@
         ProductId="@productId"
         product="@product"
         OnAfterSave="async ()=>{
-            products = await _productService.GetProductsByUserAsync(boutiqueId);
+            await GetProductsAsync();
             onShowModal();
         }" />
 </Modal>
@@ -203,7 +203,7 @@
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
-    private BaseResponse<GetProductByUserResponse> products;
+    private List<Product> products = new();
     private Product product = new();
     private bool showModal = false;
     private string modalTitle = "";
@@ -211,8 +211,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        products = await _productService.GetProductsByUserAsync(boutiqueId);
+        await GetProductsAsync();
 
+    }
+
+    private async Task GetProductsAsync()
+    {
+        var productsResponse = await _productService.GetProductsByUserAsync(boutiqueId);
+        products = productsResponse.Data.Products.ToList();
     }
 
     private void onShowModal(Guid Id = default)
@@ -221,7 +227,7 @@
         if(productId != Guid.Empty)
         {
             modalTitle = "Modifier le produit";
-            product = products.Data.Products.FirstOrDefault(p => p.Id == productId);
+            product = products.FirstOrDefault(p => p.Id == productId);
             
         }
         else
