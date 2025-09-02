@@ -18,13 +18,8 @@ namespace depensio
         {
             var builder = MauiApp.CreateBuilder();
 
-            var assembly = Assembly.GetExecutingAssembly();
-
-            using var stream = assembly.GetManifestResourceStream("depensio.appsettings.json"); // adapte namespace + chemin
-            if (stream != null)
-            {
-                builder.Configuration.AddJsonStream(stream);
-            }
+            var stream = FileSystem.OpenAppPackageFileAsync("appsettings.json").Result; // ou await dans un async context
+            builder.Configuration.AddJsonStream(stream);
 
             builder
                 .UseMauiApp<App>()
