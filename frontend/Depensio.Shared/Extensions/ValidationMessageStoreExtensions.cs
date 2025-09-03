@@ -18,6 +18,8 @@ public static class ValidationMessageStoreExtensions
         ErrorMessage errorResult)
     {
         if (errorResult == null) return;
+        if (errorResult?.ValidationErrors == null || !errorResult.ValidationErrors.Any())
+            return;
 
         // Efface les anciennes erreurs
         messageStore.Clear();
