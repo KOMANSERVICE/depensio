@@ -1,4 +1,7 @@
-﻿
+﻿## Configuration du SIO
+https://search.google.com/search-console/welcome?hl=fr
+https://search.google.com/search-console?resource_id=sc-domain%3Adepensio.com
+
 ## Configuration de la migration
 
 # Installation de ef
