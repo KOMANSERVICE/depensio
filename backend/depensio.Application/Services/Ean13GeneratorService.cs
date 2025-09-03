@@ -23,6 +23,10 @@ public class Ean13GeneratorService(
             case BarcodeGenerationMode.Manual:
                 if (string.IsNullOrEmpty(manualBarcode))
                     throw new BadRequestException("Code-barre manuel requis");
+
+                if (await CodeExistsInDatabaseAsync(manualBarcode))
+                    throw new BadRequestException("Code-barre existe déjà");
+
                 return manualBarcode;
 
             case BarcodeGenerationMode.Auto:
