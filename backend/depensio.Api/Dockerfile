@@ -12,22 +12,23 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["backend/depensio.Api/depensio.Api.csproj", "backend/depensio.Api/"]
+COPY ["backend/depensio.Api/Depensio.Api.csproj", "backend/depensio.Api/"]
 COPY ["backend/depensio.Application/depensio.Application.csproj", "backend/depensio.Application/"]
 COPY ["backend/depensio.Domain/depensio.Domain.csproj", "backend/depensio.Domain/"]
+COPY ["backend/BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "backend/BuildingBlocks/BuildingBlocks/"]
 COPY ["backend/depensio.Infrastructure/depensio.Infrastructure.csproj", "backend/depensio.Infrastructure/"]
-RUN dotnet restore "./backend/depensio.Api/depensio.Api.csproj"
+RUN dotnet restore "./backend/depensio.Api/Depensio.Api.csproj"
 COPY . .
 WORKDIR "/src/backend/depensio.Api"
-RUN dotnet build "./depensio.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./Depensio.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Cette étape permet de publier le projet de service à copier dans la phase finale
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./depensio.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Depensio.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Cette phase est utilisée en production ou lors de l’exécution à partir de VS en mode normal (par défaut quand la configuration de débogage n’est pas utilisée)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "depensio.Api.dll"]
+ENTRYPOINT ["dotnet", "Depensio.Api.dll"]
