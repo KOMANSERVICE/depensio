@@ -3,11 +3,191 @@
 @inject NavigationManager NavManager
 @inject IAuthHttpService _authService
 @layout NoContentLayout
+@inject IFormFactor FormFactor
 
 <PageTitle>Depensio - Inscription</PageTitle>
 
 <LoadingComponent IsLoad="@isLoad" />
+<section class="bg-gradient-to-r from-primary-700/10 to-primary-700/5 min-h-screen">
+    <div class="min-h-screen flex flex-col lg:flex-row">
+        <!-- Section gauche (illustration) -->
+        <div class="lg:w-1/2 bg-primary-700 flex items-center justify-center p-12 text-white">
+            <div class="max-w-md text-center">
+                <div class="text-5xl mb-6">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h1 class="text-4xl font-bold mb-4">Depensio</h1>
+                <p class="text-xl opacity-90 mb-8">Pilotez toutes vos entreprises en ligne depuis une seule interface</p>
+                <div class="flex justify-center space-x-4 mb-8">
+                    <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                </div>
+                @if (factor.Contains("web", StringComparison.OrdinalIgnoreCase))
+                {
+                    <NavLink href="/" class="text-xl opacity-90 mb-8">Retour à l'accueil</NavLink>
+                }
 
+            </div>
+        </div>
+
+        <!-- Section droite (formulaire) -->
+        <div class="lg:w-1/2 flex items-center justify-center p-12">
+            <div class="w-full max-w-md">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-gray-800">Créez votre compte</h2>
+                    <p class="text-gray-600 mt-2">Commencez votre expérience avec Depensio</p>
+                </div>
+                <EditForm EditContext="@editContext" OnValidSubmit="HandleRegister">
+                    <DataAnnotationsValidator />
+                    <ValidationSummaryFancy />
+                    <div id="error-summary" class="error-summary hidden">
+                        <h3 class="font-medium text-red-600">Veuillez corriger les erreurs suivantes :</h3>
+                        <ul id="error-list" class="list-disc pl-5 mt-2 space-y-1"></ul>
+                    </div>
+
+                    <div id="register-form" class="space-y-6" novalidate>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email *</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-envelope text-gray-400"></i>
+                                </div>
+                                <InputText @bind-Value="registerModel.Email" type="email" id="email" name="email"
+                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                       placeholder="votre@email.com" />
+                            </div>
+                            <div id="email-error" class="error-message">
+                                <ValidationMessage For="@(() => registerModel.Email)" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="lastname" class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i data-feather="user" class="text-gray-400"></i>
+                                    </div>
+                                    <InputText @bind-Value="registerModel.LastName" type="text" id="lastname" name="lastname" 
+                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                           placeholder="Votre nom" />
+                                </div>
+                                <div id="lastname-error" class="error-message">
+                                    <ValidationMessage For="@(() => registerModel.LastName)" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="firstname" class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i data-feather="user" class="text-gray-400"></i>
+                                    </div>
+                                    <InputText @bind-Value="registerModel.FirstName" type="text" id="firstname" name="firstname" 
+                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                           placeholder="Votre prénom" />
+                                </div>
+                                <div id="firstname-error" class="error-message">
+                                    <ValidationMessage For="@(() => registerModel.FirstName)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-feather="phone" class="text-gray-400"></i>
+                                </div>
+                                <InputText @bind-Value="registerModel.Tel" type="tel" id="phone" name="phone"
+                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                       placeholder="06 12 34 56 78" />
+                            </div>
+                            <div id="phone-error" class="error-message">
+                                <ValidationMessage For="@(() => registerModel.Tel)" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe *</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-lock text-gray-400"></i>
+                                </div>
+                                <InputText @bind-Value="registerModel.Password" type="password" id="password" name="password" 
+                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                       placeholder="••••••••" />
+                                <button type="button" id="togglePassword1" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <i data-feather="eye" class="text-gray-400 hover:text-gray-600"></i>
+                                </button>
+                            </div>
+                            <div id="password-error" class="error-message">
+                                <ValidationMessage For="@(() => registerModel.Password)" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe *</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-lock text-gray-400"></i>
+                                </div>
+                                <InputText @bind-Value="registerModel.ConfirmPasswords" type="password" id="confirm-password" name="confirm-password" 
+                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                       placeholder="••••••••" />
+                                <button type="button" id="togglePassword2" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <i data-feather="eye" class="text-gray-400 hover:text-gray-600"></i>
+                                </button>
+                            </div>
+                            <div id="confirm-password-error" class="error-message">
+                                <ValidationMessage For="@(() => registerModel.ConfirmPasswords)" />                            
+                                </div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input id="terms" name="terms" type="checkbox" 
+                                   class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
+                            <label for="terms" class="ml-2 block text-sm text-gray-700">
+                                J'accepte les <a href="#" class="text-primary-700 hover:underline">conditions d'utilisation</a>
+                            </label>
+                        </div>
+                        <div id="terms-error" class="error-message hidden">Vous devez accepter les conditions</div>
+
+                        <div>
+                            <button type="submit"
+                                    class="w-full bg-primary-700 text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition duration-200 flex items-center justify-center space-x-2">
+                                <span>S'inscrire</span>
+                                <i data-feather="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </EditForm>
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">
+                        Vous avez déjà un compte?
+                        <NavLink href="/login" class="text-primary-700 font-medium hover:text-primary-700">Connectez-vous</NavLink>
+                    </p>
+                </div>
+
+                <div class="mt-8 border-t border-gray-200 pt-6">
+                    <p class="text-xs text-gray-500 text-center">
+                        En créant un compte, vous acceptez notre
+                        <a href="#" class="text-primary-700 hover:underline">Politique de confidentialité</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@* 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-primary-700/10 to-primary-700/5  py-24  md:pt-32 ">
     <div class="mb-8">
         <!-- Logo SVG ou image -->
@@ -17,49 +197,7 @@
     </div>
     <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
         <h2 class="text-2xl font-bold text-center mb-6">Créer un compte</h2>
-        <EditForm EditContext="@editContext" OnValidSubmit="HandleRegister">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="email">Adresse email</label>
-                <InputText @bind-Value="registerModel.Email" id="email" type="email" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => registerModel.Email)" />
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="lastname">Nom</label>
-                <InputText @bind-Value="registerModel.LastName" id="lastName" type="text" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => registerModel.LastName)" />
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="firstName">Prénom</label>
-                <InputText @bind-Value="registerModel.FirstName" id="firstName" type="text" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => registerModel.FirstName)" />
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="tel">Téléphone</label>
-                <InputText @bind-Value="registerModel.Tel" id="tel" type="text" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => registerModel.Tel)" />
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="password">Mot de passe</label>
-                <InputText @bind-Value="registerModel.Password" id="password" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => registerModel.Password)" />
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-1" for="confirmPasswords">Confirmer le mot de passe</label>
-                <InputText @bind-Value="registerModel.ConfirmPasswords" id="confirmPasswords" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <ValidationMessage For="@(() => registerModel.ConfirmPasswords)" />
-            </div>
-            <div class="flex items-center justify-between mb-6">
-                <label class="flex items-center">
-                    <input type="checkbox" class="form-checkbox" />
-                    <span class="ml-2 text-gray-600">Se souvenir de moi</span>
-                </label>
-                <a href="#" class="text-primary-700 hover:underline text-sm">Mot de passe oublié?</a>
-            </div>
-            <button type="submit" class="w-full bg-primary-700 text-white py-2 rounded font-semibold hover:bg-primary-800 transition">S'inscrire</button>
-        </EditForm>
+        
         <div class="flex items-center my-6">
             <div class="flex-grow border-t"></div>
             <span class="mx-4 text-gray-400">Ou continuer avec</span>
@@ -81,8 +219,9 @@
         <a href="/login" class="text-primary-700 font-semibold hover:underline">Se connecter</a>
     </div>
 </div>
-
+ *@
 @code {
+    private string factor => FormFactor.GetFormFactor();
     private bool isLoad = false;
     private SignUpDTO registerModel = new();
     private ErrorMessage errorMessage = new();
@@ -130,7 +269,7 @@
                     messageStore.Add(new FieldIdentifier(registerModel, string.Empty), errorResult.Detail);
                     editContext.NotifyValidationStateChanged();
                 }
-                
+
             }
             catch
             {
