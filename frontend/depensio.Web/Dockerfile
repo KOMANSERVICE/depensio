@@ -12,10 +12,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["frontend/depensio.Web/depensio.Web.csproj", "frontend/depensio.Web/"]
+COPY ["frontend/Depensio.Web/depensio.Web.csproj", "frontend/Depensio.Web/"]
 COPY ["frontend/depensio.Web.Client/depensio.Web.Client.csproj", "frontend/depensio.Web.Client/"]
-COPY ["frontend/depensio.Shared/depensio.Shared.csproj", "frontend/depensio.Shared/"]
-RUN dotnet restore "./frontend/depensio.Web/depensio.Web.csproj"
+COPY ["frontend/Depensio.Shared/depensio.Shared.csproj", "frontend/Depensio.Shared/"]
+RUN dotnet restore "./frontend/Depensio.Web/depensio.Web.csproj"
 COPY . .
 WORKDIR "/src/frontend/depensio.Web"
 RUN dotnet build "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
