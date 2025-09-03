@@ -216,3 +216,25 @@ html, body {
 .toast-warning {
     border-left: 4px solid #FF9800;
 }
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.error-summary {
+    background-color: #fef2f2;
+    border-left: 4px solid #ef4444;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.375rem;
+}
+
+.input-error {
+    border-color: #ef4444;
+}
+
+.password-toggle {
+    cursor: pointer;
+}

@@ -29,7 +29,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger)
             ),
             ValidationException =>
             (
-                exception.Message,
+                "Erreur de saisie",
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status400BadRequest
             ),
