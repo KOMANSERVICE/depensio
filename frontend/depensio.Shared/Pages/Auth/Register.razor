@@ -258,16 +258,10 @@
                     PropertyNameCaseInsensitive = true
                 });
 
-                foreach (var validationErrors in errorResult?.ValidationErrors ?? Enumerable.Empty<ValidationError>())
+                if (errorResult != null)
                 {
-                    messageStore.Add(new FieldIdentifier(registerModel, validationErrors.PropertyName.GetFieldName()), validationErrors.ErrorMessage);
-                    editContext.NotifyValidationStateChanged();
-                }
-
-                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
-                {
-                    messageStore.Add(new FieldIdentifier(registerModel, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
+                    // Réutilisable 🚀
+                    messageStore.AddValidationErrors(editContext, registerModel, errorResult);
                 }
 
             }
