@@ -17,7 +17,7 @@ COPY ["frontend/depensio.Web.Client/depensio.Web.Client.csproj", "frontend/depen
 COPY ["frontend/depensio.Shared/depensio.Shared.csproj", "frontend/depensio.Shared/"]
 RUN dotnet restore "./frontend/depensio.Web/depensio.Web.csproj"
 COPY . .
-WORKDIR "/src/frontend/depensio.Web"
+WORKDIR "/src/frontend/Depensio.Web"
 RUN dotnet build "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Cette étape permet de publier le projet de service à copier dans la phase finale
