@@ -226,8 +226,8 @@
     private SignUpDTO registerModel = new();
     private ErrorMessage errorMessage = new();
 
-    private EditContext editContext;
-    private ValidationMessageStore messageStore;
+    private EditContext? editContext;
+    private ValidationMessageStore?  messageStore;
 
     protected override void OnInitialized()
     {
@@ -261,7 +261,7 @@
                 if (errorResult != null)
                 {
                     // Réutilisable 🚀
-                    ValidationMessageStoreExtensions.AddValidationErrors<SignUpDTO>(messageStore,editContext, registerModel, errorResult);
+                    messageStore.AddValidationErrors<SignUpDTO>(editContext, registerModel, errorResult);
                 }
 
             }
