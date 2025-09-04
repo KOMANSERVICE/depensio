@@ -163,7 +163,7 @@
                 if (errorResult != null)
                 {
                     // Réutilisable 🚀
-                    messageStore.AddValidationErrors(editContext, product, errorResult);
+                    messageStore.AddValidationErrors<Product>(editContext, product, errorResult);
                 }
 
                 // // Efface d’abord les anciennes erreurs
