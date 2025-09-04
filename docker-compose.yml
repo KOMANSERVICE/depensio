@@ -13,7 +13,7 @@ services:
     image: ${DOCKER_REGISTRY-}depensioweb
     build:
       context: .
-      dockerfile: frontend/Depensio.Web/Dockerfile
+      dockerfile: frontend/depensio.Web/Dockerfile
 
 volumes:
   pgdata_depensio:
