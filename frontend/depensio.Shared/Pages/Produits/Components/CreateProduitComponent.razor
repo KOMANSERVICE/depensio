@@ -98,8 +98,8 @@
 
     private ErrorMessage errorMessage = new();
 
-    private EditContext editContext;
-    private ValidationMessageStore messageStore;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
     BarcodeGenerationMode mode;
     bool isAuto = true;
     bool stockIsAuto = false;
@@ -144,8 +144,8 @@
             }
             if (result.Success)
             {
-                messageStore.Clear();
-                editContext.NotifyValidationStateChanged();
+                messageStore?.Clear();
+                editContext?.NotifyValidationStateChanged();
                 product = new Product(); // Reset the boutique object
                 await OnAfterSave.InvokeAsync(null); // Notify parent component
             }
@@ -163,7 +163,7 @@
                 if (errorResult != null)
                 {
                     // Réutilisable 🚀
-                    ValidationMessageStoreExtensions.AddValidationErrors<Product>(messageStore,editContext, product, errorResult);
+                    messageStore?.AddValidationErrors<Product>(editContext, product, errorResult);
                 }
 
                 // // Efface d’abord les anciennes erreurs
@@ -201,8 +201,8 @@
             }
             catch
             {
-                messageStore.Add(new FieldIdentifier(product, string.Empty), "Une erreur est survenue.");
-                editContext.NotifyValidationStateChanged();
+                messageStore?.Add(new FieldIdentifier(product, string.Empty), "Une erreur est survenue.");
+                editContext?.NotifyValidationStateChanged();
             }
         }
         finally

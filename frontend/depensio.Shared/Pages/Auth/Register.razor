@@ -261,7 +261,7 @@
                 if (errorResult != null)
                 {
                     // Réutilisable 🚀
-                    ValidationMessageStoreExtensions.AddValidationErrors<SignUpDTO>(messageStore,editContext, registerModel, errorResult);
+                    messageStore.AddValidationErrors<SignUpDTO>(editContext, registerModel, errorResult);
                 }
 
             }
