@@ -15,7 +15,7 @@ WORKDIR /src
 COPY ["frontend/depensio.Web/depensio.Web.csproj", "frontend/Depensio.Web/"]
 COPY ["frontend/depensio.Web.Client/depensio.Web.Client.csproj", "frontend/depensio.Web.Client/"]
 COPY ["frontend/depensio.Shared/depensio.Shared.csproj", "frontend/Depensio.Shared/"]
-RUN dotnet restore "./frontend/depensio.Web/depensio.Web.csproj"
+RUN dotnet restore "./frontend/Depensio.Web/depensio.Web.csproj"
 COPY . .
 WORKDIR "/src/frontend/Depensio.Web"
 RUN dotnet build "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
