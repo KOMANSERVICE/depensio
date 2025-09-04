@@ -226,8 +226,8 @@
     private SignUpDTO registerModel = new();
     private ErrorMessage errorMessage = new();
 
-    private EditContext editContext;
-    private ValidationMessageStore messageStore;
+    private EditContext? editContext;
+    private ValidationMessageStore?  messageStore;
 
     protected override void OnInitialized()
     {
