@@ -22,7 +22,4 @@
     <Folder Include="Pages\Dashboards\" />
     <Folder Include="Pages\Settings\Components\" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Extensions\ValidationMessageStoreExtensions.cs" />
-  </ItemGroup>
 </Project>
