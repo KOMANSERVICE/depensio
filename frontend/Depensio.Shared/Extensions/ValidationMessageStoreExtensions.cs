@@ -7,12 +7,8 @@ namespace depensio.Shared.Extensions;
 
 public static class ValidationMessageStoreExtensions
 {
-    /// <summary>
-    /// Ajoute les erreurs de validation provenant d'un backend (ErrorMessage.ValidationErrors)
-    /// au <see cref="ValidationMessageStore"/> pour le modèle donné.
-    /// </summary>
     public static void AddValidationErrors<TModel>(
-        this ValidationMessageStore messageStore,
+        ValidationMessageStore messageStore,
         EditContext editContext,
         TModel model,
         ErrorMessage errorResult)
