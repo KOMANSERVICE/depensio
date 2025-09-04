@@ -160,42 +160,33 @@
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (errorResult != null)
+
+                // Efface les anciennes erreurs
+                messageStore.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
                 {
-                    // Réutilisable 🚀
-                    messageStore?.AddValidationErrors<Product>(editContext, product, errorResult);
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        // Associer au champ si possible
+                        var fieldIdentifier = new FieldIdentifier(product!, propertyName);
+                        messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    // Message global sans champ spécifique
+                    var fieldIdentifier = new FieldIdentifier(product!, string.Empty);
+                    messageStore.Add(fieldIdentifier, errorResult.Detail);
                 }
 
-                // // Efface d’abord les anciennes erreurs
-                // messageStore.Clear();
-
-                // foreach (var validationError in errorResult.ValidationErrors)
-                // {
-                //     // On récupère le PropertyName exactement comme il arrive de l’API (ex: "Name", "Barcode")
-                //     var propertyName = validationError.PropertyName
-                //         .Replace("Product.", "", StringComparison.OrdinalIgnoreCase);
-
-                //     // Cherche la propriété sur le modèle Product
-                //     var propInfo = typeof(Product).GetProperty(propertyName,
-                //         System.Reflection.BindingFlags.IgnoreCase |
-                //         System.Reflection.BindingFlags.Public |
-                //         System.Reflection.BindingFlags.Instance);
-
-                //     if (propInfo != null)
-                //     {
-                //         // ✅ Lien automatique entre le JSON et ton modèle
-                //         var fieldIdentifier = new FieldIdentifier(product, propInfo.Name);
-                //         messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
-                //     }
-                //     else
-                //     {
-                //         // fallback pour les erreurs globales
-                //         messageStore.Add(new FieldIdentifier(product, string.Empty), validationError.ErrorMessage);
-                //     }
-                // }
-
-                // editContext.NotifyValidationStateChanged();
-                
+                // Rafraîchir l’affichage
+                editContext.NotifyValidationStateChanged();
                 
 
             }
