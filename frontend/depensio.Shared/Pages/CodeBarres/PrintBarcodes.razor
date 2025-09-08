@@ -60,7 +60,9 @@
                 <div class="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 dep-toggle-panel" data-product="@item.ProductId">
                     <div>
                         <h3 class="font-medium text-primary-700">@item.Name</h3>
-                        <p class="text-sm text-gray-500">@item.ProductItems.Count codes-barres (${availableCount} disponibles)</p>
+                        <p class="text-sm text-gray-500">@item.ProductItems.Count codes-barres 
+   @*                          (${availableCount} disponibles) *@
+                        </p>
                     </div>
                     <svg id="svg-icon" class="h-5 w-5 text-gray-500 transform transition-transform" data-product-icon="@item.ProductId" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -172,7 +174,7 @@
                 <button type="button" id="cancelPrintBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                     Annuler
                 </button>
-                <button type="button" id="confirmPrintBtn" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460f] transition-colors">
+                <button type="button" id="confirmPrintBtn" @onclick="Print" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460f] transition-colors">
                     Imprimer
                 </button>
             </div>
@@ -181,7 +183,24 @@
 </Modal>
 <!-- Print Section (hidden by default) -->
 <div id="printSection" class="hidden print-section">
-    <div id="printContent" class="p-4"></div>
+    <div id="printContent" class="grid grid-cols-4 gap-4 p-4 ">
+        @foreach(var item in productBarcodes)
+        {
+            @foreach(var barcode in item.ProductItems)
+            {
+                <div class="p-3 bg-white  rounded border border-gray-200 relative ">
+                    <div class="border-b border-dashed border-black pb-[5px] mb-[5px]">
+                        <p class="text-sm text-gray-600">@item.Name</p>
+                    </div>
+                    <div class="flex justify-center items-center" data-id="@barcode.Id">                      
+                        <svg id="svg-print-@barcode.Barcode"></svg>                               
+                    </div>
+                </div>
+              
+            
+            }
+        }
+    </div>
 </div>
 
 
@@ -228,6 +247,7 @@
             foreach (var pItems in items.ProductItems)
             {                
                 JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-{pItems.Barcode}");
+                JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-print-{pItems.Barcode}");
             }            
         }
 
@@ -235,10 +255,6 @@
 
     }
 
-    private void PrintBarcode()
-    {
-        JS.InvokeVoidAsync("printBarcodes");
-    }
 
     private void onShowModal()
     {
@@ -306,5 +322,10 @@
     private void ShowSuccess()
     {
         ToastService.ShowToast("Succès", "Enregistré avec succès", "success");
+    }
+
+    private async Task Print()
+    {
+        await JS.InvokeVoidAsync("printBlock", "printSection");
     }
 }
