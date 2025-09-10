@@ -40,7 +40,3 @@ window.togglePanel = function () {
     }
 }
 
-
-window.printBarcodes = function () {
-    window.print();
-}
