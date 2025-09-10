@@ -1,63 +1,53 @@
 window.printBlock = window.printBlock || {};
-window.printBlock = function (divId) {
-    var content = document.getElementById(divId).innerHTML;
-    var mywindow = window.open('', '_blank');
+window.printBlock = function (divId, options = {}) {
 
-    mywindow.document.write(`
+    const content = document.getElementById(divId).innerHTML;
+    const newTab = window.open('', '_blank');
+
+    // Valeurs par défaut
+    const defaultOptions = {
+        title: "Impression",
+        pageSize: null, // "A4" | "Letter" | "80mm 40mm"
+        margin: "15mm",
+        extraCss: "",   // CSS additionnel
+        tailwind: true, // Charger Tailwind ou pas
+        autoClose: true // Fermer l'onglet après impression
+    };
+
+    const settings = { ...defaultOptions, ...options };
+
+    // Génération du CSS @page
+    let pageCss = "";
+    if (settings.pageSize) {
+        pageCss = `@page { size: ${settings.pageSize}; margin: ${settings.margin}; }`;
+    }
+
+    newTab.document.write(`
         <html>
         <head>
-            <title>Impression</title>
-            <script src="https://cdn.tailwindcss.com"></script>
+            <title>${settings.title}</title>
+            ${settings.tailwind
+            ? "<link href='https://cdn.tailwindcss.com' rel='stylesheet'>"
+            : ""}
             <style>
-                /* Format A4 */
-                @page {
-                    size: A4;
-                    margin: 20mm;
-                }
-
-                body {
-                    font-family: Arial, sans-serif;
-                    font-size: 12pt;
-                }
-
-                /* Numérotation des pages en bas à droite */
-                @page {
-                    @bottom-right {
-                        content: "Page " counter(page) " / " counter(pages);
-                        font-size: 10pt;
-                    }
-                }
-
-                /* Alternative plus compatible pour numéros de page */
-                .page-number:after {
-                    content: counter(page);
-                }
-
-                /* Évite de couper un bloc entre deux pages */
-                .avoid-break {
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                }
-
-                /* Forcer un saut de page après un élément si nécessaire */
-                .page-break {
-                    page-break-after: always;
-                    break-after: page;
-                }
+                ${pageCss}
+                .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+                ${settings.extraCss}
             </style>
         </head>
         <body>
             ${content}
-
-            
         </body>
         </html>
     `);
-    mywindow.document.close();
-    mywindow.onload = function () {
-        mywindow.focus();
-        mywindow.print();
-        mywindow.close();
-    };
-    
+
+    newTab.document.close();
+
+    newTab.onload = function () {
+        newTab.focus();
+        newTab.print();
+        if (settings.autoClose) {
+            newTab.close();
+        }
+    };    
 }

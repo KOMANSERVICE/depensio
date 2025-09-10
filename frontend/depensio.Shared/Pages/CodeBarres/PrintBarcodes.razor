@@ -183,7 +183,7 @@
 </Modal>
 <!-- Print Section (hidden by default) -->
 <div id="printSection" class="hidden print-section">
-    <div id="printContent" class="grid grid-cols-4 gap-4 p-4 ">
+    <div id="printContent" class="grid grid-cols-1 gap-4 p-4 avoid-break">
         @foreach(var item in productBarcodes)
         {
             @foreach(var barcode in item.ProductItems)
@@ -326,6 +326,9 @@
 
     private async Task Print()
     {
-        await JS.InvokeVoidAsync("printBlock", "printSection");
+        await JS.InvokeVoidAsync("printBlock", "printSection", new {
+                    pageSize = "50mm 30mm",
+                    margin = "20mm"
+                });
     }
 }
