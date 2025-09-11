@@ -118,6 +118,28 @@ server {
     }
 }
 
+Avec page de maintenance
+
+server {
+    listen 80;
+    server_name vename.com www.vename.com;
+
+    location / {
+        proxy_pass http://localhost:3000;  # ou la vraie app
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    
+    # Page de maintenance si backend est down
+    error_page 502 503 504 /depensio.html;
+
+    location = /depensio.html {
+        root /var/www/maintenance;
+        internal;
+    }
+}
+
 ou pour n8n
 
 server {
@@ -142,7 +164,7 @@ server {
 Active le site :
 sudo ln -s /etc/nginx/sites-available/vename.com /etc/nginx/sites-enabled/
 sudo nginx -t
-sudo systemctl reload nginx
+0
 
 # deinstaller
 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depensio - Maintenance en cours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#825513',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .maintenance-icon {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="max-w-4xl mx-auto px-6 py-12 text-center" data-aos="fade-up">
+        <div class="bg-white rounded-xl shadow-lg p-8 md:p-12">
+            <div class="maintenance-icon inline-block mb-8">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#825513" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <path d="M9.5 9h5"></path>
+                    <path d="M12 12v5"></path>
+                </svg>
+            </div>
+            
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Maintenance en cours</h1>
+            <h2 class="text-xl md:text-2xl font-semibold text-primary mb-6">Depensio sera bientôt de retour !</h2>
+            
+            <div class="max-w-lg mx-auto">
+                <p class="text-gray-600 mb-8 text-lg">
+                    Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience. 
+                    Le service sera de nouveau disponible très bientôt. Merci pour votre patience.
+                </p>
+                                
+            </div>
+        </div>
+        
+        <div class="mt-12 text-gray-500 text-sm">
+            <p>© 2024 Depensio. Tous droits réservés.</p>
+        </div>
+    </div>
+
+    <script>
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+        feather.replace();
+    </script>
+</body>
+</html>
