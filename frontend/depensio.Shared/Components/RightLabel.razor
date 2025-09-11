@@ -1,0 +1,9 @@
+<p class="@CssClass">
+    &copy; 2025@(DateTime.Now.Year > 2025 ? "-"+DateTime.Now.Year : "") Depensio. Tous droits réservés.
+</p>
+
+@code {
+    [Parameter]
+    public string CssClass { get; set; } =  "text-gray-400 mb-4 md:mb-0";
+
+}

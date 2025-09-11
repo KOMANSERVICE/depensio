@@ -1,0 +1,24 @@
+﻿<div class="border-b border-gray-200 dark:border-gray-700 mb-10">
+    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+        @foreach (var tab in Tabs)
+        {
+            <li class="me-2">
+                <NavLink href="@tab.Href"
+                         class="inline-flex items-center justify-center p-4 rounded-t-lg group border-b-2 hover:text-gray-700 hover:border-gray-300"
+                         activeClass="border-b-2 text-primary-700 border-primary-700  hover:text-primary-700 hover:border-primary-700 dark:text-primary-500 dark:border-primary-500 "
+                         match="@(tab.Href.EndsWith("/product") || tab.Href.EndsWith("/sale") || tab.Href.EndsWith("/purchase")
+                                          ? NavLinkMatch.Prefix
+                                          : NavLinkMatch.All)">
+                    <span @onclick:stopPropagation="true">
+                        @((MarkupString)tab.IconSvg)
+                    </span>
+                    @tab.Title
+                </NavLink>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    [Parameter] public List<HeaderTab> Tabs { get; set; } = new();
+}

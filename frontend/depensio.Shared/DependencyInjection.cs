@@ -18,7 +18,8 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFlowbiteService, FlowbiteService>();
-
+        services.AddScoped<HeaderTabService>();
+        
         var uri = configuration["ApiSettings:Uri"]!;
         services.AddRefitClient<IAuthHttpService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri));
