@@ -164,7 +164,7 @@ server {
 Active le site :
 sudo ln -s /etc/nginx/sites-available/vename.com /etc/nginx/sites-enabled/
 sudo nginx -t
-0
+sudo systemctl reload nginx
 
 # deinstaller
 
