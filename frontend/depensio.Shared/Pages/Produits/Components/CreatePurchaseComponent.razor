@@ -6,138 +6,140 @@
 <EditForm EditContext="@editContext" OnValidSubmit="HandleCreateProduit">
     <DataAnnotationsValidator />
     <ValidationSummary />
-
-    <div class="grid grid-cols-6 gap-6">
-        <div class="col-span-6 sm:col-span-3">
-            <label for="titre"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Titre</label>
-            <InputText type="text" @bind-Value="purchase.Title" name="titre" id="titre"
-                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="Achat de fin de mois" />
-            <ValidationMessage For="@(() => purchase.Title)" />
-        </div>
-
-        <div class="col-span-6 sm:col-span-3">
-            <label for="SupplierName"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fournisseur</label>
-            <InputText type="text" @bind-Value="purchase.SupplierName" name="SupplierName" id="SupplierName"
-                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="Fournisseur" />
-            <ValidationMessage For="@(() => purchase.SupplierName)" />
-        </div>
-        <div class="col-span-6">
-            <label for="description"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-            <InputTextArea id="description" @bind-Value="purchase.Description" rows="4"
-                           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                           placeholder="Descripotion de l'achat"></InputTextArea>
-        </div>
-        <div class="col-span-6 flex items-start justify-start">
-            <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalAmount FCFA</p>
-        </div>
-        <div class="col-span-6 flex gap-2">
-            <div>
-                <label for="prodctId"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Produit</label>
-                <select @bind="purchaseItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                    <option selected="">Choix de produit</option>
-                    @foreach (var prod in products)
-                    {
-                        <option value="@prod.Id">@prod.Name</option>
-                    }
-                </select>
-            </div>
-            <div>
-                <label for="Prix"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix</label>
-                <input @bind="purchaseItem.Price" type="number" name="position" id="Prix"
-                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="e.g. Prix d'achat'">
+    <div class="p-6">
+        <div class="grid grid-cols-6 gap-6">
+            <div class="col-span-6 sm:col-span-3">
+                <label for="titre"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Titre</label>
+                <InputText type="text" @bind-Value="purchase.Title" name="titre" id="titre"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="Achat de fin de mois" />
+                <ValidationMessage For="@(() => purchase.Title)" />
             </div>
 
-            <div>
-                <label for="Quantite"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantité</label>
-                <input @bind="purchaseItem.Quantity" type="number" name="position" id="Quantite"
-                       class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                       placeholder="e.g. Quantité">
+            <div class="col-span-6 sm:col-span-3">
+                <label for="SupplierName"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fournisseur</label>
+                <InputText type="text" @bind-Value="purchase.SupplierName" name="SupplierName" id="SupplierName"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="Fournisseur" />
+                <ValidationMessage For="@(() => purchase.SupplierName)" />
             </div>
-            <div class="flex items-end justify-end">
-                <label for="Quantite"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                        type="button" @onclick="AddItem">
-                    <svg class="w-5 h-5 -ml-1" fill="currentColor" viewBox="0 0 20 20"
-                         xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                              clip-rule="evenodd"></path>
-                    </svg>
-                </button>
+            <div class="col-span-6">
+                <label for="description"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                <InputTextArea id="description" @bind-Value="purchase.Description" rows="4"
+                               class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                               placeholder="Descripotion de l'achat"></InputTextArea>
             </div>
-        </div>
-        <div class="col-span-6">
-            <div class="overflow-x-auto">
-                <div class="inline-block min-w-full align-middle">
-                    <div class="overflow-hidden shadow">
-                        <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
-                            <thead class="bg-gray-100 dark:bg-gray-700">
-                                <tr>
-                                    <th scope="col" class="p-4">
-                                        <div class="flex items-center">
-                                            <input id="checkbox-all" aria-describedby="checkbox-1" type="checkbox"
-                                                   class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                                            <label for="checkbox-all" class="sr-only">checkbox</label>
-                                        </div>
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Produit
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Prix
-                                    </th>
-                                    <th scope="col"
-                                        class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                        Quantité
-                                    </th>
+            <div class="col-span-6 flex items-start justify-start">
+                <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalAmount FCFA</p>
+            </div>
+            <div class="col-span-6 flex gap-2">
+                <div>
+                    <label for="prodctId"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Produit</label>
+                    <select @bind="purchaseItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                        <option selected="">Choix de produit</option>
+                        @foreach (var prod in products)
+                        {
+                            <option value="@prod.Id">@prod.Name</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label for="Prix"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix</label>
+                    <input @bind="purchaseItem.Price" type="number" name="position" id="Prix"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="e.g. Prix d'achat'">
+                </div>
 
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                                @foreach (var item in purchase.Items)
-                                {
-                                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <td class="w-4 p-4">
+                <div>
+                    <label for="Quantite"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantité</label>
+                    <input @bind="purchaseItem.Quantity" type="number" name="position" id="Quantite"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="e.g. Quantité">
+                </div>
+                <div class="flex items-end justify-end">
+                    <label for="Quantite"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                            type="button" @onclick="AddItem">
+                        <svg class="w-5 h-5 -ml-1" fill="currentColor" viewBox="0 0 20 20"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                  clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="col-span-6">
+                <div class="overflow-x-auto">
+                    <div class="inline-block min-w-full align-middle">
+                        <div class="overflow-hidden shadow">
+                            <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th scope="col" class="p-4">
                                             <div class="flex items-center">
-                                                <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
+                                                <input id="checkbox-all" aria-describedby="checkbox-1" type="checkbox"
                                                        class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
+                                                <label for="checkbox-all" class="sr-only">checkbox</label>
                                             </div>
-                                        </td>
-                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                            @(products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
-                                        </td>
-                                        <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                            @item.Price FCFA
-                                        </td>
-                                        <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                            @item.Quantity
-                                        </td>
+                                        </th>
+                                        <th scope="col"
+                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Produit
+                                        </th>
+                                        <th scope="col"
+                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Prix
+                                        </th>
+                                        <th scope="col"
+                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Quantité
+                                        </th>
+
                                     </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                                    @foreach (var item in purchase.Items)
+                                    {
+                                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <td class="w-4 p-4">
+                                                <div class="flex items-center">
+                                                    <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
+                                                           class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
+                                                    <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
+                                                </div>
+                                            </td>
+                                            <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                                                @(products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
+                                            </td>
+                                            <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                                                @item.Price FCFA
+                                            </td>
+                                            <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                @item.Quantity
+                                            </td>
+                                        </tr>
 
-                                }
+                                    }
 
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
     <!-- Modal footer -->
-    <div class="items-center p-6 border-t border-gray-200 rounded-b dark:border-gray-700">
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
         <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
                 type="submit">
             Enregistrer

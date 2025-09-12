@@ -15,7 +15,8 @@ public class GetBoutiqueByUserHandler(
         .Select(b => new BoutiqueDTO(
             b.Id.Value,
             b.Name,
-            b.Location
+            b.Location,
+            DateOnly.FromDateTime(b.CreatedAt)
         ))
         .ToListAsync();
 
