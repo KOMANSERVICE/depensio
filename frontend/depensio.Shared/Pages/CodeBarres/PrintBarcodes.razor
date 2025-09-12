@@ -171,7 +171,8 @@
             </div>
 
             <div class="flex justify-end gap-3 pt-4">
-                <button type="button" id="cancelPrintBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                <button type="button" id="cancelPrintBtn"
+                    @onclick="onShowPrintModal" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                     Annuler
                 </button>
                 <button type="button" id="confirmPrintBtn" @onclick="Print" class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460f] transition-colors">
