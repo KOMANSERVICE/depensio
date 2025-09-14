@@ -1,4 +1,4 @@
-name: 🚀 Deploy DEV on Main PR Merge
+name: 🚀 Deploy to DEV
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
       - name: ⬇️ Checkout
         uses: actions/checkout@v3
 
-      - name: 🚀 Deploy to Production Server via SSH
+      - name: 🚀 Deploy to DEV Server via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
