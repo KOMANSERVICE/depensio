@@ -184,21 +184,21 @@
 </Modal>
 <!-- Print Section (hidden by default) -->
 <div id="printSection" class="hidden print-section">
-    <div id="printContent" class="grid grid-cols-1 gap-4 p-4 avoid-break">
+    <div id="printContent" class="grid grid-cols-1 gap-2 p-0 avoid-break">
         @foreach(var item in productBarcodes)
         {
             @foreach(var barcode in item.ProductItems)
             {
-                <div class="p-3 bg-white  rounded border border-gray-200 relative ">
-                    <div class="border-b border-dashed border-black pb-[5px] mb-[5px]">
-                        <p class="text-sm text-gray-600">@item.Name</p>
+                <div class="w-[50mm] h-[30mm] p-[2px] bg-white rounded border border-gray-200 flex flex-col justify-between box-border">
+                    <!-- Ligne du haut (nom du produit) -->
+                    <div class="border-b border-dashed border-black pb-0 mb-0">
+                        <p class="text-[8px] leading-tight text-gray-700 truncate p-no-margin">@item.Name</p>
                     </div>
-                    <div class="flex justify-center items-center" data-id="@barcode.Id">                      
-                        <svg id="svg-print-@barcode.Barcode"></svg>                               
+                    <!-- Zone du code-barres -->
+                    <div class="flex-1 flex justify-center items-center overflow-hidden" data-id="@barcode.Id">
+                        <svg id="svg-print-@barcode.Barcode" class="w-full h-full"></svg>
                     </div>
                 </div>
-              
-            
             }
         }
     </div>
@@ -329,7 +329,7 @@
     {
         await JS.InvokeVoidAsync("printBlock", "printSection", new {
                     pageSize = "50mm 30mm",
-                    margin = "20mm"
+                    margin = "0mm"
                 });
     }
 }

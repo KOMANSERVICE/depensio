@@ -238,3 +238,9 @@ html, body {
 .password-toggle {
     cursor: pointer;
 }
+
+.p-no-margin {
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin: 0 !important; /* supprime toutes les marges, y compris margin-block */
+}
