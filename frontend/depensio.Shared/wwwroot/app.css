@@ -820,6 +820,10 @@ video {
   clear: none;
 }
 
+.m-0 {
+  margin: 0px;
+}
+
 .mx-3 {
   margin-left: 0.75rem;
   margin-right: 0.75rem;
@@ -880,6 +884,10 @@ video {
 
 .-mt-5 {
   margin-top: -1.25rem;
+}
+
+.mb-0 {
+  margin-bottom: 0px;
 }
 
 .mb-0\.5 {
@@ -1213,16 +1221,20 @@ video {
   height: 200px;
 }
 
+.h-\[300px\] {
+  height: 300px;
+}
+
+.h-\[30mm\] {
+  height: 30mm;
+}
+
 .h-auto {
   height: auto;
 }
 
 .h-full {
   height: 100%;
-}
-
-.h-\[300px\] {
-  height: 300px;
 }
 
 .max-h-\[390px\] {
@@ -1339,6 +1351,10 @@ video {
 
 .w-96 {
   width: 24rem;
+}
+
+.w-\[50mm\] {
+  width: 50mm;
 }
 
 .w-\[this-is\\\\\] {
@@ -3020,6 +3036,10 @@ video {
      object-fit: scale-down;
 }
 
+.p-0 {
+  padding: 0px;
+}
+
 .p-1 {
   padding: 0.25rem;
 }
@@ -3054,6 +3074,14 @@ video {
 
 .p-8 {
   padding: 2rem;
+}
+
+.p-\[1px\] {
+  padding: 1px;
+}
+
+.p-\[2px\] {
+  padding: 2px;
 }
 
 .px-1 {
@@ -3159,6 +3187,10 @@ video {
 .py-9 {
   padding-top: 2.25rem;
   padding-bottom: 2.25rem;
+}
+
+.pb-0 {
+  padding-bottom: 0px;
 }
 
 .pb-2 {
@@ -3311,6 +3343,10 @@ video {
 
 .text-\[10px\] {
   font-size: 10px;
+}
+
+.text-\[8px\] {
+  font-size: 8px;
 }
 
 .text-base {
@@ -4261,6 +4297,13 @@ html, body {
 
 .password-toggle {
   cursor: pointer;
+}
+
+.p-no-margin {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin: 0 !important;
+  /* supprime toutes les marges, y compris margin-block */
 }
 
 @media (min-width: 640px) {

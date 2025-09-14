@@ -11,7 +11,7 @@ window.renderBarcode = function (ean13, svgId) {
         format: "ean13",
         displayValue: true,   // affiche les chiffres
         fontSize: 12,
-        textMargin: 2,
+        textMargin: 0,
         width: 2,
         height: 80
     });
