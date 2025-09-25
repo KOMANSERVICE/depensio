@@ -1,4 +1,5 @@
 ﻿
+using depensio.Shared.Models;
 using depensio.Shared.Pages.Auth.Models;
 using Refit;
 
@@ -12,4 +13,6 @@ public interface IAuthHttpService
     Task<SignInResponse> SignIn(SignInRequest request);
     [Post("/verifymail")]
     Task<VerifyMailResponse> VerifyMail(VerifyMailRequest request);
+    [Post("/createuser")]
+    Task<BaseResponse<CreateUserResponse>> CreateUser(CreateUserRequest request);
 }

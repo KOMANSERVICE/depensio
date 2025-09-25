@@ -1,17 +1,16 @@
-﻿@page "/produit/{boutiqueId:guid}"
+﻿@page "/liste-user/{boutiqueId:guid}"
 @using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Components
 @using depensio.Shared.Pages.Produits.Models
-@inherits FlowbitePage
 @layout MainLayout
 @inject IProductService _productService
 @inject IJSRuntime JS
 
-<PageTitle>Depensio - Gestion des produits</PageTitle>
+<PageTitleComponent Title="Gestion des utilisateurs" />
 
 <HeaderPage 
-    Title="Gestion des produits"
-    SubTitle="Créer, modifier vos produits"/>
+    Title="Gestion des utilisateurs"
+    SubTitle="Ajoutez vos utilisateurs et accordez-leur des droits"/>
 
 <div class="bg-white rounded-lg shadow-md p-4 mb-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -26,7 +25,7 @@
             <span class="ml-2 text-sm text-gray-600">éléments</span>
         </div>
         <div class="relative w-full md:w-64">
-            <input type="text" placeholder="Rechercher un produit..."
+            <input type="text" placeholder="Rechercher un utilisateur..."
                 class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
         </div>
@@ -38,23 +37,13 @@
                 class="bg-primary-700 hover:bg-amber-800 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors">
                 <i class="fas fa-plus"></i>
             </button>
-            <button
+           @*  <button
                 type="button" 
                 @onclick="onShowPrintModal"
                 class="border border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white px-3 py-2 rounded-md flex items-center justify-center transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                 </svg>            
-            </button>
-            @* <button
-                type="button" 
-                class="border border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white px-3 py-2 rounded-md flex items-center justify-center transition-colors">
-                <i class="fas fa-file-excel"></i>
-            </button>
-            <button
-                type="button"
-                class="border border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white px-3 py-2 rounded-md flex items-center justify-center transition-colors">
-                <i class="fas fa-file-pdf"></i>
             </button> *@
         </div>
     </div>
@@ -197,7 +186,7 @@
     }"
     ModalTitle="@modalTitle"
 >
-    <CreateProduitComponent 
+    <CreateUserComponent 
         BoutiqueId="@boutiqueId"
         ProductId="@productId"
         product="@product"
@@ -207,52 +196,6 @@
         }" />
 </Modal>
 
-<Modal
-    ShowModal="@showPrintModal"
-    OnCloseModal="()=>{
-           onShowPrintModal();
-    }"
-    ModalTitle="Options d'impression"
->
-     <div class="p-6">        
-        <div class="space-y-4">
-            <div class="flex items-center">
-                <input type="checkbox" id="printWithInfo" checked class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
-                <label for="printWithInfo" class="ml-2 block text-sm text-gray-700">Afficher les informations du produit</label>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-4">
-                <button type="button" id="cancelPrintBtn" 
-                    @onclick="onShowPrintModal"
-                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                    Annuler
-                </button>
-                <button type="button" id="confirmPrintBtn" @onclick="Print" 
-                    class="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-[#6a460f] transition-colors">
-                    Imprimer
-                </button>
-            </div>
-        </div>
-    </div>
-</Modal>
-<!-- Print Section (hidden by default) -->
-<div id="printSection" class="hidden print-section">
-    <div id="printContent" class="grid grid-cols-1 gap-4 p-4 avoid-break">
-        @foreach(var item in products)
-        {
-            <div class="p-3 bg-white  rounded border border-gray-800 relative ">
-                <div class="border-b border-dashed border-black pb-[5px] mb-[5px]">
-                    <p class="text-sm text-gray-600">@item.Name</p>
-                </div>
-                <div class="flex justify-center items-center" data-id="@item.Id">                      
-                    <svg id="svg-print-@item.Id"></svg>                               
-                </div>
-            </div>  
-        }
-    </div>
-</div>       
-
-
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -261,7 +204,6 @@
     private bool showModal = false;
     private string modalTitle = "";
     private Guid productId = default;
-    private bool showPrintModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -276,13 +218,6 @@
 
         StateHasChanged();
         await Task.Delay(1000);
-
-        // Générer les SVG via JS
-        foreach (var items in products)
-        {               
-            await JS.InvokeVoidAsync("renderBarcode", items.Barcode, $"svg-print-{items.Id}");
-                     
-        }
     }
 
     private void onShowModal(Guid Id = default)
@@ -297,22 +232,9 @@
         else
         {
             product = new();
-            modalTitle = "Nouveau produit";
+            modalTitle = "Nouvel utilisateur";
         }
         showModal = !showModal;
-    }
+    }  
     
-    private void onShowPrintModal()
-    {
-        showPrintModal = !showPrintModal;
-    } 
-
-    
-    private async Task Print()
-    {
-        await JS.InvokeVoidAsync("printBlock", "printSection", new {
-                    pageSize = "50mm 30mm",
-                    margin = "20mm"
-                });
-    }
 }

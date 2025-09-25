@@ -485,3 +485,27 @@ dos2unix .env      # convertit les retours Windows \r\n en Linux \n
     WASM Hybrid : tout tourne dans le WebView du device (offline possible)
 
     Server Hybrid : nécessite que le device se connecte à ton serveur Blazor Server (moins courant pour MAUI)
+
+
+# Configuration mail 
+server {
+    listen 80;
+    server_name mail.easymarket.ci;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+sudo ln -s /etc/nginx/sites-available/roundcube /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+
+# MakeFile
+makefile
+https://gl.developpez.com/tutoriel/outil/makefile/
