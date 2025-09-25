@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Behaviors;
 using depensio.Application.Services;
+using depensio.Application.UseCases.Auth.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using System.Reflection;
@@ -28,7 +29,8 @@ public static class DependencyInjection
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<ITemplateRendererService, TemplateRendererService>();
         services.AddScoped<IProductService, ProductService>();
-        
+        services.AddScoped<IUserService, UserService>();
+
         return services;
     }
 }

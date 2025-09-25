@@ -11,19 +11,32 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Templates\AddBoutique.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Templates\AccountCreated.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="IDR.SendMail" Version="2.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.17" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
-    <PackageReference Include="IDR.SendMail" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\depensio.Domain\depensio.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UseCases\Auth\Commands\UpdateUser\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="IDR.SendMail">
+      <HintPath>..\..\..\..\SendMail\SendMail\bin\Release\netstandard2.1\IDR.SendMail.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -247,12 +247,12 @@
         {
             foreach (var pItems in items.ProductItems)
             {                
-                JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-{pItems.Barcode}");
-                JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-print-{pItems.Barcode}");
+                await JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-{pItems.Barcode}");
+                await JS.InvokeVoidAsync("renderBarcode", pItems.Barcode, $"svg-print-{pItems.Barcode}");
             }            
         }
 
-        JS.InvokeVoidAsync("togglePanel");
+        await JS.InvokeVoidAsync("togglePanel");
 
     }
 

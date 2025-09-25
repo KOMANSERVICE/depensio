@@ -43,12 +43,13 @@ public class SignUpHandler(
             //}
             //await _userManager.AddToRoleAsync(userM, "User");
 
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(userM);
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(userM);
+            var encodedToken = System.Web.HttpUtility.UrlEncode(token);
             var values = new Dictionary<string, string>
             {
                 { "email", userM.Email },
                 { "date", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm") },
-                { "link", $"{_configuration["JWT:ValidIssuer"]}/verifier-mail/{user.Id}?code={code}" }
+                { "link", $"{_configuration["JWT:ValidIssuer"]}/verifier-mail/{user.Id}?code={encodedToken}" }
             };
 
             var mailContent = await _templateRendererService.RenderTemplateAsync("AccountCreated.html", values);
