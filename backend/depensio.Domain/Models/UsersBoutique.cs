@@ -4,7 +4,7 @@ namespace depensio.Domain.Models;
 
 public class UsersBoutique : Entity<UsersBoutiqueId>
 {
-    public Guid UserId { get; set; }
+    public string UserId { get; set; }
     public BoutiqueId BoutiqueId { get; set; }
     //public string Role { get; set; }
 
