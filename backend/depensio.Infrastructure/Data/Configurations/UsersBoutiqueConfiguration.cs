@@ -30,5 +30,10 @@ public class UsersBoutiqueConfiguration : IEntityTypeConfiguration<UsersBoutique
             .HasForeignKey(e => e.BoutiqueId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder
+           .HasOne(ub => ub.User)
+           .WithMany()
+           .HasForeignKey(ub => ub.UserId);
+
     }
 }

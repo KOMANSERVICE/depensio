@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 
 <CascadingAuthenticationState>
@@ -15,3 +16,10 @@
         <Footer />
     </RouteGuardNotConnected>
 </CascadingAuthenticationState>
+@* 
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JSRuntime.InvokeVoidAsync("depensio.initialized");
+    }
+} *@

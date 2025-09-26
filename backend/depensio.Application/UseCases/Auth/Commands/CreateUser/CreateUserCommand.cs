@@ -1,5 +1,4 @@
 ﻿using depensio.Application.UseCases.Auth.Services;
-using depensio.Application.UserCases.Auth.Commands.SignUp;
 
 namespace depensio.Application.UseCases.Auth.Commands.CreateUser;
 
