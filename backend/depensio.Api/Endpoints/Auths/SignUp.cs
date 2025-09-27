@@ -1,5 +1,4 @@
 ﻿using depensio.Application.UserCases.Auth.Commands.SignUp;
-using depensio.Application.UserCases.Auth.DTOs;
 
 namespace Depensio.API.Endpoints.Auth;
 

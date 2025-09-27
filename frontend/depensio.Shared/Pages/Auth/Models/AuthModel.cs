@@ -35,3 +35,12 @@ public record CreateUserRequest(SignUpBoutiqueDTO Signup);
 public record CreateUserResponse(bool Result);
 
 public record GetListeUserResponse(IEnumerable<SignUpBoutiqueDTO> ListeUsers);
+
+public record GetUserInfosResponse(UserInfosDTO UserInfos);
+public record UserInfosDTO
+{
+    public string Email { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string Tel { get; set; } = string.Empty;
+}

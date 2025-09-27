@@ -1,0 +1,155 @@
+@page "/myprofile"
+@inject NavigationManager _navigationManager
+@layout SecondaryLayout
+@inject IAuthUserService _authUserService
+
+
+<PageTitleComponent Title="Mon profil" />
+
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-8">
+        <div class="flex items-center">
+            <h1 class="text-3xl font-bold text-primary-700 text-gray-900 sm:text-2xl dark:text-white">Mon Profil</h1>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-500">Dernière mise à jour: Aujourd'hui</span>
+        </div>
+    </header>
+
+    <!-- Profile Picture Section -->
+    <div class="flex flex-col items-center mb-10">
+        <div class="relative profile-pic-upload group">
+            <img src="http://static.photos/people/200x200/42" alt="Photo de profil"
+                 class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+            <div class="absolute inset-0 bg-black bg-opacity-30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
+                <div class="upload-icon bg-white bg-opacity-80 p-3 rounded-full">
+                    <i data-feather="camera" class="text-gray-700"></i>
+                </div>
+            </div>
+        </div>
+        <button class="mt-4 text-sm text-primary-700 font-medium hover:text-[#a3722c] transition-colors duration-200">
+            Changer la photo
+        </button>
+    </div>
+
+    <!-- Profile Form Sections -->
+    <div class="space-y-6">
+        <!-- Personal Information Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6 section-card">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <i data-feather="user" class="inline mr-2 text-primary-700"></i>
+                    Informations personnelles
+                </h2>
+                <span class="text-xs text-gray-500">Requis</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                    <InputText @bind-Value="user.FirstName" id="firstName"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:outline-none transition-colors duration-200"
+                           />
+                </div>
+                <div>
+                    <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                    <InputText @bind-Value="user.LastName"  id="lastName"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:outline-none transition-colors duration-200"
+                           />
+                </div>
+                <div class="md:col-span-2">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <InputText @bind-Value="user.Email" type="email" id="email"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:outline-none transition-colors duration-200"
+                           />
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6 section-card">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <i data-feather="phone" class="inline mr-2 text-primary-700"></i>
+                    Coordonnées
+                </h2>
+                <span class="text-xs text-gray-500">Optionnel</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                    <InputText @bind-Value="user.Tel" id="phone"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:outline-none transition-colors duration-200"
+                           />
+                </div>
+               @*  <div class="md:col-span-2">
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                    <input type="text" id="address"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:outline-none transition-colors duration-200"
+                           value="123 Rue de la République, Paris">
+                </div> *@
+            </div>
+        </div>
+
+        <!-- Preferences Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6 section-card">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <i data-feather="settings" class="inline mr-2 text-primary-700"></i>
+                    Préférences
+                </h2>
+                <span class="text-xs text-gray-500">Personnalisation</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="language" class="block text-sm font-medium text-gray-700 mb-1">Langue</label>
+                    <select id="language"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:outline-none transition-colors duration-200">
+                        <option value="fr">Français</option>
+                      @*   <option value="en">English</option>
+                        <option value="es">Español</option> *@
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notifications</label>
+                    <div class="flex items-center space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" class="rounded text-primary-700 focus:ring-[#825513]" checked>
+                            <span class="ml-2 text-sm text-gray-700">Email</span>
+                        </label>
+                       @*  <label class="inline-flex items-center">
+                            <input type="checkbox" class="rounded text-primary-700 focus:ring-[#825513]">
+                            <span class="ml-2 text-sm text-gray-700">SMS</span>
+                        </label> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-10 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+        <button class="px-6 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 btn-secondary">
+            Annuler
+        </button>
+        <button class="mt-4 md:mt-0 bg-primary-700 hover:bg-amber-800 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition">
+            Enregistrer les modifications
+        </button>
+    </div>
+</div>
+
+@code {
+    private UserInfosDTO user = new();
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await _authUserService.GetUserInfosAsync();
+        if (result.Success)
+        {
+            user = result.Data.UserInfos;
+        }
+    }
+}

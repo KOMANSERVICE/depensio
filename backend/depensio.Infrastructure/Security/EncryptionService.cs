@@ -1,10 +1,12 @@
-﻿using depensio.Application.Interfaces;
+﻿using BuildingBlocks.Exceptions.Handler;
+using depensio.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace depensio.Infrastructure.Security;
 
-public class EncryptionService(IKeyManagementService _keyManagementService) : IEncryptionService
+public class EncryptionService(IKeyManagementService _keyManagementService, ILogger<EncryptionService> logger) : IEncryptionService
 {
     public string Encrypt(string plainText)
     {
@@ -40,33 +42,46 @@ public class EncryptionService(IKeyManagementService _keyManagementService) : IE
             }
         }
     }
-
     public string Decrypt(string cipherText)
     {
         if (string.IsNullOrEmpty(cipherText)) return "";
-
-        byte[] fullCipher = Convert.FromBase64String(cipherText);
-        using (var ms = new MemoryStream(fullCipher))
+        try
         {
-            byte[] iv = new byte[16];
-            ms.Read(iv, 0, iv.Length);
-
-            byte[] keyVersionLengthBytes = new byte[sizeof(int)];
-            ms.Read(keyVersionLengthBytes, 0, sizeof(int));
-            int keyVersionLength = BitConverter.ToInt32(keyVersionLengthBytes, 0);
-
-            byte[] keyVersionBytes = new byte[keyVersionLength];
-            ms.Read(keyVersionBytes, 0, keyVersionLength);
-            string keyVersion = Encoding.UTF8.GetString(keyVersionBytes);
-
-            string key = _keyManagementService.GetKey(keyVersion);
-            if (string.IsNullOrEmpty(key))
-                throw new InvalidOperationException($"La clé pour la version '{keyVersion}' est introuvable ou vide.");
-
-            byte[] keyBytes = Convert.FromBase64String(key);
-
+            byte[] fullCipher = Convert.FromBase64String(cipherText);
+            using (var ms = new MemoryStream(fullCipher))
             using (Aes aes = Aes.Create())
             {
+                int ivSize = aes.BlockSize / 8; // Taille dynamique du IV
+                byte[] iv = new byte[ivSize];
+                ms.Read(iv, 0, iv.Length);
+
+                byte[] keyVersionLengthBytes = new byte[sizeof(int)];
+                int readKeyVersionLengthBytes = ms.Read(keyVersionLengthBytes, 0, sizeof(int));
+                if (readKeyVersionLengthBytes != sizeof(int))
+                {
+                    logger.LogWarning("Impossible de lire la longueur de la version de clé.");
+                    return cipherText;
+                }
+                int keyVersionLength = BitConverter.ToInt32(keyVersionLengthBytes, 0);
+
+                byte[] keyVersionBytes = new byte[keyVersionLength];
+                int readKeyVersionBytes = ms.Read(keyVersionBytes, 0, keyVersionLength);
+                if (readKeyVersionBytes != keyVersionLength)
+                {
+                    logger.LogWarning("Impossible de lire la version de clé, données corrompues ou format inattendu.");
+                    return cipherText;
+                }
+                string keyVersion = Encoding.UTF8.GetString(keyVersionBytes);
+
+                string key = _keyManagementService.GetKey(keyVersion);
+                if (string.IsNullOrEmpty(key))
+                {
+                   
+                    return cipherText;
+                }
+                   
+                byte[] keyBytes = Convert.FromBase64String(key);
+
                 aes.IV = iv;
                 aes.Key = keyBytes;
 
@@ -77,6 +92,11 @@ public class EncryptionService(IKeyManagementService _keyManagementService) : IE
                     return sr.ReadToEnd();
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            logger.LogInformation(ex, "Erreur lors du déchiffrement");
+            return cipherText;
         }
     }
 }
