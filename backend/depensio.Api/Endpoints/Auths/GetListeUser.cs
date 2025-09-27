@@ -1,6 +1,4 @@
 ﻿using depensio.Application.UseCases.Auth.Queries.ListeUser;
-using depensio.Application.UseCases.Products.Queries.GetProductByBoutique;
-using depensio.Domain.ValueObjects;
 using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Auths;
@@ -12,7 +10,7 @@ public class GetListeUser : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/getlisteuser/{boutiqueId}", async (Guid boutiqueId, ISender sender) =>
+        app.MapGet("/getlisteuser/{boutiqueId}", async (Guid boutiqueId, ISender sender) =>
         {
             var result = await sender.Send(new GetListeUserQuery(boutiqueId));
 

@@ -1,5 +1,8 @@
-﻿namespace depensio.Application.UserCases.Auth.Queries.GetUserInfos;
+﻿using depensio.Application.UseCases.Auth.DTOs;
 
-internal class GetUserInfosQuery
-{
-}
+namespace depensio.Application.UserCases.Auth.Queries.GetUserInfos;
+
+public record GetUserInfosQuery()
+    : IQuery<GetUserInfosResult>;
+
+public record GetUserInfosResult(UserInfosDTO UserInfos);
