@@ -13,13 +13,13 @@ public class UserContextService : IUserContextService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid GetUserId()
+    public string GetUserId()
     {
         var userId = _httpContextAccessor.HttpContext?.Items["UserId"] as string;
         if(string.IsNullOrEmpty(userId))
             throw new UnauthorizedException("User ID is missing in the current context.");
 
-        return Guid.Parse(userId);
+        return userId;
         
     }
     public string? GetEmail()

@@ -2,7 +2,7 @@
 
 public class Referral : Entity<Guid>
 {
-    public Guid UserId { get; set; }
+    public string UserId { get; set; }
     public Guid ReferredUserId { get; set; }
     public bool BonusGiven { get; set; }
     public bool Used { get; set; }

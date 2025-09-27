@@ -11,6 +11,8 @@ public class CreateUserHandler(
     IEncryptionService _encryptionService,
     ITemplateRendererService _templateRendererService,
     IDepensioDbContext _dbContext,
+    IGenericRepository<UsersBoutique> _usersBoutiqueRepo,
+    IUnitOfWork _unitOfWork,
     IUserContextService _userContextService)
     : ICommandHandler<CreateUserCommand, CreateUserResult>
 {
@@ -31,9 +33,11 @@ public class CreateUserHandler(
 
         if (userM is not null)
         {
-            AddNewBoutiqueToUser(createUser, Guid.Parse(userM.Id));
-            await SendMailAsync(userM, "AddBoutique.html");
+            var userBoutique = AddNewBoutiqueToUser(createUser, userM.Id);
+            await _usersBoutiqueRepo.AddDataAsync(userBoutique, cancellationToken);
+            await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
+            await SendMailAsync(userM, "AddBoutique.html");
             return new CreateUserResult(true);
         }
 
@@ -51,7 +55,10 @@ public class CreateUserHandler(
             if (userM is null)
                 throw new BadRequestException($"Impossible de creer l`utilisateur");
 
-            AddNewBoutiqueToUser(createUser, Guid.Parse(userM.Id));
+            var userBoutique = AddNewBoutiqueToUser(createUser, userM.Id);
+            await _usersBoutiqueRepo.AddDataAsync(userBoutique, cancellationToken);
+            await _unitOfWork.SaveChangesDataAsync(cancellationToken);
+            
             await SendMailAsync(userM, "AccountCreated.html");
 
             return new CreateUserResult(true);
@@ -61,7 +68,7 @@ public class CreateUserHandler(
     }
 
 
-    private UsersBoutique AddNewBoutiqueToUser(SignUpBoutiqueDTO signUpBoutiqueDTO, Guid userId)
+    private UsersBoutique AddNewBoutiqueToUser(SignUpBoutiqueDTO signUpBoutiqueDTO, string userId)
     {
         return new UsersBoutique
         {

@@ -1,7 +1,7 @@
 window.depensio = window.depensio || {};
 
 window.depensio.initialized = function () {
-
+    
     // Mobile menu toggle
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -40,6 +40,7 @@ window.depensio.initialized = function () {
     const chatInput = document.getElementById('chatInput');
     const sendMessage = document.getElementById('sendMessage');
 
+
     function addMessage(message, isUser = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `flex mb-4 ${isUser ? 'justify-end' : ''}`;
@@ -67,7 +68,7 @@ window.depensio.initialized = function () {
             chatbotModal.classList.toggle('hidden');
         });
     }
-
+   
     if (closeChatbot && chatbotModal) {
         closeChatbot.addEventListener('click', () => {
             chatbotModal.classList.add('hidden');
@@ -101,7 +102,7 @@ window.depensio.initialized = function () {
             }
         });
     }
-
+   
     // Form submission
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
@@ -151,5 +152,30 @@ window.depensio.initialized = function () {
         });
     }
 
-    
+
+    const navmenulink = document.querySelector('.menu-link');
+    if (navmenulink) {
+        function setActiveMenuLink() {
+            alert(1);
+            var hash = window.location.hash.replace('#', '');
+            navmenulink.forEach(function (el) {
+                if (el.getAttribute('data-section') === hash) {
+                    el.classList.add('font-bold', 'text-primary-700');
+                } else {
+                    el.classList.remove('font-bold', 'text-primary-700');
+                }
+            });
+        }
+        setActiveMenuLink();
+        window.addEventListener('hashchange', setActiveMenuLink);
+
+        // Ajout : gestion du clic pour forcer la mise à jour même si le hash ne change pas
+        navmenulink.forEach(function (el) {
+            alert(el.innerHTML);
+            el.addEventListener('click', function () {
+                setTimeout(setActiveMenuLink, 10); // Laisse le temps au hash de changer
+            });
+        });
+    }
+   
 }

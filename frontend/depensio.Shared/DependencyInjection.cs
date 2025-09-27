@@ -44,7 +44,11 @@ public static class DependencyInjection
         services.AddRefitClient<IBoutiqueSettingService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
-        
+
+        services.AddRefitClient<IAuthUserService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<JwtAuthorizationHandler>();
+                
         return services;
     }
 

@@ -6,7 +6,7 @@ public class Boutique : Entity<BoutiqueId>
 {
     public string Name { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
-    public Guid OwnerId { get; set; }
+    public string OwnerId { get; set; }
     public string PublicLink { get; set; } = string.Empty;
     public bool IsPublic { get; set; } = false;
 

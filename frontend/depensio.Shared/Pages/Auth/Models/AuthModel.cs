@@ -33,3 +33,5 @@ public record SignUpBoutiqueDTO
 }
 public record CreateUserRequest(SignUpBoutiqueDTO Signup);
 public record CreateUserResponse(bool Result);
+
+public record GetListeUserResponse(IEnumerable<SignUpBoutiqueDTO> ListeUsers);
