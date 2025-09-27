@@ -18,5 +18,4 @@ builder.Services.AddApexCharts();
 builder.Services.AddScoped<IGraphComponent, WebGraphComponentService>();
 
 
-
 await builder.Build().RunAsync();
