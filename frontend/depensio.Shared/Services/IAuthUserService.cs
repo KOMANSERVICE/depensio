@@ -13,4 +13,6 @@ public interface IAuthUserService
     Task<BaseResponse<CreateUserResponse>> CreateUserAsync(CreateUserRequest request);
     [Get("/auth/getuserinfos")]
     Task<BaseResponse<GetUserInfosResponse>> GetUserInfosAsync();
+    [Patch("/auth/updateuser")] 
+    Task<BaseResponse<UpdateUserResponse>> UpdateUserAsync(UpdateUserRequest request);
 }

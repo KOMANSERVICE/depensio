@@ -1,8 +1,4 @@
-﻿using depensio.Application.Interfaces;
-using depensio.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
-
-namespace depensio.Application.UseCases.Auth.Commands.CreateUser;
+﻿namespace depensio.Application.UseCases.Auth.Commands.CreateUser;
 
 public class CreateUserHandler(
     UserManager<ApplicationUser> _userManager,

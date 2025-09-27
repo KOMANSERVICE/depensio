@@ -7,3 +7,5 @@ public record UserInfosDTO
     public string FirstName { get; set; } = string.Empty;
     public string Tel { get; set; } = string.Empty;
 }
+
+
