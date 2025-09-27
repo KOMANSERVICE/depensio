@@ -5,7 +5,8 @@ namespace depensio.Application.UseCases.Auth.Queries.ListeUser;
 
 public class GetListeUserHandler(
         IDepensioDbContext _dbContext,
-        IUserContextService _userContextService
+        IUserContextService _userContextService,
+        IEncryptionService _encryptionService
     )    
     : IQueryHandler<GetListeUserQuery, GetListeUserResult>
 {
@@ -26,9 +27,9 @@ public class GetListeUserHandler(
             .Select(ub => new SignUpBoutiqueDTO
             {
                 Email = ub.User.Email ?? "",
-                FirstName = ub.User.FirstName,
-                LastName = ub.User.LastName,
-                BoutiqueId = ub.BoutiqueId.Value,
+                FirstName = _encryptionService.Decrypt(ub.User.FirstName),
+                LastName = _encryptionService.Decrypt(ub.User.LastName),
+                BoutiqueId = ub.BoutiqueId.Value
             })
             .ToListAsync(cancellationToken);
 

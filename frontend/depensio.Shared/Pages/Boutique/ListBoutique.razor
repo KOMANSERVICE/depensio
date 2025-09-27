@@ -2,7 +2,6 @@
 @using depensio.Shared.Pages.Boutique.Components
 @using depensio.Shared.Pages.Boutique.Model
 @inject NavigationManager _navigationManager
-@inherits FlowbitePage
 @layout SecondaryLayout
 @inject IBoutiqueService _boutiqueService;
 <PageTitle>Liste des boutiques</PageTitle>
@@ -13,7 +12,7 @@
            
             <div>
                 <h2 class="text-3xl font-bold text-primary-700 text-gray-900 sm:text-2xl dark:text-white">Mes Entreprises</h2>
-                <p class="text-gray-600">Gérez toutes ugvos entreprises en un seul endroit</p>
+                <p class="text-gray-600">Gérez toutes vos entreprises en un seul endroit</p>
             </div>
          
             <button type="button" @onclick="onShowModal" id="addBusinessBtn" class="mt-4 md:mt-0 bg-primary-700 hover:bg-amber-800 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition">
