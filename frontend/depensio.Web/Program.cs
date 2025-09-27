@@ -54,6 +54,9 @@ else
     builder.Services.AddAuthentication();
 }
 
+builder.Logging.SetMinimumLevel(LogLevel.Warning);
+builder.Logging.AddFilter("Refit", LogLevel.Warning);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

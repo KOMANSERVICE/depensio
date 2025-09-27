@@ -30,10 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UseCases\Auth\Commands\UpdateUser\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="IDR.SendMail">
       <HintPath>..\..\..\..\SendMail\SendMail\bin\Release\netstandard2.1\IDR.SendMail.dll</HintPath>
     </Reference>

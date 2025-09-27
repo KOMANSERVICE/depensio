@@ -24,7 +24,7 @@ public class GetUserInfosHandler(
         {
             FirstName = _encryptionService.Decrypt(user.FirstName),
             LastName = _encryptionService.Decrypt(user.LastName),
-            Tel = user.PhoneNumber ?? "",
+            Tel = _encryptionService.Decrypt(user.PhoneNumber ?? ""),
             Email = user.Email ?? "",
         }
         );

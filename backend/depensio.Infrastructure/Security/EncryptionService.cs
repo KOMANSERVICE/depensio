@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Exceptions.Handler;
-using depensio.Application.Interfaces;
+﻿using depensio.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
