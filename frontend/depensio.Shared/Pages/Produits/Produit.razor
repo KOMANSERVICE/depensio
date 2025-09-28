@@ -238,7 +238,7 @@
 <!-- Print Section (hidden by default) -->
 <div id="printSection" class="hidden print-section">
     <div id="printContent" class="grid grid-cols-1 gap-4 p-4 avoid-break">
-        @foreach(var item in products)
+        @foreach(var item in products.Where(p => IsValidEan13(p.Barcode)))
         {
             <div class="p-3 bg-white  rounded border border-gray-800 relative ">
                 <div class="border-b border-dashed border-black pb-[5px] mb-[5px]">
@@ -278,10 +278,9 @@
         await Task.Delay(1000);
 
         // Générer les SVG via JS
-        foreach (var items in products)
-        {               
+        foreach (var items in products.Where(p => IsValidEan13(p.Barcode)))
+        {
             await JS.InvokeVoidAsync("renderBarcode", items.Barcode, $"svg-print-{items.Id}");
-                     
         }
     }
 
@@ -314,5 +313,20 @@
                     pageSize = "50mm 30mm",
                     margin = "20mm"
                 });
+    }
+
+    private bool IsValidEan13(string barcode)
+    {
+        if (string.IsNullOrWhiteSpace(barcode) || barcode.Length != 13 || !barcode.All(char.IsDigit))
+            return false;
+
+        int sum = 0;
+        for (int i = 0; i < 12; i++)
+        {
+            int digit = barcode[i] - '0';
+            sum += (i % 2 == 0) ? digit : digit * 3;
+        }
+        int checkDigit = (10 - (sum % 10)) % 10;
+        return checkDigit == (barcode[12] - '0');
     }
 }
