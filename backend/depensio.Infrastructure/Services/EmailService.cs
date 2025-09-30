@@ -3,7 +3,6 @@ using BuildingBlocks.Exceptions;
 using depensio.Application.Interfaces;
 using IDR.SendMail;
 using IDR.SendMail.Interfaces;
-using SendMail.Models;
 
 namespace depensio.Infrastructure.Services;
 
