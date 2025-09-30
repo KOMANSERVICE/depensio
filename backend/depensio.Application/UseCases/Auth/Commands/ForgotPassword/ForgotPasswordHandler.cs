@@ -3,8 +3,7 @@
 public class ForgotPasswordHandler(
     UserManager<ApplicationUser> _userManager,
     IEmailService _mailService,
-    IConfiguration _configuration,
-    ITemplateRendererService _templateRendererService
+    IConfiguration _configuration
     )
     : ICommandHandler<ForgotPasswordCommand, ForgotPasswordResult>
 {
@@ -13,7 +12,7 @@ public class ForgotPasswordHandler(
 
         var requestModel = request.ForgotPassword;
         var user = await _userManager.FindByEmailAsync(requestModel.Email);
-        if (user is null)
+        if (user is null) 
             throw new NotFoundException("Utilisateur non trouvé");
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -26,7 +25,7 @@ public class ForgotPasswordHandler(
                 { "link", $"{_configuration["JWT:ValidIssuer"]}/reset-password/{user.Id}?code={encodedToken}" }
             };
 
-        var mailContent = await _templateRendererService.RenderTemplateAsync("AccountCreated.html", values);
+        var mailContent = await _mailService.RenderHtmlTemplateAsync("ResetPassword.html", values);
 
         var mail = new EmailModel
         {

@@ -11,6 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Templates\ResetPasswordSucces.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\ResetPassword.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Templates\AddBoutique.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -20,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="IDR.SendMail" Version="2.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.17" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
   </ItemGroup>

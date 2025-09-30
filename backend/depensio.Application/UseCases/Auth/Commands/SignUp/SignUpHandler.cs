@@ -1,13 +1,12 @@
 ﻿using depensio.Application.Interfaces;
+using depensio.Application.UseCases.Auth.Services;
 
 namespace depensio.Application.UserCases.Auth.Commands.SignUp;
 
 public class SignUpHandler(
     UserManager<ApplicationUser> _userManager,
-    IEmailService _mailService,
-    IConfiguration _configuration,
     IEncryptionService _encryptionService,
-    ITemplateRendererService _templateRendererService
+    IUserService _userService
     )
     : ICommandHandler<SignUpCommand, SignUpResult>
 {
@@ -43,28 +42,8 @@ public class SignUpHandler(
             //}
             //await _userManager.AddToRoleAsync(userM, "User");
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(userM);
-            var encodedToken = System.Web.HttpUtility.UrlEncode(token);
-            var values = new Dictionary<string, string>
-            {
-                { "email", userM.Email },
-                { "date", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm") },
-                { "link", $"{_configuration["JWT:ValidIssuer"]}/verifier-mail/{user.Id}?code={encodedToken}" }
-            };
-
-            var mailContent = await _templateRendererService.RenderTemplateAsync("AccountCreated.html", values);
-
-            var mail = new EmailModel
-            {
-                ToMailIds = new List<string>()
-                    {
-                        userM.Email
-                    },
-                Suject = mailContent.Subject,
-                Body = mailContent.Body
-            };
+            await _userService.GenerateEmailConfirmationTokenAsync(userM);
             
-            await _mailService.SendEmailAsync(mail);
             return new SignUpResult(true);
         }
         return new SignUpResult(false);

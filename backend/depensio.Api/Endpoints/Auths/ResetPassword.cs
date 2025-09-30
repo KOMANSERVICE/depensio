@@ -28,7 +28,6 @@ public class ResetPassword : ICarterModule
         .Produces<BaseResponse<ResetPasswordResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("ResetPassword")
-        .WithDescription("ResetPassword")
-        .RequireAuthorization();
+        .WithDescription("ResetPassword");
     }
 }

@@ -27,6 +27,12 @@ public record SignUpDTO
 public record SignUpBoutiqueDTO
 {
     public string Email { get; set; } = string.Empty;
+    public Guid BoutiqueId { get; set; }
+}
+
+public record UserBoutiqueDTO
+{
+    public string Email { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public Guid BoutiqueId { get; set; }
@@ -34,7 +40,7 @@ public record SignUpBoutiqueDTO
 public record CreateUserRequest(SignUpBoutiqueDTO Signup);
 public record CreateUserResponse(bool Result);
 
-public record GetListeUserResponse(IEnumerable<SignUpBoutiqueDTO> ListeUsers);
+public record GetListeUserResponse(IEnumerable<UserBoutiqueDTO> ListeUsers);
 
 public record GetUserInfosResponse(UserInfosDTO UserInfos);
 public record UserInfosDTO
@@ -46,3 +52,20 @@ public record UserInfosDTO
 }
 public record UpdateUserRequest(UserInfosDTO UserInfos);
 public record UpdateUserResponse(bool Result);
+public record ForgotPasswordDTO
+{
+    public string Email { get; set; } = string.Empty;
+}
+public record ForgotPasswordRequest(ForgotPasswordDTO ForgotPassword);
+public record ForgotPasswordResponse(bool Result);
+
+public record ResetPasswordDTO
+{
+    public string Id { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string ConfirmPassword { get; set; } = string.Empty;
+}
+
+public record ResetPasswordRequest(ResetPasswordDTO ResetPassword);
+public record ResetPasswordResponse(bool Result);

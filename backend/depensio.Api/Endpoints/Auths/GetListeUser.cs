@@ -4,7 +4,7 @@ using Depensio.Api.Helpers;
 namespace depensio.Api.Endpoints.Auths;
 
 public record GetListeUserRequest(Guid BoutiqueId);
-public record GetListeUserResponse(IEnumerable<SignUpBoutiqueDTO> ListeUsers);
+public record GetListeUserResponse(IEnumerable<UserBoutiqueDTO> ListeUsers);
 
 public class GetListeUser : ICarterModule
 {

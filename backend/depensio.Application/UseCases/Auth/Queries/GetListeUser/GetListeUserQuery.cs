@@ -4,4 +4,4 @@
 public record GetListeUserQuery(Guid BoutiqueId)
     : IQuery<GetListeUserResult>;
 
-public record GetListeUserResult(IEnumerable<SignUpBoutiqueDTO> ListeUsers);
+public record GetListeUserResult(IEnumerable<UserBoutiqueDTO> ListeUsers);
