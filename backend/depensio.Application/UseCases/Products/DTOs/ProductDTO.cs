@@ -13,7 +13,7 @@ public record ProductUpdateDTO(
     Guid Id,
     Guid BoutiqueId,
     string Name, decimal Price,
-    decimal CostPrice, int Stock);
+    decimal CostPrice, int Stock, string Barcode);
 public record ProductItemDTO(
     Guid Id, Guid BoutiqueId,
     Guid ProductId, int BarcodeCount, 

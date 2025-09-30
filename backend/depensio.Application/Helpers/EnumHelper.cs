@@ -17,4 +17,5 @@ public static class EnumHelper
 
         return defaultValue;
     }
+
 }

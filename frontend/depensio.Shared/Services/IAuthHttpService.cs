@@ -13,6 +13,9 @@ public interface IAuthHttpService
     Task<SignInResponse> SignIn(SignInRequest request);
     [Post("/verifymail")]
     Task<VerifyMailResponse> VerifyMail(VerifyMailRequest request);
-    [Post("/createuser")]
-    Task<BaseResponse<CreateUserResponse>> CreateUser(CreateUserRequest request);
+    [Post("/forgotpassword")]
+    Task<BaseResponse<ForgotPasswordResponse>>  ForgotPasswordAsync(ForgotPasswordRequest request);
+    [Post("/resetpassword")]
+    Task<BaseResponse<ResetPasswordResponse>> ResetPasswordAsync(ResetPasswordRequest request);
+    
 }

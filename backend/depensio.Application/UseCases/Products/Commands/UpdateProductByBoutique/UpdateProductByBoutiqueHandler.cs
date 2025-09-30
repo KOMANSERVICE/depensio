@@ -1,12 +1,7 @@
-﻿using depensio.Application.Helpers;
-using depensio.Application.Interfaces;
-using depensio.Application.Models;
+﻿using depensio.Application.Models;
 using depensio.Application.Services;
 using depensio.Application.UseCases.Products.DTOs;
-using depensio.Domain.Constants;
 using depensio.Domain.ValueObjects;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace depensio.Application.UseCases.Products.Commands.UpdateProductByBoutique;
@@ -17,7 +12,8 @@ public class UpdateProductByBoutiqueHandler(
     IDepensioDbContext dbContext,
     IUserContextService _userContextService,
     IUnitOfWork _unitOfWork,
-    IBoutiqueSettingService _settingService
+    SettingOptionService _settingOptionService
+
     )
     : ICommandHandler<UpdateProductByBoutiqueCommand, UpdateProductByBoutiqueResult>
 {
@@ -50,28 +46,21 @@ public class UpdateProductByBoutiqueHandler(
 
     private async Task<Product> UpdateProductAsync(ProductUpdateDTO productDTO)
     {
-        var stockIsAuto = await AutoriserLesProduitAvecStockZero(productDTO.BoutiqueId);
+        var stockIsAuto = await _settingOptionService.AutoriserLesProduitAvecStockZero(productDTO.BoutiqueId);
+        var config = await _settingOptionService.GetBarcodeConfigAsync(productDTO.BoutiqueId);
+
         var produt = await _productRepository.FindAsync(p => p.Id == ProductId.Of(productDTO.Id));
         produt.CostPrice = productDTO.CostPrice;
         produt.Price = productDTO.Price;
         if(!stockIsAuto)
             produt.Stock = productDTO.Stock;
 
+        if(config == BarcodeGenerationMode.Manual && !string.IsNullOrWhiteSpace(productDTO.Barcode))
+        {
+            produt.Barcode = productDTO.Barcode;
+        }
 
         return produt;
     }
 
-    private async Task<bool> AutoriserLesProduitAvecStockZero(Guid boutiqueId)
-    {
-        var config = await _settingService.GetSettingAsync(
-                  boutiqueId,
-                  BoutiqueSettingKeys.PRODUCT_KEY
-              );
-
-        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
-
-        var stockAuto = result?.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
-
-        return BoolHelper.ToBool(stockAuto?.Value.ToString());
-    }
 }

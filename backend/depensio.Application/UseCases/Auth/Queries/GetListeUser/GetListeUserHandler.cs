@@ -24,7 +24,7 @@ public class GetListeUserHandler(
 
         var users = await _dbContext.UsersBoutiques
             .Where(ub => ub.BoutiqueId == BoutiqueId.Of(boutiqueId))
-            .Select(ub => new SignUpBoutiqueDTO
+            .Select(ub => new UserBoutiqueDTO
             {
                 Email = ub.User.Email ?? "",
                 FirstName = _encryptionService.Decrypt(ub.User.FirstName),

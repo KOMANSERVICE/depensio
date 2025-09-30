@@ -177,7 +177,7 @@
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
-    private List<SignUpBoutiqueDTO> users = new();
+    private List<UserBoutiqueDTO> users = new();
     private SignUpBoutiqueDTO user = new();
     private bool showModal = false;
     private string modalTitle = "";
@@ -204,7 +204,9 @@
         if(Email != "")
         {
             modalTitle = "Modifier le produit";
-            user = users.FirstOrDefault(p => p.Email == Email);
+            user = users.Where(p => p.Email == Email)
+            .Select(p => new SignUpBoutiqueDTO { Email = p.Email, BoutiqueId = p.BoutiqueId })
+            .FirstOrDefault();
             
         }
         else

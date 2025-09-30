@@ -1,15 +1,17 @@
-﻿namespace depensio.Application.UseCases.Auth.Commands.CreateUser;
+﻿using depensio.Application.UseCases.Auth.Services;
+
+namespace depensio.Application.UseCases.Auth.Commands.CreateUser;
 
 public class CreateUserHandler(
     UserManager<ApplicationUser> _userManager,
     IEmailService _mailService,
     IConfiguration _configuration,
     IEncryptionService _encryptionService,
-    ITemplateRendererService _templateRendererService,
     IDepensioDbContext _dbContext,
     IGenericRepository<UsersBoutique> _usersBoutiqueRepo,
     IUnitOfWork _unitOfWork,
-    IUserContextService _userContextService)
+    IUserContextService _userContextService,
+    IUserService _userService)
     : ICommandHandler<CreateUserCommand, CreateUserResult>
 {
     public async Task<CreateUserResult> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -40,9 +42,7 @@ public class CreateUserHandler(
         var user = new ApplicationUser
         {
             UserName = createUser.Email,
-            Email = createUser.Email,
-            LastName = _encryptionService.Encrypt(createUser.LastName),
-            FirstName = _encryptionService.Encrypt(createUser.FirstName)
+            Email = createUser.Email
         };
         var result = await _userManager.CreateAsync(user);
         if (result.Succeeded)
@@ -54,8 +54,8 @@ public class CreateUserHandler(
             var userBoutique = AddNewBoutiqueToUser(createUser, userM.Id);
             await _usersBoutiqueRepo.AddDataAsync(userBoutique, cancellationToken);
             await _unitOfWork.SaveChangesDataAsync(cancellationToken);
-            
-            await SendMailAsync(userM, "AccountCreated.html");
+
+            await _userService.GenerateEmailConfirmationTokenAsync(userM);
 
             return new CreateUserResult(true);
         }
@@ -84,7 +84,7 @@ public class CreateUserHandler(
                 { "date", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm") },
                 { "link", $"{_configuration["JWT:ValidIssuer"]}/reset-password/{user.Id}?code={encodedToken}" }
             };
-        var mailContent = await _templateRendererService.RenderTemplateAsync(template, values);
+        var mailContent = await _mailService.RenderHtmlTemplateAsync(template, values);
         var mail = new EmailModel
         {
             ToMailIds = new List<string>()

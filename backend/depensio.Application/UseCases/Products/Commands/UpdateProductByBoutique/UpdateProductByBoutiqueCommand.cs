@@ -16,5 +16,10 @@ public class UpdateProductByBoutiqueCommandValidator : AbstractValidator<UpdateP
         RuleFor(x => x.Product.Price).NotEmpty().WithMessage("Price is required");
         RuleFor(x => x.Product.CostPrice).NotEmpty().WithMessage("Cost Price is required");
         RuleFor(x => x.Product.BoutiqueId).NotEmpty().WithMessage("BoutiqueId is required");
+
+
+        RuleFor(x => x.Product.Barcode)
+            .Must(barcode => !string.IsNullOrWhiteSpace(barcode) || BoolHelper.IsValidEan13(barcode))
+            .WithMessage("Le code-barres doit être un EAN-13 valide (13 chiffres avec clé de contrôle).");
     }
 }

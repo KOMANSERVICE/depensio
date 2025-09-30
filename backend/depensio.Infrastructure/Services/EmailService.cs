@@ -3,6 +3,7 @@ using BuildingBlocks.Exceptions;
 using depensio.Application.Interfaces;
 using IDR.SendMail;
 using IDR.SendMail.Interfaces;
+using SendMail.Models;
 
 namespace depensio.Infrastructure.Services;
 
@@ -15,18 +16,9 @@ public class EmailService(ISendMailService _mailService) : IEmailService
             throw new BadRequestException("At least one recipient email address is required.", nameof(emailModel.ToMailIds));
         await _mailService.SendMail(emailModel);
     }
-    //private readonly IConfiguration _configuration;
-    //public EmailService(IConfiguration configuration)
-    //{
-    //    _configuration = configuration;
-    //}
-    //public string GetEmailTemplate(string templateName)
-    //{
-    //    var templatePath = Path.Combine(_configuration["EmailTemplatesPath"], $"{templateName}.html");
-    //    if (!File.Exists(templatePath))
-    //    {
-    //        throw new FileNotFoundException($"Email template '{templateName}' not found at path '{templatePath}'.");
-    //    }
-    //    return File.ReadAllText(templatePath);
-    //}
+
+    public async Task<RenderedTemplate> RenderHtmlTemplateAsync(string templateName, Dictionary<string, string> values)
+    {
+        return await _mailService.RenderHtmlTemplateAsync(templateName, values);  
+    }
 }

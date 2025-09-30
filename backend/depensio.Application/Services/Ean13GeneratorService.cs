@@ -88,16 +88,19 @@ public class Ean13GeneratorService(
             sb.Append(random.Next(0, 10));
         }
 
-        return sb.ToString();
+        // Vérifie que la base fait bien 12 chiffres
+        return sb.Length == 12 ? sb.ToString() : sb.ToString().PadRight(12, '0');
     }
 
     private int CalculateChecksum(string ean12)
     {
-        int sum = 0;
+        if (string.IsNullOrWhiteSpace(ean12) || ean12.Length != 12 || !ean12.All(char.IsDigit))
+            throw new ArgumentException("Le code EAN doit contenir exactement 12 chiffres.");
 
-        for (int i = 0; i < ean12.Length; i++)
+        int sum = 0;
+        for (int i = 0; i < 12; i++)
         {
-            int digit = int.Parse(ean12[i].ToString());
+            int digit = ean12[i] - '0';
             sum += (i % 2 == 0) ? digit : digit * 3;
         }
 

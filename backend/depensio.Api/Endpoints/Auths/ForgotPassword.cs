@@ -28,8 +28,7 @@ public class ForgotPassword : ICarterModule
         .Produces<BaseResponse<ForgotPasswordResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("ForgotPassword")
-        .WithDescription("ForgotPassword")
-        .RequireAuthorization();
+        .WithDescription("ForgotPassword");
     }
 }
 
