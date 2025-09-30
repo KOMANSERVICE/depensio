@@ -1,7 +1,4 @@
-﻿using IDR.SendMail;
-using SendMail.Models;
-
-namespace depensio.Application.Interfaces;
+﻿namespace depensio.Application.Interfaces;
 
 public interface IEmailService
 {

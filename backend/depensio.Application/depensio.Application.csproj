@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="IDR.SendMail" Version="2.4.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.17" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
   </ItemGroup>
