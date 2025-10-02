@@ -8,7 +8,6 @@ public class UsersBoutique : Entity<UsersBoutiqueId>
     public BoutiqueId BoutiqueId { get; set; }
     //public string Role { get; set; }
 
-    public virtual ApplicationUser User { get; set; }
-    public virtual Boutique Boutique { get; set; }
-    public virtual Profile? Profile { get; set; }
+    public ApplicationUser User { get; set; }
+    public Boutique Boutique { get; set; }
 }
