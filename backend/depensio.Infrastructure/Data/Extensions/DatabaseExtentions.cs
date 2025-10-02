@@ -14,5 +14,6 @@ public static class DatabaseExtentions
 
         context.Database.MigrateAsync().GetAwaiter().GetResult();
 
+        DataSeeder.Seed(context);
     }
 }

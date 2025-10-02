@@ -9,7 +9,6 @@ public class Plan : Entity<PlanId>
     public string Description { get; set; } = string.Empty;
 
     public decimal Price { get; set; } = 0;
-    public BillingCycleStatus BillingCycle { get; set; } = BillingCycleStatus.None; // NONE, MONTHLY, YEARLY
     public bool RequiresPayment { get; set; } = false;
     public bool IsPopular { get; set; } = false;
     public bool IsDisplay { get; set; } = true;

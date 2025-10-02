@@ -17,7 +17,7 @@ dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startu
 
 # Remove migration
 dotnet ef migrations remove --project backend/depensio.Infrastructure --startup-project backend/depensio.Api
-dotnet ef migrations remove --force --project backend/depensio.Infrastructure --startup-project backend/depensio.Api
+
 docker compose exec depensio.api dotnet ef migrations remove  --project backend/depensio.Infrastructure   --startup-project backend/depensio.Api
 ## Configuration des secrets
 
