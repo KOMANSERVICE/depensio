@@ -15,6 +15,7 @@ public class Plan : Entity<PlanId>
     public bool IsDisplay { get; set; } = true;
 
 
-    //public virtual ICollection<PlanFeature> PlanFeatures { get; set; } = new HashSet<PlanFeature>();
-    //public virtual ICollection<PlanMenu> PlanMenus { get; set; } = new HashSet<PlanMenu>();
+    public virtual ICollection<PlanFeature> PlanFeatures { get; set; } = new HashSet<PlanFeature>();
+    public virtual ICollection<PlanMenu> PlanMenus { get; set; } = new HashSet<PlanMenu>();
+    public virtual ICollection<Subscription> Subscriptions { get; set; } = new HashSet<Subscription>();
 }

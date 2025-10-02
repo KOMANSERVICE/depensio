@@ -6,6 +6,7 @@ public class UsersBoutique : Entity<UsersBoutiqueId>
 {
     public string UserId { get; set; }
     public BoutiqueId BoutiqueId { get; set; }
+    public ProfileId ProfileId { get; set; }
     //public string Role { get; set; }
 
     public virtual ApplicationUser User { get; set; }
