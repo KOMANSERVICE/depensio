@@ -21,7 +21,7 @@
     </header>
 
     <!-- Profile Picture Section -->
-    <div class="flex flex-col items-center mb-10">
+    @* <div class="flex flex-col items-center mb-10">
         <div class="relative profile-pic-upload group">
             <img src="http://static.photos/people/200x200/42" alt="Photo de profil"
                  class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
@@ -34,7 +34,7 @@
         <button class="mt-4 text-sm text-primary-700 font-medium hover:text-[#a3722c] transition-colors duration-200">
             Changer la photo
         </button>
-    </div>
+    </div> *@
     
     <EditForm EditContext="@editContext" OnValidSubmit="HandleUpdate">
         <DataAnnotationsValidator />

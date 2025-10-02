@@ -109,9 +109,10 @@
 >
     <EditForm EditContext="@editContext" OnValidSubmit="HandleCreate">
         <DataAnnotationsValidator />
-        <ValidationSummary />
-
         <div class="px-6 py-4">
+            <ValidationSummaryFancy />
+            
+            
             <div class="mb-4">
                 <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Produit</label>
                 <select @bind="productItem.ProductId"  id="productName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" placeholder="Nom du produit">
@@ -121,12 +122,13 @@
                         <option value="@prod.Id">@prod.Name</option>
                     }
                 </select>
-            
+                <ValidationMessage For="@(() => productItem.ProductId)" />
             </div>
 
             <div class="mb-4">
                 <label for="barcodeCount" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'éléments</label>
-                <InputNumber @bind-Value="productItem.BarcodeCount" type="number" id="barcodeCount" min="1" max="100"  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" />
+                <InputNumber @bind-Value="productItem.BarcodeCount" type="number" id="barcodeCount"   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700" />
+                <ValidationMessage For="@(() => productItem.BarcodeCount)" />
             </div>
 
            @*  <div class="mb-4">
