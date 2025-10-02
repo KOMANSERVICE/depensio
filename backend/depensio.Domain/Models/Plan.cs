@@ -1,20 +1,12 @@
-﻿using depensio.Domain.Enums;
-using System.ComponentModel.DataAnnotations;
+﻿namespace depensio.Domain.Models;
 
-namespace depensio.Domain.Models;
-
-public class Plan : Entity<PlanId>
+public class Plan : Entity<Guid>
 {
     public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int ProductLimit { get; set; }
+    public int UserLimit { get; set; }
+    public string Features { get; set; } = string.Empty;
 
-    public decimal Price { get; set; } = 0;
-    public BillingCycleStatus BillingCycle { get; set; } = BillingCycleStatus.None; // NONE, MONTHLY, YEARLY
-    public bool RequiresPayment { get; set; } = false;
-    public bool IsPopular { get; set; } = false;
-    public bool IsDisplay { get; set; } = true;
-
-
-    //public virtual ICollection<PlanFeature> PlanFeatures { get; set; } = new HashSet<PlanFeature>();
-    //public virtual ICollection<PlanMenu> PlanMenus { get; set; } = new HashSet<PlanMenu>();
+    public ICollection<Subscription> Subscriptions { get; set; }
 }

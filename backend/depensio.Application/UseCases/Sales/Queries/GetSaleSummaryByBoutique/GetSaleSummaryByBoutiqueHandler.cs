@@ -35,6 +35,6 @@ public class GetSaleSummaryByBoutiqueHandler(
 
 
 
-        return new GetSaleSummaryByBoutiqueResult(salesSummary.OrderByDescending(s => s.TotalRevenue));
+        return new GetSaleSummaryByBoutiqueResult(salesSummary);
     }
 }

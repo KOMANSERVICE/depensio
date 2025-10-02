@@ -1,23 +1,14 @@
-﻿using depensio.Domain.Enums;
-using System.ComponentModel.DataAnnotations;
+﻿namespace depensio.Domain.Models;
 
-namespace depensio.Domain.Models;
-
-public class Subscription : Entity<SubscriptionId>
+public class Subscription : Entity<Guid>
 {
-    public PlanId PlanId { get; set; }
-    public BoutiqueId BoutiqueId { get; set; }
+    public Guid BoutiqueId { get; set; }
+    public Guid PlanId { get; set; }
+    public string Month { get; set; }
+    public string Status { get; set; }
+    public string Source { get; set; }
+    public decimal Bonus { get; set; }
 
-    public int Month { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-
-    public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active; // active, expired, canceled
-    public string Source { get; set; } = string.Empty;
-    public string Bonus { get; set; } = string.Empty;
-
-
-    // Relations
-    public virtual Plan Plan { get; set; } = new Plan();
-    public virtual Boutique Boutique { get; set; } = new Boutique();
+    public Boutique Boutique { get; set; }
+    public Plan Plan { get; set; }
 }
