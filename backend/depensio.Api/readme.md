@@ -509,3 +509,5 @@ sudo systemctl reload nginx
 # MakeFile
 makefile
 https://gl.developpez.com/tutoriel/outil/makefile/
+
+https://apexcharts.github.io/Blazor-ApexCharts/
