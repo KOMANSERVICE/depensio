@@ -10,8 +10,7 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
             .HasConversion(
                 productId => productId.Value,
                 dbId => ProfileId.Of(dbId)
-            )
-            .ValueGeneratedOnAdd();
+            );
 
         // 🎯 Conversion propre pour BoutiqueId
         builder.Property(e => e.BoutiqueId)

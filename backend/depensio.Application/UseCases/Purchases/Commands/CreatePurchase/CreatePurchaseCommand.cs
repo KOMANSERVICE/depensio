@@ -1,9 +1,4 @@
 ﻿using depensio.Application.UseCases.Purchases.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace depensio.Application.UseCases.Purchases.Commands.CreatePurchase;
 
@@ -11,7 +6,7 @@ public record CreatePurchaseCommand(PurchaseDTO Purchase)
     : ICommand<CreatePurchaseResult>;
 
 public record CreatePurchaseResult(Guid Id);
-
+ 
 public class CreatePurchaseCommandValidator : AbstractValidator<CreatePurchaseCommand>
 {
     public CreatePurchaseCommandValidator()
