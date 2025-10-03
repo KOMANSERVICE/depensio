@@ -22,8 +22,14 @@ public class DepensioDbContext : IdentityDbContext<ApplicationUser>, IDepensioDb
     public DbSet<SaleItem> SaleItems => Set<SaleItem>();
     public DbSet<BoutiqueSetting> BoutiqueSettings => Set<BoutiqueSetting>();
     public DbSet<ProductItem> ProductItems => Set<ProductItem>();
-    //public DbSet<Subscription> Subscription => Set<Subscription>();
-    //public DbSet<Plan> Plan => Set<Plan>();
+    public DbSet<Plan> Plans => Set<Plan>();
+    public DbSet<Feature> Features => Set<Feature>();
+    public DbSet<PlanFeature> PlanFeatures => Set<PlanFeature>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<Menu> Menus => Set<Menu>();
+    public DbSet<PlanMenu> PlanMenus => Set<PlanMenu>();
+    public DbSet<Profile> Profiles => Set<Profile>();
+    public DbSet<ProfileMenu> ProfileMenus => Set<ProfileMenu>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -2,7 +2,7 @@
 
 public class Profile : Entity<ProfileId>
 {
-    public int BoutiqueId { get; set; }
+    public BoutiqueId BoutiqueId { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
 

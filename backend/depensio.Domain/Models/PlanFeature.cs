@@ -2,7 +2,7 @@
 
 namespace depensio.Domain.Models;
 
-public class PlanFeature
+public class PlanFeature : Entity<PlanFeatureId>
 {
 
     public PlanId PlanId { get; set; }

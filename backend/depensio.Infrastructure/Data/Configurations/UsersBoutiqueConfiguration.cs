@@ -24,6 +24,14 @@ public class UsersBoutiqueConfiguration : IEntityTypeConfiguration<UsersBoutique
         builder.Property(e => e.UserId)
             .IsRequired();
 
+
+        builder.Property(e => e.ProfileId)
+            .HasConversion(
+                ProfileId => ProfileId.Value,
+                dbId => ProfileId.Of(dbId)
+            )
+            .IsRequired(false);
+
         // ✅ Config explicite de la relation
         builder.HasOne(e => e.Boutique)
             .WithMany(b => b.UsersBoutiques)
@@ -34,6 +42,12 @@ public class UsersBoutiqueConfiguration : IEntityTypeConfiguration<UsersBoutique
            .HasOne(ub => ub.User)
            .WithMany()
            .HasForeignKey(ub => ub.UserId);
+
+        builder.HasOne(e => e.Profile)
+            .WithMany(b => b.UsersBoutiques)
+            .HasForeignKey(e => e.ProfileId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
 
     }
 }
