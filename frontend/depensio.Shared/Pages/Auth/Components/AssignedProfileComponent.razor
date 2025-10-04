@@ -2,21 +2,32 @@
 @using depensio.Shared.Helpers
 @using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Models
-@inject IAuthUserService _userService;
-@inject IBoutiqueSettingService _boutiqueSettingService
+@inject IProfileService _profileService
 
 <LoadingComponent IsLoad="@isLoad" />
 
-<EditForm EditContext="@editContext" OnValidSubmit="HandleCreateOrUpdate">
+<EditForm EditContext="@editContext" OnValidSubmit="HandleUpdate">
     <DataAnnotationsValidator />
-    <ValidationSummaryFancy />
 
     <div class="p-6">
-        <input type="hidden" id="userId">
+        <ValidationSummaryFancy />
+        <input type="hidden" id="AssigneProfileId">
         <div class="mb-4">
-            <label for="userEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <InputText @bind-Value="user.Email" id="userName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent" />
-            <ValidationMessage For="@(() => user.Email)" />
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nom du produit</label>
+            <p class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">@AssigneProfile.Email</p>
+
+        </div>
+        <div class="mb-4">
+           <label for="ProfileId" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <InputSelect @bind-Value="AssigneProfile.ProfileId" id="ProfileId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+               <option value="">Sélectionner un profile</option>
+                @foreach (var profile in Profiles.ToList())
+                {
+                    <option value="@profile.Id">@profile.Name</option>
+                }
+           </InputSelect>
+           @* <InputText @bind-Value="AssigneProfile.ProfileId" id="ProfileId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent" />
+            <ValidationMessage For="@(() => AssigneProfile.ProfileId)" /> *@
         </div>
     </div>
     <div class="flex justify-end gap-3 px-6 py-4 border-t">
@@ -36,13 +47,14 @@
     public Guid BoutiqueId { get; set; }
 
     [Parameter]
-    public string Email { get; set; } = string.Empty;
+    public AssigneProfile AssigneProfile { get; set; } = new();
+
+    [Parameter]
+    public List<Profile> Profiles { get; set; } = new();
 
 
     private bool isLoad = false;
 
-    [Parameter]
-    public SignUpBoutiqueDTO user { get; set; } = new();
 
     private ErrorMessage errorMessage = new();
 
@@ -57,8 +69,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        editContext = new EditContext(user);
-
+        editContext = new EditContext(AssigneProfile);
 
         messageStore = new ValidationMessageStore(editContext);
 
@@ -67,21 +78,18 @@
 
     }
 
-    private async Task HandleCreateOrUpdate()
+    private async Task HandleUpdate()
     {
         isLoad = true;
         try
         {
-            user.BoutiqueId = BoutiqueId; // Set the boutique ID for the user
-            BaseResponse<CreateUserResponse> result = default;
-
-            result = await _userService.CreateUserAsync(new CreateUserRequest(user));
+            var result = await _profileService.AssignedProfileToUserAsync(BoutiqueId, new AssignedProfileToUserRequest(AssigneProfile));
 
             if (result.Success)
             {
                 messageStore?.Clear();
                 editContext?.NotifyValidationStateChanged();
-                user = new SignUpBoutiqueDTO(); // Reset the boutique object
+                AssigneProfile = new AssigneProfile(); 
                 await OnAfterSave.InvokeAsync(null); // Notify parent component
             }
 
@@ -103,20 +111,18 @@
                 {
                     foreach (var validationError in errorResult.ValidationErrors)
                     {
-                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
                         var propertyName = validationError.PropertyName;
                         if (propertyName.Contains('.'))
                             propertyName = propertyName.Split('.').Last();
 
-                        // Associer au champ si possible
-                        var fieldIdentifier = new FieldIdentifier(user!, propertyName);
+                        var fieldIdentifier = new FieldIdentifier(AssigneProfile!, propertyName);
                         messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
                     }
                 }
                 else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
                     // Message global sans champ spécifique
-                    var fieldIdentifier = new FieldIdentifier(user!, string.Empty);
+                    var fieldIdentifier = new FieldIdentifier(AssigneProfile!, string.Empty);
                     messageStore.Add(fieldIdentifier, errorResult.Detail);
                 }
 
@@ -127,7 +133,7 @@
             }
             catch
             {
-                messageStore?.Add(new FieldIdentifier(user, string.Empty), "Une erreur est survenue.");
+                messageStore?.Add(new FieldIdentifier(AssigneProfile, string.Empty), "Une erreur est survenue.");
                 editContext?.NotifyValidationStateChanged();
             }
         }

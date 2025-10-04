@@ -45,8 +45,8 @@ public static class DataSeeder
                 new Menu { Name = "Caisse", ApiRoute = "/sale", UrlFront="/caisse/{boutiqueId}", Icon = "shopping-cart" },
                 new Menu { Name = "Imprimer code barre", ApiRoute = "/product/{boutiqueId}", UrlFront="/print-barcodes/{boutiqueId}", Icon = "cart-plus" },
                 new Menu { Name = "Liste utilisateurs", ApiRoute = "/purchase/{boutiqueId}", UrlFront="/liste-user/{boutiqueId}", Icon = "cart-plus" },
-                new Menu { Name = "Liste des profile", ApiRoute = "/profile/{boutiqueId}", UrlFront="/profile/{boutiqueId}", Icon = "cart-plus" }
-                //new Menu { Name = "Paramètre", ApiRoute = "/settings/{boutiqueId}", UrlFront="/settings/{boutiqueId}", Icon = "cart-plus" }
+                new Menu { Name = "Liste des profile", ApiRoute = "/profile/{boutiqueId}", UrlFront="/profile/{boutiqueId}", Icon = "cart-plus" },
+                new Menu { Name = "Paramètre", ApiRoute = "/settings/{boutiqueId}", UrlFront="/settings/{boutiqueId}", Icon = "cart-plus" }
             };
             context.Menus.AddRange(menus);
             context.SaveChanges();

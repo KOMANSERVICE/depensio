@@ -13,6 +13,7 @@ public record ProfileMenuDTO(
 );
 
 public record AssigneProfileDTO(
+    string Email,
     Guid ProfileId
 );
 
