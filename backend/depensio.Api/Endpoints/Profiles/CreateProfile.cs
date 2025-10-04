@@ -5,7 +5,6 @@ using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Profiles;
 
-
 public record CreateProfileRequest(ProfileDTO Profile);
 public record CreateProfileResponse(Guid Id);
 

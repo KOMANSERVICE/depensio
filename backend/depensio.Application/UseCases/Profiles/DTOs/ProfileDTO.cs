@@ -12,3 +12,7 @@ public record ProfileMenuDTO(
     string Name
 );
 
+public record AssigneProfileDTO(
+    Guid ProfileId
+);
+

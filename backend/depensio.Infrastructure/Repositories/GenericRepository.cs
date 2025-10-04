@@ -1,7 +1,6 @@
 ﻿
 using depensio.Application.Interfaces;
 using depensio.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace depensio.Infrastructure.Repositories;
