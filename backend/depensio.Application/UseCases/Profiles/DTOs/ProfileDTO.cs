@@ -8,6 +8,7 @@ public record ProfileDTO(
 
 public record ProfileMenuDTO(
     Guid MenuId,
-    bool IsActive
+    bool IsActive,
+    string Name
 );
 
