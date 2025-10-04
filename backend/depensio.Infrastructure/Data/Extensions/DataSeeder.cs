@@ -38,17 +38,21 @@ public static class DataSeeder
         if (!context.Menus.Any())
         {
             var menus = new List<Menu>
-                {
-                    new Menu { Name = "Tableau de bord", ApiRoute = "/sale", UrlFront="/dashboard/{boutiqueId}", Icon = "dashboard" },
-                    new Menu { Name = "Produit", ApiRoute = "/product", UrlFront="/produit/{boutiqueId}", Icon = "box" },
-                    new Menu { Name = "Caisse", ApiRoute = "/sale", UrlFront="/caisse/{boutiqueId}", Icon = "shopping-cart" },
-                    new Menu { Name = "Acheter", ApiRoute = "/purchase", UrlFront="/achatproduit/{boutiqueId}", Icon = "cart-plus" },
-                    new Menu { Name = "Imprimer code barre", ApiRoute = "/product", UrlFront="/print-barcodes/{boutiqueId}", Icon = "cart-plus" },
-                    new Menu { Name = "Liste utilisateurs", ApiRoute = "/purchase", UrlFront="/liste-user/{boutiqueId}", Icon = "cart-plus" }
-                };
+            {
+                new Menu { Name = "Tableau de bord", ApiRoute = "/sale", UrlFront="/dashboard/{boutiqueId}", Icon = "dashboard" },
+                new Menu { Name = "Produit", ApiRoute = "/product", UrlFront="/produit/{boutiqueId}", Icon = "box" },
+                new Menu { Name = "Acheter", ApiRoute = "/purchase", UrlFront="/achatproduit/{boutiqueId}", Icon = "cart-plus" },
+                new Menu { Name = "Caisse", ApiRoute = "/sale", UrlFront="/caisse/{boutiqueId}", Icon = "shopping-cart" },
+                new Menu { Name = "Imprimer code barre", ApiRoute = "/product/{boutiqueId}", UrlFront="/print-barcodes/{boutiqueId}", Icon = "cart-plus" },
+                new Menu { Name = "Liste utilisateurs", ApiRoute = "/purchase/{boutiqueId}", UrlFront="/liste-user/{boutiqueId}", Icon = "cart-plus" },
+                new Menu { Name = "Liste des profile", ApiRoute = "/profile/{boutiqueId}", UrlFront="/profile/{boutiqueId}", Icon = "cart-plus" }
+                //new Menu { Name = "Paramètre", ApiRoute = "/settings/{boutiqueId}", UrlFront="/settings/{boutiqueId}", Icon = "cart-plus" }
+            };
             context.Menus.AddRange(menus);
             context.SaveChanges();
         }
+
+        //TODO : Ajouter Les sou menus
 
         // === 4. PlanFeatures (exemple limité) ===
         if (!context.PlanFeatures.Any())
