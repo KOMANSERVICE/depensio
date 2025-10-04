@@ -42,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UseCases\Profiles\Queries\" />
+    <Folder Include="UseCases\Menus\Commands\" />
   </ItemGroup>
 
 </Project>

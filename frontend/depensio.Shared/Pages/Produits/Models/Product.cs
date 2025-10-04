@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace depensio.Shared.Pages.Produits.Models;
+﻿namespace depensio.Shared.Pages.Produits.Models;
 
 public record GetProductByUserResponse(IEnumerable<Product> Products);
 public record CreateProductRequest(Product Product);

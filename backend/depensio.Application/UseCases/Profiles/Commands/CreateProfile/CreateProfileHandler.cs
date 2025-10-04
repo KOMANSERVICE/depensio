@@ -24,7 +24,7 @@ public class CreateProfileHandler(
                               && b.Profiles.Any(p => p.Name == request.Profile.Name));
         if (profileExiste)
         {
-            throw new BadRequestException("Ce profile existe déjà");
+            throw new BadRequestException($"Le profile {request.Profile.Name} existe déjà");
         }
 
 

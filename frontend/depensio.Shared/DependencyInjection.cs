@@ -48,7 +48,15 @@ public static class DependencyInjection
         services.AddRefitClient<IAuthUserService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
-                
+
+        services.AddRefitClient<IProfileService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<JwtAuthorizationHandler>();
+
+        services.AddRefitClient<IMenuService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<JwtAuthorizationHandler>();
+
         return services;
     }
 

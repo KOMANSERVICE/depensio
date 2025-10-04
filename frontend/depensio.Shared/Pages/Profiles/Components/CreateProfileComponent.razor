@@ -1,9 +1,9 @@
-@using depensio.Shared.Pages.Produits.Models
-@inject IPurchaseService _purchaseService;
+@using depensio.Shared.Pages.Profiles.Models
+@inject IProfileService _profileService;
 
 <LoadingComponent IsLoad="@isLoad" />
 
-<EditForm EditContext="@editContext" OnValidSubmit="HandleCreateProduit">
+<EditForm EditContext="@editContext" OnValidSubmit="HandleCreateProfile">
     <DataAnnotationsValidator />
     <ValidationSummaryFancy />
     <div class="p-6">
@@ -11,56 +11,23 @@
             <div class="col-span-6 sm:col-span-3">
                 <label for="titre"
                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Titre</label>
-                <InputText type="text" @bind-Value="purchase.Title" name="titre" id="titre"
+                <InputText type="text" @bind-Value="profile.Name" name="titre" id="titre"
                            class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                            placeholder="Achat de fin de mois" />
-                <ValidationMessage For="@(() => purchase.Title)" />
+                <ValidationMessage For="@(() => profile.Name)" />
             </div>
 
-            <div class="col-span-6 sm:col-span-3">
-                <label for="SupplierName"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fournisseur</label>
-                <InputText type="text" @bind-Value="purchase.SupplierName" name="SupplierName" id="SupplierName"
-                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                           placeholder="Fournisseur" />
-                <ValidationMessage For="@(() => purchase.SupplierName)" />
-            </div>
-            <div class="col-span-6">
-                <label for="description"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-                <InputTextArea id="description" @bind-Value="purchase.Description" rows="4"
-                               class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                               placeholder="Descripotion de l'achat"></InputTextArea>
-            </div>
-            <div class="col-span-6 flex items-start justify-start">
-                <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalAmount FCFA</p>
-            </div>
             <div class="col-span-6 flex gap-2">
                 <div>
                     <label for="prodctId"
-                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Produit</label>
-                    <select @bind="purchaseItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Profile</label>
+                    <select @bind="profileMenu.MenuId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                         <option selected="">Choix de produit</option>
-                        @foreach (var prod in products)
+                        @foreach (var prod in menus)
                         {
                             <option value="@prod.Id">@prod.Name</option>
                         }
                     </select>
-                </div>
-                <div>
-                    <label for="Prix"
-                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix</label>
-                    <input @bind="purchaseItem.Price" type="number" name="position" id="Prix"
-                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                           placeholder="e.g. Prix d'achat'">
-                </div>
-
-                <div>
-                    <label for="Quantite"
-                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantité</label>
-                    <input @bind="purchaseItem.Quantity" type="number" name="position" id="Quantite"
-                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                           placeholder="e.g. Quantité">
                 </div>
                 <div class="flex items-end justify-end">
                     <label for="Quantite"
@@ -92,21 +59,13 @@
                                         </th>
                                         <th scope="col"
                                             class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                            Produit
-                                        </th>
-                                        <th scope="col"
-                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                            Prix
-                                        </th>
-                                        <th scope="col"
-                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                            Quantité
+                                            Menu
                                         </th>
 
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                                    @foreach (var item in purchase.Items)
+                                    @foreach (var item in profile.MenuIds)
                                     {
                                         <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                             <td class="w-4 p-4">
@@ -117,13 +76,7 @@
                                                 </div>
                                             </td>
                                             <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                                @(products.FirstOrDefault(p => p.Id == @item.ProductId).Name ?? "")
-                                            </td>
-                                            <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                                @item.Price FCFA
-                                            </td>
-                                            <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                                @item.Quantity
+                                                @(menus.FirstOrDefault(p => p.Id == @item.MenuId).Name ?? "")
                                             </td>
                                         </tr>
 
@@ -157,12 +110,12 @@
     public Guid BoutiqueId { get; set; }
 
     [Parameter]
-    public IEnumerable<Product> products { get; set; }
+    public IEnumerable<Menu> menus { get; set; }
 
 
     private bool isLoad = false;
-    private Purchase purchase = new();
-    private PurchaseItem purchaseItem = new();
+    private Profile profile = new();
+    private ProfileMenu profileMenu = new();
     private ErrorMessage errorMessage = new();
 
     private EditContext editContext;
@@ -170,25 +123,24 @@
 
     protected override void OnInitialized()
     {
-        editContext = new EditContext(purchase);
+        editContext = new EditContext(profile);
         messageStore = new ValidationMessageStore(editContext);
 
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
     }
 
-    private async Task HandleCreateProduit()
+    private async Task HandleCreateProfile()
     {
         isLoad = true;
         try
         {
-            purchase.BoutiqueId = BoutiqueId; // Set the boutique ID for the product
-            var result = await _purchaseService.CreatePurchaseAsync(new CreatePurchaseRequest(purchase));
+            var result = await _profileService.CreateProfileAsync(BoutiqueId, new CreateProfileRequest(profile));
             if (result.Success)
             {
                 messageStore.Clear();
                 editContext.NotifyValidationStateChanged();
-                purchase = new(); // Reset the boutique object
+                profile = new(); // Reset the boutique object
                 await OnAfterSave.InvokeAsync(null); // Notify parent component
             }
 
@@ -204,13 +156,14 @@
 
                 if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
-                    messageStore.Add(new FieldIdentifier(purchase, string.Empty), errorResult.Detail);
+                    messageStore.Add(new FieldIdentifier(profile, string.Empty), errorResult.Detail);
                     editContext.NotifyValidationStateChanged();
                 }
+
             }
             catch
             {
-                messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Une erreur est survenue.");
+                messageStore.Add(new FieldIdentifier(profile, string.Empty), "Une erreur est survenue.");
                 editContext.NotifyValidationStateChanged();
             }
         }
@@ -222,28 +175,25 @@
 
     private void AddItem()
     {
-        if (purchaseItem.ProductId == Guid.Empty || purchaseItem.Quantity <= 0 || purchaseItem.Price <= 0)
+        if (profileMenu.MenuId == Guid.Empty)
             return;
 
-        bool alreadyExists = purchase.Items.Any(i => i.ProductId == purchaseItem.ProductId);
+        bool alreadyExists = profile.MenuIds.Any(i => i.MenuId == profileMenu.MenuId);
 
         if (alreadyExists)
         {
             // Option : afficher un message d'erreur, toast, etc.
-            Console.WriteLine("Produit déjà ajouté.");
+            Console.WriteLine("Profile déjà ajouté.");
             return;
         }
 
-        purchase.Items.Add(new()
+        profile.MenuIds.Add(new()
         {
-            ProductId = purchaseItem.ProductId,
-            Price = purchaseItem.Price,
-            Quantity = purchaseItem.Quantity
+            MenuId = profileMenu.MenuId,
+            IsActive = true
         });
 
-        purchase.TotalAmount = purchase.Items.Sum(x => x.Price * x.Quantity);
-
-        purchaseItem = new();
+        profileMenu = new();
     }
 
 }
