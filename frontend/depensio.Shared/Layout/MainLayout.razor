@@ -2,32 +2,46 @@
 @inject NavigationManager NavManager 
 @inject IMenuService _menuService
 
+
+
 <CascadingAuthenticationState>
     <RouteGuard>
-       <NavBarDashboard OnAfterToggleSidebar="()=>{
-    isSidebarOpen = !isSidebarOpen;
-}" IsSidebarOpen="@isSidebarOpen" />
-
-    <div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
-
-        <Sidebar 
-            boutiqueId="@boutiqueId" 
-            IsSidebarOpen="@isSidebarOpen" 
-            OnClose="()=>{
+        
+        <LoadingComponent IsLoad="@isLoad" />
+        @if (menuUsers.Any())
+        {
+            @if (!HasAccess)
+            {
+                <NotFoundComponent />
+                return;
+            }
+           <NavBarDashboard OnAfterToggleSidebar="()=>{
                 isSidebarOpen = !isSidebarOpen;
-            }" 
-            menuUsers="@menuUsers"
-        />
+            }" IsSidebarOpen="@isSidebarOpen" />
 
-        <div id="main-content" class="relative w-full min-h-screen overflow-y-auto bg-gray-50 lg:ml-64 dark:bg-gray-900">
-            <main>
-                @Body
-            </main>
-            <FooterDashboard />
-        </div>
+            <div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
 
-    </div>
-    </RouteGuard>
+                <Sidebar 
+                    boutiqueId="@boutiqueId" 
+                    IsSidebarOpen="@isSidebarOpen" 
+                    OnClose="()=>{
+                        isSidebarOpen = !isSidebarOpen;
+                    }" 
+                    menuUsers="@menuUsers"
+                />
+
+                <div id="main-content" class="relative w-full min-h-screen overflow-y-auto bg-gray-50 lg:ml-64 dark:bg-gray-900">
+                    <main>
+                        @Body
+                    </main>
+                    <FooterDashboard />
+                </div>
+
+            </div>
+    
+        }
+
+        </RouteGuard>
 </CascadingAuthenticationState>
 
 
@@ -35,28 +49,31 @@
     private bool isSidebarOpen = false;
 
     private Guid boutiqueId;
-    private List<MenuUser> menuUsers;
+    private List<MenuUser> menuUsers = new();
+    private bool HasAccess = true;    
+    private bool isLoad = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var uri = new Uri(NavManager.Uri);
-        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-        var index = Array.IndexOf(segments, "dashboard");
-        if (segments.Length > 0)
-        {
-            if (Guid.TryParse(segments[segments.Length -1], out var id))
-            {
-                boutiqueId = id;
-            }
-        }
+        isLoad = true;        
+        boutiqueId = NavigationHelper.ExtractGuidFromUri(NavManager);
 
         await GetMenuByUserBoutiqueAsync(boutiqueId);
+        isLoad = false; 
     }
 
     private async Task GetMenuByUserBoutiqueAsync(Guid _boutiqueId)
     {
         var menureponse = await _menuService.GetMenuByUserBoutiqueAsync(_boutiqueId);
         menuUsers = menureponse.Data.Menus.ToList();
+
+        if (!menuUsers.Any()) {
+            HasAccess = false;
+            return;
+        }
+
+        var currentPath = $"/{NavManager.ToBaseRelativePath(NavManager.Uri)}";
+        HasAccess = menuUsers.Any(m => currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase));
+                
     } 
 }

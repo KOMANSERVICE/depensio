@@ -36,3 +36,4 @@ public record CreateProfileRequest(Profile Profile);
 public record CreateProfileResponse(Guid Id);
 public record AssignedProfileToUserRequest(AssigneProfile AssignedProfile);
 public record AssignedProfileToUserResponse(Guid Id);
+public record GetOneMenuByUserBoutiqueResponse(MenuUser Menu);

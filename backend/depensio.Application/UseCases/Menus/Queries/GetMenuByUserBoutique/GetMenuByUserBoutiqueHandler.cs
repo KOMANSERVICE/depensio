@@ -4,7 +4,6 @@ using depensio.Application.UseCases.Menus.DTOs;
 namespace depensio.Application.UseCases.Menus.Queries.GetMenuByUserBoutique;
 
 public class GetMenuByUserBoutiqueHandler(
-        IDepensioDbContext _dbContext,
         IUserContextService _userContextService,
         MenuService _menuService
     )
