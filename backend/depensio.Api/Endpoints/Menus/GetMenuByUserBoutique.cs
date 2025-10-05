@@ -5,7 +5,6 @@ using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Menus;
 
-
 public record GetMenuByUserBoutiqueResponse(IEnumerable<MenuUserDTO> Menus);
 
 public class GetMenuByUserBoutique : ICarterModule

@@ -244,3 +244,24 @@ html, body {
     margin-block-end: 0;
     margin: 0 !important; /* supprime toutes les marges, y compris margin-block */
 }
+
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid rgba(130, 85, 19, 0.2);
+    border-bottom-color: #825513;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
