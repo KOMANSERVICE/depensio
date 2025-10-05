@@ -10,6 +10,7 @@ public class Menu : Entity<MenuId>
     public string ApiRoute { get; set; } = string.Empty;
     public string UrlFront { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    public int Order { get; set; }
 
     public virtual ICollection<PlanMenu> PlanMenus { get; set; } = new HashSet<PlanMenu>();
     public virtual ICollection<ProfileMenu> ProfileMenus { get; set; } = new HashSet<ProfileMenu>();

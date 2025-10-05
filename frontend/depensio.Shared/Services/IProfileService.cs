@@ -6,4 +6,6 @@ public interface IProfileService
     public Task<BaseResponse<GetProfileByBoutiqueResponse>> GetProfileByBoutiqueAsync(Guid boutiqueId);
     [Post("/profile/{boutiqueId}")]
     public Task<BaseResponse<CreateProfileResponse>> CreateProfileAsync(Guid boutiqueId, CreateProfileRequest request);
+    [Patch("/profile/{boutiqueId}")]
+    public Task<BaseResponse<AssignedProfileToUserResponse>> AssignedProfileToUserAsync(Guid boutiqueId, AssignedProfileToUserRequest request);
 }

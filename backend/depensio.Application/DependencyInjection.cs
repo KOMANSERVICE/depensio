@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<SettingOptionService>();
         services.AddScoped<AuthorizationService>();
+        services.AddScoped<MenuService>();
         
         return services;
     }

@@ -29,7 +29,8 @@ public class GetListeUserHandler(
                 Email = ub.User.Email ?? "",
                 FirstName = _encryptionService.Decrypt(ub.User.FirstName),
                 LastName = _encryptionService.Decrypt(ub.User.LastName),
-                BoutiqueId = ub.BoutiqueId.Value
+                BoutiqueId = ub.BoutiqueId.Value,
+                ProfileId = ub.ProfileId != null ? ub.ProfileId.Value : Guid.Empty
             })
             .ToListAsync(cancellationToken);
 

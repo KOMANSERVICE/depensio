@@ -12,9 +12,10 @@ public record Profile{
     public bool IsActive { get; set; }
     public List<ProfileMenu> MenuIds { get; set; } = new();
 }
-public record AssigneProfile(
-    Guid ProfileId
-);
+public record AssigneProfile{
+    public string Email { get; set; } = string.Empty;
+    public Guid ProfileId { get; set; } = Guid.Empty;
+}
 
 public record Menu(
     Guid Id,
@@ -23,7 +24,15 @@ public record Menu(
 
 public record GetMenuByBoutiqueResponse(IEnumerable<Menu> Menus);
 public record GetProfileByBoutiqueResponse(IEnumerable<Profile> Profiles);
+public record MenuUser(
+    Guid Id,
+    string Name,
+    string UrlFront,
+    string Icon
+);
 
-
+public record GetMenuByUserBoutiqueResponse(IEnumerable<MenuUser> Menus);
 public record CreateProfileRequest(Profile Profile);
 public record CreateProfileResponse(Guid Id);
+public record AssignedProfileToUserRequest(AssigneProfile AssignedProfile);
+public record AssignedProfileToUserResponse(Guid Id);

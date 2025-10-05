@@ -21,10 +21,13 @@
                 <p class="text-xs text-gray-500">Créée le</p>
                 <p class="text-sm font-medium">@boutique.CreatedAt</p>
             </div>
-            <NavLink href="@($"/dashboard/{boutique.Id}")" class="text-primary-700 hover:text-amber-700 font-medium flex items-center space-x-1">
-                <span>Accéder</span>
-                <i class="fas fa-chevron-right text-sm"></i>
-            </NavLink>
+            @if (!string.IsNullOrEmpty(boutique.FirstUrl))
+            {
+                <NavLink href="@($"{boutique.FirstUrl}/{boutique.Id}")" class="text-primary-700 hover:text-amber-700 font-medium flex items-center space-x-1">
+                    <span>Accéder</span>
+                    <i class="fas fa-chevron-right text-sm"></i>
+                </NavLink>
+            }
         </div>
     </div>
 </div>

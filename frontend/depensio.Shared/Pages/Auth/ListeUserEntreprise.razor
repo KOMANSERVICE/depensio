@@ -4,6 +4,7 @@
 @using depensio.Shared.Pages.Produits.Models
 @layout MainLayout
 @inject IAuthUserService _authUserService
+@inject IProfileService _profileService
 @inject IJSRuntime JS
 
 <PageTitleComponent Title="Gestion des utilisateurs" />
@@ -85,13 +86,24 @@
                             @user.FirstName
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button type="button" 
+                                                   
+                            <button type="button"
                                 class="edit-btn text-primary-700 hover:text-amber-800 mr-3" data-id="@user.Email">
-                                <i class="fas fa-edit"></i>
+                               <svg class="w-6 h-6 text-primary-700 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                  <path fill-rule="evenodd" d="M12 2a1 1 0 0 1 .932.638l7 18a1 1 0 0 1-1.326 1.281L13 19.517V13a1 1 0 1 0-2 0v6.517l-5.606 2.402a1 1 0 0 1-1.326-1.281l7-18A1 1 0 0 1 12 2Z" clip-rule="evenodd"/>
+                                </svg>
                             </button>
-                           @*  <button class="delete-btn text-red-600 hover:text-red-800" data-id="@user.Id">
-                                <i class="fas fa-trash-alt"></i>
-                            </button> *@
+
+                            <button type="button"
+                                @onclick="()=>{
+                                    onShowModalAddprofile(user.Email, user.ProfileId);
+                                }"
+                                class="edit-btn text-primary-700 hover:text-amber-800 mr-3" data-id="@user.Email">
+                                <svg class="w-6 h-6 text-primary-700 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
+                                </svg>
+
+                            </button>
                         </td>
                     </tr>
                 }
@@ -120,10 +132,23 @@
                             <span class="font-medium">Nom: @user.LastName</span>
                             <span class="text-xs ml-2">Prénom: @user.FirstName</span>
                         </div>
-                        <div>
+                        <div>                            
                             <button type="button"
                                 class="edit-btn text-primary-700 hover:text-amber-800 mr-3" data-id="@user.Email">
-                                <i class="fas fa-edit"></i>
+                               <svg class="w-6 h-6 text-primary-700 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                  <path fill-rule="evenodd" d="M12 2a1 1 0 0 1 .932.638l7 18a1 1 0 0 1-1.326 1.281L13 19.517V13a1 1 0 1 0-2 0v6.517l-5.606 2.402a1 1 0 0 1-1.326-1.281l7-18A1 1 0 0 1 12 2Z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+
+                            <button type="button"
+                                @onclick="()=>{
+                                    onShowModalAddprofile(user.Email, user.ProfileId);
+                                }"
+                                class="edit-btn text-primary-700 hover:text-amber-800 mr-3" data-id="@user.Email">
+                                <svg class="w-6 h-6 text-primary-700 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
+                                </svg>
+
                             </button>
                         </div>
                     </div>
@@ -174,47 +199,70 @@
         }" />
 </Modal>
 
+
+<Modal
+    ShowModal="@showModalAddProfile"
+    OnCloseModal="()=>{
+           onShowModalAddprofile();
+    }"
+    ModalTitle="Attribution de profile"
+>
+    <AssignedProfileComponent 
+        BoutiqueId="@boutiqueId"
+        AssigneProfile="@assigneProfile"
+        Profiles="@profiles"
+        OnAfterSave="async ()=>{
+            await GetUsersAsync();
+            onShowModalAddprofile();
+        }" />
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
     private List<UserBoutiqueDTO> users = new();
     private SignUpBoutiqueDTO user = new();
     private bool showModal = false;
+    private bool showModalAddProfile = false;
     private string modalTitle = "";
     private string Email = string.Empty;
+    private AssigneProfile assigneProfile = new();
+    public List<Profile> profiles { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         await GetUsersAsync();
-
+        await GetProfileByBoutiqueAsync();
     }
 
     private async Task GetUsersAsync()
     {
         var usersResponse = await _authUserService.GetListeUser(boutiqueId);
         users = usersResponse.Data.ListeUsers.ToList();
+    }
+    private async Task GetProfileByBoutiqueAsync()
+    {
+        var profilesResponse = await _profileService.GetProfileByBoutiqueAsync(boutiqueId);
+        profiles = profilesResponse.Data.Profiles.ToList();
 
-        StateHasChanged();
-        await Task.Delay(1000);
     }
 
-    private void onShowModal(string email = "")
+    private void onShowModal()
     {
-        Email = email;
-        if(Email != "")
-        {
-            modalTitle = "Modifier le produit";
-            user = users.Where(p => p.Email == Email)
-            .Select(p => new SignUpBoutiqueDTO { Email = p.Email, BoutiqueId = p.BoutiqueId })
-            .FirstOrDefault();
-            
-        }
-        else
-        {
-            user = new();
-            modalTitle = "Nouvel utilisateur";
-        }
+        user = new();
+        modalTitle = "Nouvel utilisateur";
         showModal = !showModal;
     }  
-    
+
+    private void onShowModalAddprofile(string email = "", Guid profileId= default)
+    {
+        
+        assigneProfile = new()
+        {
+            Email = email,
+            ProfileId = profileId,
+        };
+        showModalAddProfile = !showModalAddProfile;      
+    }  
+
 }
