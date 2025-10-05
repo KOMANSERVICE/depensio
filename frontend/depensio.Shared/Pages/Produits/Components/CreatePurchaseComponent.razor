@@ -26,11 +26,21 @@
                 <ValidationMessage For="@(() => purchase.SupplierName)" />
             </div>
             <div class="col-span-6">
+                <label for="dateachat"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                <InputDate @bind-Value="purchase.DateAchat" 
+                               class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                               placeholder="Date de l'achat" />
+                <ValidationMessage For="@(() => purchase.DateAchat)" />
+
+            </div>
+            <div class="col-span-6">
                 <label for="description"
                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
                 <InputTextArea id="description" @bind-Value="purchase.Description" rows="4"
                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                placeholder="Descripotion de l'achat"></InputTextArea>
+                <ValidationMessage For="@(() => purchase.Description)" />
             </div>
             <div class="col-span-6 flex items-start justify-start">
                 <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalAmount FCFA</p>
@@ -202,11 +212,33 @@
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                // Efface les anciennes erreurs
+                messageStore.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
                 {
-                    messageStore.Add(new FieldIdentifier(purchase, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        // Associer au champ si possible
+                        var fieldIdentifier = new FieldIdentifier(purchase!, propertyName);
+                        messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
                 }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    // Message global sans champ spécifique
+                    var fieldIdentifier = new FieldIdentifier(purchase!, string.Empty);
+                    messageStore.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                // Rafraîchir l’affichage
+                editContext.NotifyValidationStateChanged();
+
             }
             catch
             {

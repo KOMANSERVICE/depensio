@@ -56,6 +56,7 @@ public class CreatePurchaseHandler(
             Title = purchaseDTO.Title,
             Description = purchaseDTO.Description,
             SupplierName = purchaseDTO.SupplierName,
+            DateAchat = purchaseDTO.DateAchat,
             PurchaseItems = purchaseDTO.Items.Select(i => new PurchaseItem
             {
                 Id = PurchaseItemId.Of(Guid.NewGuid()),

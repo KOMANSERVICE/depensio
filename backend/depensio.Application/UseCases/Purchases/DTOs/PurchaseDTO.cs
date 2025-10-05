@@ -1,11 +1,4 @@
-﻿using depensio.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace depensio.Application.UseCases.Purchases.DTOs;
+﻿namespace depensio.Application.UseCases.Purchases.DTOs;
 
 public record PurchaseDTO
 {
@@ -13,6 +6,7 @@ public record PurchaseDTO
     public Guid BoutiqueId { get; set; }
     public string SupplierName { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
+    public DateOnly DateAchat { get; set; }
     public string Description { get; set; } = string.Empty;
     public IEnumerable<PurchaseItemDTO> Items { get; set; } = new List<PurchaseItemDTO>();
     public decimal TotalAmount => Items.Sum(item => item.Price * item.Quantity);

@@ -29,6 +29,7 @@ public class GetPurchaseByBoutiqueHandler(
                 SupplierName = p.SupplierName,
                 Title = p.Title,
                 Description = p.Description,
+                DateAchat = p.DateAchat,
                 Items = p.PurchaseItems.Select(pi => new PurchaseItemDTO(
                     pi.Id.Value,pi.ProductId.Value, pi.Price, pi.Quantity
                 )).ToList()
