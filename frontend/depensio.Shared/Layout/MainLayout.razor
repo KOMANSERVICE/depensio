@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavManager 
+@inject IMenuService _menuService
 
 <CascadingAuthenticationState>
     <RouteGuard>
@@ -9,9 +10,14 @@
 
     <div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
 
-        <Sidebar boutiqueId="@boutiqueId" IsSidebarOpen="@isSidebarOpen" OnClose="()=>{
-     isSidebarOpen = !isSidebarOpen;
-    }" />
+        <Sidebar 
+            boutiqueId="@boutiqueId" 
+            IsSidebarOpen="@isSidebarOpen" 
+            OnClose="()=>{
+                isSidebarOpen = !isSidebarOpen;
+            }" 
+            menuUsers="@menuUsers"
+        />
 
         <div id="main-content" class="relative w-full min-h-screen overflow-y-auto bg-gray-50 lg:ml-64 dark:bg-gray-900">
             <main>
@@ -29,8 +35,9 @@
     private bool isSidebarOpen = false;
 
     private Guid boutiqueId;
+    private List<MenuUser> menuUsers;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(NavManager.Uri);
         var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
@@ -43,5 +50,13 @@
                 boutiqueId = id;
             }
         }
+
+        await GetMenuByUserBoutiqueAsync(boutiqueId);
     }
+
+    private async Task GetMenuByUserBoutiqueAsync(Guid _boutiqueId)
+    {
+        var menureponse = await _menuService.GetMenuByUserBoutiqueAsync(_boutiqueId);
+        menuUsers = menureponse.Data.Menus.ToList();
+    } 
 }

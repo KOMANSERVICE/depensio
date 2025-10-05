@@ -24,8 +24,14 @@ public record Menu(
 
 public record GetMenuByBoutiqueResponse(IEnumerable<Menu> Menus);
 public record GetProfileByBoutiqueResponse(IEnumerable<Profile> Profiles);
+public record MenuUser(
+    Guid Id,
+    string Name,
+    string UrlFront,
+    string Icon
+);
 
-
+public record GetMenuByUserBoutiqueResponse(IEnumerable<MenuUser> Menus);
 public record CreateProfileRequest(Profile Profile);
 public record CreateProfileResponse(Guid Id);
 public record AssignedProfileToUserRequest(AssigneProfile AssignedProfile);
