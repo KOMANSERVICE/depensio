@@ -1224,8 +1224,16 @@ video {
   max-height: 430px;
 }
 
+.max-h-\[450px\] {
+  max-height: 450px;
+}
+
 .max-h-\[80vh\] {
   max-height: 80vh;
+}
+
+.max-h-\[400px\] {
+  max-height: 400px;
 }
 
 .min-h-0 {
@@ -3240,6 +3248,10 @@ video {
   padding-top: 2rem;
 }
 
+.pr-2 {
+  padding-right: 0.5rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -5081,6 +5093,10 @@ html, body {
 
   .sm\:mt-14 {
     margin-top: 3.5rem;
+  }
+
+  .sm\:mt-0 {
+    margin-top: 0px;
   }
 
   .sm\:flex {

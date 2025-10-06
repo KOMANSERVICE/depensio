@@ -1,5 +1,7 @@
 @page "/dashboard/{boutiqueId:guid}"
+@using depensio.Shared.Pages.Dashboards.Models
 @using depensio.Shared.Pages.Produits.Models
+@using depensio.Shared.Pages.Dashboards.Components;
 @inherits FlowbitePage
 @layout MainLayout
 @inject IGraphComponent _graphComponent
@@ -17,7 +19,7 @@
                     <h3 class="text-base font-light text-gray-500 dark:text-gray-400">Produits vendu</h3>
                 </div>
                 <div class="flex items-center justify-end flex-1 text-base font-medium text-green-500 dark:text-green-400">
-                    @($"{SaleSummarys.Sum(x => x.TotalRevenue):N0} FCFA")
+                    Total vandu: @($"{SaleSummarys.Sum(x => x.TotalRevenue):N0} FCFA")
                     @*  12.5%
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd"
@@ -97,8 +99,8 @@
             </div>
             <div id="fullWidthTabContent" class="border-t border-gray-200 dark:border-gray-600">                
                 <div class="pt-4" id="about" role="tabpanel" aria-labelledby="about-tab">
-                    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach (var SaleSummary in SaleSummarys.Take(5))
+                    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700 max-h-[400px] overflow-y-auto">
+                        @foreach (var SaleSummary in SaleSummarys)
                         {
                             <li class="py-3 sm:py-4">
                                 <div class="flex items-center space-x-4">
@@ -113,7 +115,7 @@
                                             Quantité : @SaleSummary.TotalQuantity
                                         </p>
                                     </div>
-                                    <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                                    <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white pr-2">
                                         @($"{SaleSummary.TotalRevenue:N0} FCFA")
                                     </div>
                                 </div>
@@ -168,16 +170,20 @@
     </div>
 </div>
 
-                
+<SaleDetailGrapComponent boutiqueId="@boutiqueId" />
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
     public IEnumerable<SaleSummary> SaleSummarys { get; set; } = new List<SaleSummary>();
 
+    public List<SaleDashboard> saleDashboards = new();
+    public SaleRequest saleRequest = new(); 
+
     protected override async Task OnInitializedAsync()
     {
         SaleSummarys = (await _saleService.GetSaleSummaryByBoutiqueAsync(boutiqueId)).Data.SaleSummarys.ToList();
-        
     }
+
    
 }
