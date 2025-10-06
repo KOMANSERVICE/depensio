@@ -845,11 +845,6 @@ video {
   margin-bottom: 3rem;
 }
 
-.my-16 {
-  margin-top: 4rem;
-  margin-bottom: 4rem;
-}
-
 .my-2 {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -863,6 +858,11 @@ video {
 .my-6 {
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 .-mb-px {
@@ -995,10 +995,6 @@ video {
 
 .mt-12 {
   margin-top: 3rem;
-}
-
-.mt-16 {
-  margin-top: 4rem;
 }
 
 .mt-2 {
@@ -1188,10 +1184,6 @@ video {
   height: 1.5rem;
 }
 
-.h-60 {
-  height: 15rem;
-}
-
 .h-64 {
   height: 16rem;
 }
@@ -1230,6 +1222,10 @@ video {
 
 .max-h-\[430px\] {
   max-height: 430px;
+}
+
+.max-h-\[80vh\] {
+  max-height: 80vh;
 }
 
 .min-h-0 {
@@ -4373,6 +4369,20 @@ html, body {
   content: var(--tw-content);
 }
 
+.last\:border-b-0:last-child {
+  border-bottom-width: 0px;
+}
+
+.odd\:bg-white:nth-child(odd) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+
+.even\:bg-gray-50:nth-child(even) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 251 / var(--tw-bg-opacity, 1));
+}
+
 .checked\:bg-primary-800:checked {
   --tw-bg-opacity: 1;
   background-color: rgb(115 71 0 / var(--tw-bg-opacity, 1));
@@ -4933,6 +4943,16 @@ html, body {
   --tw-ring-offset-color: #1f2937;
 }
 
+.dark\:odd\:bg-gray-800:nth-child(odd):is(.dark *) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+}
+
+.dark\:even\:bg-gray-900:nth-child(even):is(.dark *) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(17 24 39 / var(--tw-bg-opacity, 1));
+}
+
 .dark\:hover\:\!bg-primary-700:hover:is(.dark *) {
   --tw-bg-opacity: 1 !important;
   background-color: rgb(130 85 19 / var(--tw-bg-opacity, 1)) !important;
@@ -5075,10 +5095,6 @@ html, body {
     height: 12rem;
   }
 
-  .sm\:h-56 {
-    height: 14rem;
-  }
-
   .sm\:w-7\/12 {
     width: 58.333333%;
   }
@@ -5143,11 +5159,6 @@ html, body {
     padding: 1.5rem;
   }
 
-  .sm\:px-12 {
-    padding-left: 3rem;
-    padding-right: 3rem;
-  }
-
   .sm\:px-6 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
@@ -5156,11 +5167,6 @@ html, body {
   .sm\:px-8 {
     padding-left: 2rem;
     padding-right: 2rem;
-  }
-
-  .sm\:py-14 {
-    padding-top: 3.5rem;
-    padding-bottom: 3.5rem;
   }
 
   .sm\:py-16 {
@@ -5297,11 +5303,6 @@ html, body {
     font-size: 1.875rem;
     line-height: 2.25rem;
   }
-
-  .md\:text-base {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -5323,10 +5324,6 @@ html, body {
 
   .lg\:w-1\/2 {
     width: 50%;
-  }
-
-  .lg\:w-5\/12 {
-    width: 41.666667%;
   }
 
   .lg\:w-6\/12 {
@@ -5371,11 +5368,6 @@ html, body {
 
   .lg\:pl-3 {
     padding-left: 0.75rem;
-  }
-
-  .lg\:text-3xl {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
   }
 
   .lg\:text-4xl {

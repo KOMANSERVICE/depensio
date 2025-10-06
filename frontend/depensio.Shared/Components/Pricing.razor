@@ -1,9 +1,14 @@
 ﻿@inject IJSRuntime JS
 
+@functions {
+    private string FormatMoney(decimal value)
+    {
+        return string.Format(System.Globalization.CultureInfo.GetCultureInfo("fr-FR"), "{0:N0}", value).Replace(",", " ");
+    }
+}
 
 <div class="py-20 bg-gray-50" id="pricing">
     <div class="container mx-auto px-6">
-
         <div class="max-w-7xl mx-auto text-center">
             <h3 class="text-2xl sm:text-3xl lg:text-4xl font-medium text-black-600 leading-relaxed mb-4">
                 Des tarifs adaptés à vos besoins
@@ -12,22 +17,17 @@
             <p class="leading-normal w-10/12 sm:w-7/12 lg:w-6/12 mx-auto my-2 text-center">
                 Choisissez le plan qui correspond à vos besoins. Tous nos plans incluent un essai gratuit de 3 mois.
             </p>
-
-            <!-- Toggle (mocked) -->
             <div class="inline-flex items-center mb-10 space-x-2 bg-gray-100 rounded-full p-1">
                 <button @onclick="() => SetBillingCycle(BillingCycle.Monthly)"
                         class="@GetToggleButtonClass(BillingCycle.Monthly)">
-                    Monthly
+                    Mensuel
                 </button>
                 <button @onclick="() => SetBillingCycle(BillingCycle.Annually)"
                         class="@GetToggleButtonClass(BillingCycle.Annually)">
-                    Annually
+                    Annuel
                 </button>
             </div>
         </div>
-
-
-        <!-- Pricing Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             @foreach (var plan in Plans)
             {
@@ -39,286 +39,122 @@
                             <span class="text-xs text-primary-800 bg-primary-300 px-2 py-0.5 rounded-full font-medium">Recommandé</span>
                         }
                     </div>
-                    <p class="text-sm text-gray-500 mb-4">@plan.Description</p>
-                    @if (Billing == BillingCycle.Monthly)
+                    <p class="text-sm text-gray-500 mb-4" style="min-height:2.5em;line-height:1.25em;">@(string.IsNullOrWhiteSpace(plan.Description) ? "\u00A0" : plan.Description.Replace("nécéssite un paiement supplementaire", "nécessite un paiement supplémentaire"))</p>
+                    @if (plan.IsDiscount)
                     {
-                        <div class="text-3xl font-bold text-gray-900 mb-1"> @plan.Price FCFA<span class="text-base font-normal text-gray-500">/mois</span></div>
+                        <div class="mb-2">
+                            <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Promotion -@((int)((decimal)plan.DiscountRate*100))%</span>
+                        </div>
+                        <div class="flex flex-col items-end mb-1">
+                            <span class="line-through text-gray-400 text-xl">@FormatMoney(Billing == BillingCycle.Monthly ? plan.Price : plan.Price * 12) FCFA</span>
+                            <span class="text-2xl font-bold text-gray-900">@FormatMoney(Billing == BillingCycle.Monthly ? plan.Price * (1 - (decimal)plan.DiscountRate) : (plan.Price * 12) * (1 - (decimal)plan.DiscountRate)) FCFA @GetBillingText()</span>
+                        </div>
                     }
                     else
                     {
-                        <div class="text-3xl font-bold text-gray-900 mb-1"> @(plan.Price*12) FCFA<span class="text-base font-normal text-gray-500">/année</span></div>
+                        <div class="flex flex-col items-end mb-1">
+                            <span class="text-2xl font-bold text-gray-900">@FormatMoney(Billing == BillingCycle.Monthly ? plan.Price : plan.Price * 12) FCFA @GetBillingText()</span>
+                        </div>
                     }
-                    <a href="#" class="@GetButtonClasses(plan)">Choisir ce plan</a>
+                    <NavLink href="/register" class="@GetButtonClasses(plan)">Choisir ce plan</NavLink>
                     <ul class="mt-6 space-y-2 text-sm text-gray-700">
                         @foreach (var feature in plan.Features)
                         {
                             <li class="flex items-start space-x-2">
                                 <span class="mt-0.5">
-                                    <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                    <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                                 </span>
-                                <span>@feature</span>
+                                <span>@feature.Replace("nécéssite un paiement supplementaire", "nécessite un paiement supplémentaire")</span>
                             </li>
                         }
                     </ul>
                 </div>
             }
         </div>
-
-        <!-- Comparison Table -->
+        <!-- Tableau de comparaison dynamique -->
         <div class="overflow-x-auto rounded-lg w-full mx-auto text-center py-8">
             <div class="inline-block w-full align-middle">
                 <div class="shadow sm:rounded-lg">
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-900">
                             <tr>
-                                <th scope="col" class="p-4 text-left">
-                                </th>
-                                <th scope="col" class="p-4 text-base font-semibold tracking-wider text-right text-gray-900 dark:text-white">
-                                    Gratuit
-                                </th>
-                                <th scope="col" class="p-4 text-base font-semibold tracking-wider text-right text-gray-900 dark:text-white">
-                                    Débutant
-                                </th>
-                                <th scope="col" class="p-4 text-base font-semibold tracking-wider text-right text-gray-900 dark:text-white">
-                                    Standard
-                                </th>
-                                <th scope="col" class="p-4 text-base font-semibold tracking-wider text-right text-gray-900 dark:text-white">
-                                    Professionnel
-                                </th>
+                                <th scope="col" class="p-4 text-left font-medium text-gray-700"></th>
+                                @foreach (var plan in Plans)
+                                {
+                                    <th scope="col" class="p-4 text-base font-semibold tracking-wider text-right text-gray-900 dark:text-white">@plan.Title</th>
+                                }
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800">
-                            <tr>
-                                <td class="p-4 text-base font-normal text-gray-500 rounded-l-lg whitespace-nowrap dark:text-gray-400">
-                                    Séparer business/personnel
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50 dark:bg-gray-900">
-                                <td class="p-4 text-base font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                                    Estimate tax payments
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-base font-normal text-gray-500 rounded-l-lg whitespace-nowrap dark:text-gray-400">
-                                    Stock control
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50 dark:bg-gray-900">
-                                <td class="p-4 text-base font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                                    Create invoices & estimates
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-base font-normal text-gray-500 rounded-l-lg whitespace-nowrap dark:text-gray-400">
-                                    Manage bills & payments
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50 dark:bg-gray-900">
-                                <td class="p-4 text-base font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                                    Run payroll
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-base font-normal text-gray-500 rounded-l-lg whitespace-nowrap dark:text-gray-400">
-                                    Handle multiple currencies
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50 dark:bg-gray-900">
-                                <td class="p-4 text-base font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                                    Number of Users
-                                </td>
-                                <td class="p-4">
-                                    <div class="flex items-center justify-end space-x-1">
-                                        <svg class="flex-shrink-0 w-5 h-5 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
-                                        <span class="flex-shrink-0 text-xs font-medium text-gray-900 sm:text-sm md:text-base dark:text-white">1 User</span>
-                                    </div>
-                                </td>
-                                <td class="p-4">
-                                    <div class="flex items-center justify-end space-x-1">
-                                        <svg class="flex-shrink-0 w-5 h-5 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg>
-                                        <span class="flex-shrink-0 text-xs font-medium text-gray-900 sm:text-sm md:text-base dark:text-white">5-10 Users</span>
-                                    </div>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <div class="flex items-center justify-end space-x-1">
-                                        <svg class="flex-shrink-0 w-5 h-5 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
-                                        <span class="flex-shrink-0 text-xs font-medium text-gray-900 sm:text-sm md:text-base dark:text-white">20+ Users</span>
-                                    </div>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <div class="flex items-center justify-end space-x-1">
-                                        <svg class="flex-shrink-0 w-5 h-5 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
-                                        <span class="flex-shrink-0 text-xs font-medium text-gray-900 sm:text-sm md:text-base dark:text-white">20+ Users</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-base font-normal text-gray-500 rounded-l-lg whitespace-nowrap dark:text-gray-400">
-                                    Track deductible mileage
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50 dark:bg-gray-900">
-                                <td class="p-4 text-base font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                                    Track employee time
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-base font-normal text-gray-500 rounded-l-lg whitespace-nowrap dark:text-gray-400">
-                                    Multi-device
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4">
-                                    <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                                <td class="p-4 rounded-r-lg">
-                                    <svg class="w-5 h-5 ml-auto text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                </td>
-                            </tr>
+                            @foreach (var feature in ComparisonFeatures)
+                            {
+                                <tr class="border-b last:border-b-0 odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                    <td class="p-4 text-base font-normal text-gray-500 rounded-l-lg whitespace-nowrap dark:text-gray-400 text-left">@feature.Label.Replace("nécéssite un paiement supplementaire", "nécessite un paiement supplémentaire")</td>
+                                    @foreach (var plan in Plans)
+                                    {
+                                        <td class="p-4 text-right align-middle ">
+                                            @if (feature.Type == "value")
+                                            {
+                                                var value = plan.Features.FirstOrDefault(f => f.ToLower().Contains(feature.Match));
+                                                if (!string.IsNullOrEmpty(value))
+                                                {
+                                                    if (feature.Label.Contains("utilisateur"))
+                                                    {
+                                                        if (value.ToLower().Contains("illimit"))
+                                                        {
+                                                            <span class="inline-flex items-center font-semibold text-gray-900 dark:text-white text-right">
+                                                                <svg class="flex-shrink-0 w-5 h-5 mr-1 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
+                                                                Illimité
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="inline-flex items-center font-semibold text-gray-900 dark:text-white text-right">
+                                                                <svg class="flex-shrink-0 w-5 h-5 mr-1 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                                                                @value
+                                                            </span>
+                                                        }
+                                                    }
+                                                    else if (feature.Label.Contains("produit"))
+                                                    {
+                                                        if (value.ToLower().Contains("illimit"))
+                                                        {
+                                                            <span class="font-semibold text-gray-900 dark:text-white text-right">Produit illimité</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="font-semibold text-gray-900 dark:text-white text-right">@value</span>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="font-semibold text-gray-900 dark:text-white text-right">@value</span>
+                                                    }
+                                                }
+                                            }
+                                            else if (feature.Type == "bool")
+                                            {
+                                                var hasFeature = plan.Features.Any(f => f.Contains(feature.Match));
+                                                if (hasFeature)
+                                                {
+                                                    <svg class="w-5 h-5 text-green-400 ml-auto" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                                }
+                                                else
+                                                {
+                                                    <svg class="w-5 h-5 text-red-500 ml-auto" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                                }
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-
-        @* <WhyChooseUs /> *@
-
-        @*   <!-- Testimonial Section -->
-        <div class="flex flex-col w-full my-16" id="testimoni">
-
-            <!-- Subscribe CTA -->
-            <div class="relative w-full mt-16">
-                <div class="absolute rounded-xl py-8 sm:py-14 px-6 sm:px-12 lg:px-16 w-full flex flex-col sm:flex-row justify-between items-center z-10 bg-white-500">
-                    <div class="flex flex-col text-left w-10/12 sm:w-7/12 lg:w-5/12 mb-6 sm:mb-0">
-                        <h5 class="text-black-600 text-xl sm:text-2xl lg:text-3xl leading-relaxed font-medium">
-                            Subscribe Now for <br /> Get Special Features!
-                        </h5>
-                        <p>Let's subscribe with us and find the fun.</p>
-                    </div>
-                    <button class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg shadow">
-                        Get Started
-                    </button>
-                </div>
-                <div class="absolute bg-black-600 opacity-5 w-11/12 rounded-lg h-60 sm:h-56 top-0 mt-8 mx-auto left-0 right-0" style="filter: blur(114px);">
-                </div>
-            </div>
-        </div>
- *@
     </div>
 </div>
-
 
 @code {
     private enum BillingCycle
@@ -333,9 +169,11 @@
     {
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
-        public int Price { get; set; }
+        public decimal Price { get; set; }
         public bool IsPopular { get; set; } = false;
         public List<string> Features { get; set; } = new();
+        public double DiscountRate { get; set; } = 0.5;
+        public bool IsDiscount { get; set; } = true;
     }
 
     private List<Plan> Plans = new()
@@ -343,32 +181,54 @@
         new Plan
         {
             Title = "Gratuit",
-            Description = "The essentials to provide your best work for clients.",
+            Description = "Idéal pour débuter et gérer un petit stock.",
             Price = 0,
-            Features = new() { "5 products", "Up to 1,000 subscribers", "Basic analytics" }
+            DiscountRate = 0,
+            IsDiscount = false,
+            Features = new() { "20 produits", "1 utilisateur", "Achat de produit", "Vente de produit", "Impression de code barre" }
         },
         new Plan
         {
             Title = "Débutant",
-            Description = "The essentials to provide your best work for clients.",
-            Price = 5000,
-            Features = new() { "5 products", "Up to 1,000 subscribers", "Basic analytics", "48-hour support response time" }
+            Description = "Pour les petites entreprises avec plus de produits.",
+            Price = 10000,
+            DiscountRate = 0.5,
+            IsDiscount = true,
+            Features = new() { "100 produits", "1 utilisateur", "Achat de produit", "Vente de produit", "Impression de code barre", "Inventaire", "Gestion du stock" }
         },
         new Plan
         {
             Title = "Standard",
-            Description = "A plan that scales with your rapidly growing business.",
-            Price = 10000,
+            Description = "Pour les entreprises en croissance.",
+            Price = 20000,
+            DiscountRate = 0.5,
             IsPopular = true,
-            Features = new() { "25 products", "Up to 10,000 subscribers", "Advanced analytics", "24-hour support response time", "Marketing automations" }
+            IsDiscount = true,
+            Features = new() { "200 produits", "20 utilisateurs", "Achat de produit", "Vente de produit", "Impression de code barre", "Inventaire", "Gestion du stock", "Boutique en ligne" }
         },
         new Plan
         {
             Title = "Professionnel",
-            Description = "Dedicated support and infrastructure for your company.",
-            Price = 15000,
-            Features = new() { "Unlimited products", "Unlimited subscribers", "Advanced analytics", "1-hour, dedicated support response time", "Marketing automations", "Custom reporting tools" }
+            Description = "Tout illimité, vente en ligne et boutique en ligne. Fonctionnalités avancées disponibles.",
+            Price = 50000,
+            DiscountRate = 0.7,
+            IsDiscount = true,
+            Features = new() { "Produits illimités", "Utilisateurs illimités", "Achat de produit","Vente de produit", "Impression de code barre", "Inventaire", "Gestion du stock", "Boutique en ligne", "Gestion de plusieurs magasins (option nécessite un paiement supplémentaire)", "Personnalisation des rapports (option nécessite un paiement supplémentaire)" }
         }
+    };
+
+    private List<(string Label, string Match, string Type)> ComparisonFeatures = new()
+    {
+        ("Nombre de produits", "produit", "value"),
+        ("Nombre d'utilisateurs", "utilisateur", "value"),
+        ("Achat de produit", "Achat de produit", "bool"),
+        ("Vente de produit", "Vente de produit", "bool"),
+        ("Impression de code barre", "Impression de code barre", "bool"),
+        ("Inventaire", "Inventaire", "bool"),
+        ("Gestion du stock", "Gestion du stock", "bool"),
+        ("Boutique en ligne", "Boutique en ligne", "bool"),
+        ("Gestion de plusieurs magasins (option nécessite un paiement supplémentaire)", "Gestion de plusieurs magasins", "bool"),
+        ("Personnalisation des rapports (option nécessite un paiement supplémentaire)", "Personnalisation des rapports", "bool")
     };
 
     private string GetCardClasses(Plan plan) =>
@@ -391,24 +251,6 @@
            ? "px-4 py-1 text-sm font-medium text-white bg-primary-700 rounded-full"
            : "px-4 py-1 text-sm font-medium text-gray-700 rounded-full";
 
-
-
-
-    private class PricingPlan
-    {
-        public string Name { get; set; } = "";
-        public string Price { get; set; } = "";
-        public string Image { get; set; } = "";
-        public List<string> Features { get; set; } = new();
-    }
-
-    private List<string> PartnerLogos = new()
-    {
-        "/assets/Icon/amazon.png",
-        "/assets/Icon/netflix.png",
-        "/assets/Icon/reddit.png",
-        "/assets/Icon/discord.png",
-        "/assets/Icon/spotify.png"
-    };
-
+    private string GetBillingText() =>
+        Billing == BillingCycle.Monthly ? "/mois" : "/an";
 }
