@@ -5,7 +5,7 @@
 @if (SaleSummarys != null && SaleSummarys.Any())
 {
     <ApexChart TItem="SaleSummary"
-               Title="Recapitulatif des ventes par produit" Height="350">
+               Title="Récapitulatif des ventes par produit" Height="350">
 
         <ApexPointSeries TItem="SaleSummary"
                          Items="SaleSummarys"
@@ -25,11 +25,6 @@
 @code {
     [Parameter]
     public IEnumerable<SaleSummary> SaleSummarys { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-    }
-
 
     private string GetColor(SaleSummary saleSummary)
     {        

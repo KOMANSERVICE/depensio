@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Components;
 
 namespace depensio.Components;
 
-public class MauiGraphComponentService : IGraphComponent
+public class MauiGraphComponentService : IGraphComponent<SaleSummary>
 {
-    public RenderFragment Render(IEnumerable<SaleSummary> SaleSummarys) => builder =>
+    public RenderFragment Render(IEnumerable<SaleSummary> Items) => builder =>
     {
         builder.OpenComponent(0, typeof(MauiGraphComponent));
-        builder.AddAttribute(1, "SaleSummarys", SaleSummarys);
+        builder.AddAttribute(1, "SaleSummarys", Items);
         builder.CloseComponent();
     };
 }

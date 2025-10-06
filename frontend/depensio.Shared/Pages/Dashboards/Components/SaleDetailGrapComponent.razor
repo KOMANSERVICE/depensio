@@ -1,5 +1,6 @@
 ﻿@using depensio.Shared.Pages.Dashboards.Models
 @inject IDashboardServices _dashboardServices
+@inject IGraphComponent<SaleDashboard> _saleGraphComponent
 
 <div class="px-4 pt-6">
     <div class="mb-2 flex flex-col sm:flex-row items-end justify-start gap-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
@@ -36,7 +37,7 @@
                     </p>
                 </div>
             </div>
-            @*  @_graphComponent.Render(SaleSummarys) *@
+            @_saleGraphComponent.Render(saleDashboards)
             <div class="flex items-center justify-between pt-3 mt-4 border-t border-gray-200 sm:pt-6 dark:border-gray-700">
                 <div>
                 </div>
@@ -119,22 +120,36 @@
     [Parameter]
     public Guid boutiqueId { get; set; }
 
-    public List<SaleDashboard> saleDashboards = new();
+    public IEnumerable<SaleDashboard> saleDashboards = new List<SaleDashboard>();
+    public IEnumerable<SaleDashboard> saleGroupDashboards = new List<SaleDashboard>();
     public SaleRequest saleRequest = new();
 
     protected override async Task OnInitializedAsync()
     {
         saleDashboards = await GetSalesDataAsync(boutiqueId);
+
+        saleGroupDashboards = saleDashboards
+            .GroupBy(s => s.Name)
+            .Select(g => new SaleDashboard
+            {
+                Name = g.Key,
+                Quantity = g.Sum(x => x.Quantity),
+                TotalAmount = g.Sum(x => x.TotalAmount),
+                Balance = g.Sum(x => x.Balance),
+                AveragePurchasePrice = g.Average(x => x.AveragePurchasePrice),
+                SalePrice = g.Average(x => x.SalePrice)
+            })
+            .ToList();
     }
 
-    private async Task<List<SaleDashboard>> GetSalesDataAsync(Guid boutiqueId)
+    private async Task<IEnumerable<SaleDashboard>> GetSalesDataAsync(Guid boutiqueId)
     {
         saleRequest.StartDate = DateTime.UtcNow.AddMonths(-2);
         saleRequest.EndDate = DateTime.UtcNow;
         var response = await _dashboardServices.GetSalesDetailByBoutiqueAsync(boutiqueId, new GetSalesDetailByBoutiqueRequest(saleRequest));
         if (response.Success)
         {
-            return response.Data.SalesDetails.ToList();
+            return response.Data.SalesDetails;
         }
         return new List<SaleDashboard>();
     }
