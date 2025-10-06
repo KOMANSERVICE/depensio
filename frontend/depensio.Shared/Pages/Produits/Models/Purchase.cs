@@ -8,6 +8,7 @@ public record Purchase
     public Guid Id { get; set; } = Guid.Empty;
     public Guid BoutiqueId { get; set; } = Guid.Empty;
     public string Title { get; set; } = string.Empty;
+    public DateOnly DateAchat { get; set; } = DateOnly.FromDateTime(DateTime.Now);
     public string SupplierName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }

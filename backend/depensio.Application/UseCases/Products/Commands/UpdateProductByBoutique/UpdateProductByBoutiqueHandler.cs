@@ -52,7 +52,11 @@ public class UpdateProductByBoutiqueHandler(
         var produt = await _productRepository.FindAsync(p => p.Id == ProductId.Of(productDTO.Id));
         produt.CostPrice = productDTO.CostPrice;
         produt.Price = productDTO.Price;
-        if(!stockIsAuto)
+
+        //TODO: rendre la modification du nom optionnelle
+        produt.Name = productDTO.Name;
+
+        if (!stockIsAuto)
             produt.Stock = productDTO.Stock;
 
         if(config == BarcodeGenerationMode.Manual && !string.IsNullOrWhiteSpace(productDTO.Barcode))

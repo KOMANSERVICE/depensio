@@ -4,6 +4,7 @@ public class Purchase : Entity<PurchaseId>
 {
     public BoutiqueId BoutiqueId { get; set; }
     public string SupplierName { get; set; }
+    public DateOnly DateAchat { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime Date { get; set; }
