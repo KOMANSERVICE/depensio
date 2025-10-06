@@ -3,23 +3,38 @@
 @inject IGraphComponent<SaleDashboard> _saleGraphComponent
 
 <div class="px-4 pt-6">
-    <div class="mb-2 flex flex-col sm:flex-row items-end justify-start gap-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-        <div>
-            <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date début</label>
-            <InputDate id="startDate" 
-                   class="pl-10 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                   @bind-Value="saleRequest.StartDate" />
+
+    <EditForm EditContext="@editContext" OnValidSubmit="HandleGetSalesData">
+        <DataAnnotationsValidator />
+        <div class="mb-2 flex items-end justify-start gap-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+            <ValidationSummaryFancy />
+            <div class="flex sm:flex-row flex-col gap-4 items-end justify-start">
+                <div>
+                    <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date début</label>
+                    <InputDate id="startDate"
+                               class="pl-10 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                               @bind-Value="saleRequest.StartDate" />
+                    <div id="email-error" class="error-message">
+                        <ValidationMessage For="@(() => saleRequest.StartDate)" />
+                    </div>
+                </div>
+                <div>
+                    <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date fin</label>
+                    <InputDate id="endDate"
+                               class="pl-10 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                               @bind-Value="saleRequest.EndDate" />
+                    <div id="email-error" class="error-message">
+                        <ValidationMessage For="@(() => saleRequest.EndDate)" />
+                    </div>
+                </div>
+                <button type="submit" class="mt-6 sm:mt-0 px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-primary-800 transition">
+                    Rechercher
+                </button>
+            </div>
+            
         </div>
-        <div>
-            <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date fin</label>
-            <InputDate id="endDate"
-                       class="pl-10 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                   @bind-Value="saleRequest.EndDate" />
-        </div>
-        <button class="mt-6 sm:mt-0 px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-primary-800 transition">
-            Rechercher
-        </button>
-    </div>
+
+    </EditForm>
 
     <div class="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3 ">
         <!-- Main widget -->
@@ -123,9 +138,21 @@
     public IEnumerable<SaleDashboard> saleDashboards = new List<SaleDashboard>();
     public IEnumerable<SaleDashboard> saleGroupDashboards = new List<SaleDashboard>();
     public SaleRequest saleRequest = new();
+    private bool isLoad = false;
+
+    private ErrorMessage errorMessage = new();
+
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
 
     protected override async Task OnInitializedAsync()
     {
+        editContext = new EditContext(saleRequest);
+        messageStore = new ValidationMessageStore(editContext);
+
+        editContext.OnValidationRequested += (s, e) => messageStore.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+
         saleDashboards = await GetSalesDataAsync(boutiqueId);
 
         saleGroupDashboards = saleDashboards
@@ -144,14 +171,81 @@
 
     private async Task<IEnumerable<SaleDashboard>> GetSalesDataAsync(Guid boutiqueId)
     {
-        saleRequest.StartDate = DateTime.UtcNow.AddMonths(-2);
-        saleRequest.EndDate = DateTime.UtcNow;
         var response = await _dashboardServices.GetSalesDetailByBoutiqueAsync(boutiqueId, new GetSalesDetailByBoutiqueRequest(saleRequest));
         if (response.Success)
         {
             return response.Data.SalesDetails;
         }
         return new List<SaleDashboard>();
+    }
+
+    private async Task HandleGetSalesData()
+    {
+        isLoad = true;
+        try
+        {
+            saleDashboards = await GetSalesDataAsync(boutiqueId);
+
+            saleGroupDashboards = saleDashboards
+                .GroupBy(s => s.Name)
+                .Select(g => new SaleDashboard
+                {
+                    Name = g.Key,
+                    Quantity = g.Sum(x => x.Quantity),
+                    TotalAmount = g.Sum(x => x.TotalAmount),
+                    Balance = g.Sum(x => x.Balance),
+                    AveragePurchasePrice = g.Average(x => x.AveragePurchasePrice),
+                    SalePrice = g.Average(x => x.SalePrice)
+                })
+                .ToList();
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                // Efface les anciennes erreurs
+                messageStore.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
+                {
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        // Associer au champ si possible
+                        var fieldIdentifier = new FieldIdentifier(saleRequest!, propertyName);
+                        messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    // Message global sans champ spécifique
+                    var fieldIdentifier = new FieldIdentifier(saleRequest!, string.Empty);
+                    messageStore.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                // Rafraîchir l’affichage
+                editContext.NotifyValidationStateChanged();
+
+            }
+            catch
+            {
+                messageStore.Add(new FieldIdentifier(saleRequest, string.Empty), "Une erreur est survenue.");
+                editContext.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            isLoad = false;
+        }
     }
 
 }

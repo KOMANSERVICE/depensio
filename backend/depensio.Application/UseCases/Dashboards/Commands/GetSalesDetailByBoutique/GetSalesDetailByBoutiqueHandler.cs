@@ -18,7 +18,8 @@ public class GetSalesDetailByBoutiqueHandler(
                 && b.UsersBoutiques.Any(ub => ub.BoutiqueId == BoutiqueId.Of(boutiqueId) && ub.UserId == userId))
             .SelectMany(b => b.Products)
             .SelectMany(product => product.SaleItems
-                .Where(si => si.Sale.Date >= request.SaleRequest.StartDate && si.Sale.Date <= request.SaleRequest.EndDate)
+                .Where(si => DateOnly.FromDateTime(si.Sale.Date) >= request.SaleRequest.StartDate
+                    && DateOnly.FromDateTime(si.Sale.Date) <= request.SaleRequest.EndDate)
                 .Select(si => new SaleDashboardDTO
                 {
                     Name = product.Name,

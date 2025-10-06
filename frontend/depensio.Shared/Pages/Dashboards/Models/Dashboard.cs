@@ -14,8 +14,8 @@ public record SaleDashboard
 
 public record SaleRequest
 {
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+    public DateOnly StartDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+    public DateOnly EndDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 }
 
 public record GetSalesDetailByBoutiqueRequest(SaleRequest SaleRequest);
