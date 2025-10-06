@@ -161,11 +161,33 @@
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                // Efface les anciennes erreurs
+                messageStore.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
                 {
-                    messageStore.Add(new FieldIdentifier(loginModel, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        // Associer au champ si possible
+                        var fieldIdentifier = new FieldIdentifier(loginModel!, propertyName);
+                        messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
                 }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    // Message global sans champ spécifique
+                    var fieldIdentifier = new FieldIdentifier(loginModel!, string.Empty);
+                    messageStore.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                // Rafraîchir l’affichage
+                editContext.NotifyValidationStateChanged();
+
             }
             catch
             {
