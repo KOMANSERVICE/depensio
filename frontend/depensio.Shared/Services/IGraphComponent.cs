@@ -1,9 +1,10 @@
-﻿using depensio.Shared.Pages.Produits.Models;
+﻿using depensio.Shared.Pages.Dashboards.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace depensio.Shared.Services;
 
-public interface IGraphComponent
+public interface IGraphComponent<T>
 {
-    RenderFragment Render(IEnumerable<SaleSummary> SaleSummarys);
+    RenderFragment Render(IEnumerable<T> Items);
 }
+

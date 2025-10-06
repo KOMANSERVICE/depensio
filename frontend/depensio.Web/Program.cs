@@ -1,5 +1,7 @@
 using ApexCharts;
 using depensio.Shared;
+using depensio.Shared.Pages.Dashboards.Models;
+using depensio.Shared.Pages.Produits.Models;
 using depensio.Shared.Services;
 using depensio.Web.Client.Services;
 using depensio.Web.Components;
@@ -25,7 +27,8 @@ builder.Services.AddScoped<ProtectedLocalStorage>();
 
 builder.Services.AddApexCharts();
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<IGraphComponent, WebGraphComponentService>();
+builder.Services.AddScoped<IGraphComponent<SaleSummary>, WebGraphComponentService>();
+builder.Services.AddScoped<IGraphComponent<SaleDashboard>, SalesGraphComponentService>();
 
 // Configuration JWT
 var JWTValidIssuer = builder.Configuration["JWT:ValidIssuer"];

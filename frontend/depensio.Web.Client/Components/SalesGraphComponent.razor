@@ -1,0 +1,38 @@
+﻿@using ApexCharts
+@using depensio.Shared.Pages.Dashboards.Models
+@using depensio.Shared.Pages.Produits.Models
+@using depensio.Shared.Helper
+
+@if (SaleDashboards != null && SaleDashboards.Any())
+{
+    <ApexChart TItem="SaleDashboard"
+               Title="Récapitulatif groupé des ventes par produit" Height="350">
+
+        <ApexPointSeries TItem="SaleDashboard"
+                         Items="SaleDashboards"
+                         Name="Prix de vente"
+                         XValue="@(e => e.Name)"
+                         YAggregate="@(e => e.Sum(e => e.TotalAmount))"
+                         OrderByDescending="e=>e.Y"
+                         SeriesType="SeriesType.Bar"
+                         Color="#5cb85c" />
+
+        <ApexPointSeries TItem="SaleDashboard"
+                         Items="SaleDashboards"
+                         Name="Prix d'achat"
+                         XValue="@(e => e.Name)"
+                         YAggregate="@(e => e.Sum(e => e.AveragePurchasePrice))"
+                         OrderByDescending="e=>e.Y"
+                         SeriesType="SeriesType.Bar"
+                         Color="#E51C15" />
+    </ApexChart>
+
+
+}
+
+
+@code {
+    [Parameter]
+    public IEnumerable<SaleDashboard> SaleDashboards { get; set; } = new List<SaleDashboard>();
+
+}

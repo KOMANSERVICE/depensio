@@ -2,6 +2,8 @@
 using depensio.Components;
 using depensio.Services;
 using depensio.Shared;
+using depensio.Shared.Pages.Dashboards.Models;
+using depensio.Shared.Pages.Produits.Models;
 using depensio.Shared.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
@@ -34,7 +36,9 @@ namespace depensio
                 .AddHttpClientFactoryServices(builder.Configuration);
 
             builder.Services.AddMauiBlazorWebView();
-            builder.Services.AddScoped<IGraphComponent, MauiGraphComponentService>();
+
+            builder.Services.AddScoped<IGraphComponent<SaleSummary>, MauiGraphComponentService>();
+            builder.Services.AddScoped<IGraphComponent<SaleDashboard>, SalesMauiGraphComponentService>();
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();

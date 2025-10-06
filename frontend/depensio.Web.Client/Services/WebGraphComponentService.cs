@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace depensio.Web.Client.Services;
 
-public class WebGraphComponentService : IGraphComponent
+public class WebGraphComponentService : IGraphComponent<SaleSummary>
 {
     public RenderFragment Render(IEnumerable<SaleSummary> SaleSummarys) => builder =>
     {
