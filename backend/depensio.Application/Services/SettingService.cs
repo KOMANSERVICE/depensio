@@ -49,7 +49,7 @@ public class SettingService : ISettingService
             },{
                 "Id": "{{BoutiqueSettingKeys.VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO}}",
                 "LabelValue": "Vendre avec stock zéro (0)",
-                "Value": "true",
+                "Value": "false",
                 "LabelText": "Préfixe Code Bar.",
                 "Text": "",
                 "Description": "Lors de la vente, à la caisse, vous ou vos employer pourrons selectionner un produit en rupture de stock"
