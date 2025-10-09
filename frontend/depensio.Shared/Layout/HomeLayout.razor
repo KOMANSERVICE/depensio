@@ -16,10 +16,10 @@
         <Footer />
     </RouteGuardNotConnected>
 </CascadingAuthenticationState>
-@* 
+
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await JSRuntime.InvokeVoidAsync("depensio.initialized");
     }
-} *@
+}
