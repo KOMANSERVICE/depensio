@@ -80,7 +80,7 @@
                                 <label for="lastname" class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i data-feather="user" class="text-gray-400"></i>
+                                        <i class="fas fa-user text-gray-400"></i>
                                     </div>
                                     <InputText @bind-Value="registerModel.LastName" type="text" id="lastname" name="lastname" 
                                            class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
@@ -95,7 +95,7 @@
                                 <label for="firstname" class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i data-feather="user" class="text-gray-400"></i>
+                                        <i class="fas fa-user text-gray-400"></i>
                                     </div>
                                     <InputText @bind-Value="registerModel.FirstName" type="text" id="firstname" name="firstname" 
                                            class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
@@ -111,7 +111,7 @@
                             <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i data-feather="phone" class="text-gray-400"></i>
+                                    <i class="fas fa-phone text-gray-400"></i>
                                 </div>
                                 <InputText @bind-Value="registerModel.Tel" type="tel" id="phone" name="phone"
                                        class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
@@ -128,11 +128,12 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fas fa-lock text-gray-400"></i>
                                 </div>
-                                <InputText @bind-Value="registerModel.Password" type="password" id="password" name="password" 
-                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                <InputText @bind-Value="registerModel.Password" type="@PasswordInputType" id="password" name="password"
+                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
                                        placeholder="••••••••" />
-                                <button type="button" id="togglePassword1" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center">
-                                    <i data-feather="eye" class="text-gray-400 hover:text-gray-600"></i>
+                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        @onclick="TogglePasswordVisibility">
+                                    <i class="@TogglePasswordIcon text-gray-400 hover:text-gray-600"></i>
                                 </button>
                             </div>
                             <div id="password-error" class="error-message">
@@ -146,11 +147,12 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fas fa-lock text-gray-400"></i>
                                 </div>
-                                <InputText @bind-Value="registerModel.ConfirmPasswords" type="password" id="confirm-password" name="confirm-password" 
-                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                <InputText @bind-Value="registerModel.ConfirmPasswords" type="@PasswordInputType2" id="confirm-password" name="confirm-password"
+                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
                                        placeholder="••••••••" />
-                                <button type="button" id="togglePassword2" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center">
-                                    <i data-feather="eye" class="text-gray-400 hover:text-gray-600"></i>
+                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        @onclick="TogglePasswordVisibility2">
+                                    <i class="@TogglePasswordIcon2 text-gray-400 hover:text-gray-600"></i>
                                 </button>
                             </div>
                             <div id="confirm-password-error" class="error-message">
@@ -168,11 +170,13 @@
                         <div id="terms-error" class="error-message hidden">Vous devez accepter les conditions</div>
 
                         <div>
-                            <button type="submit"
-                                    class="w-full bg-primary-700 text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition duration-200 flex items-center justify-center space-x-2">
-                                <span>S'inscrire</span>
-                                <i data-feather="arrow-right"></i>
-                            </button>
+                            <div>
+                                <button type="submit"
+                                        class="w-full bg-primary-700 text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition duration-200 flex items-center justify-center space-x-2">
+                                    <span>S'inscrire</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -235,6 +239,15 @@
 
     private EditContext? editContext;
     private ValidationMessageStore?  messageStore;
+
+    private bool showPassword = false;
+    private bool showPassword2 = false;
+
+    private string PasswordInputType => showPassword ? "text" : "password";
+    private string TogglePasswordIcon => showPassword ? "fas fa-eye-slash" : "fas fa-eye";
+    
+    private string PasswordInputType2 => showPassword2 ? "text" : "password";
+    private string TogglePasswordIcon2 => showPassword2 ? "fas fa-eye-slash" : "fas fa-eye";
 
     protected override void OnInitialized()
     {
@@ -303,5 +316,14 @@
         {
             isLoad = false;
         }
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+    private void TogglePasswordVisibility2()
+    {
+        showPassword2 = !showPassword2;
     }
 }
