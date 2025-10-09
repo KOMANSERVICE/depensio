@@ -8,7 +8,7 @@ window.depensio.initialized = function () {
 
     if (mobileMenuButton && mobileMenu) {
         mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
+            mobileMenu.classList.toggle('open');
         });
     }
 
@@ -114,8 +114,6 @@ window.depensio.initialized = function () {
             const subject = document.getElementById('subject')?.value;
             const message = document.getElementById('message')?.value;
 
-            console.log({ name, email, subject, message });
-            alert('Merci pour votre message! Nous vous contacterons bientôt.');
             contactForm.reset();
         });
     }
@@ -153,29 +151,5 @@ window.depensio.initialized = function () {
     }
 
 
-    const navmenulink = document.querySelector('.menu-link');
-    if (navmenulink) {
-        function setActiveMenuLink() {
-            alert(1);
-            var hash = window.location.hash.replace('#', '');
-            navmenulink.forEach(function (el) {
-                if (el.getAttribute('data-section') === hash) {
-                    el.classList.add('font-bold', 'text-primary-700');
-                } else {
-                    el.classList.remove('font-bold', 'text-primary-700');
-                }
-            });
-        }
-        setActiveMenuLink();
-        window.addEventListener('hashchange', setActiveMenuLink);
-
-        // Ajout : gestion du clic pour forcer la mise à jour même si le hash ne change pas
-        navmenulink.forEach(function (el) {
-            alert(el.innerHTML);
-            el.addEventListener('click', function () {
-                setTimeout(setActiveMenuLink, 10); // Laisse le temps au hash de changer
-            });
-        });
-    }
-   
+  
 }

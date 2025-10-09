@@ -265,3 +265,19 @@ html, body {
         transform: rotate(360deg);
     }
 }
+
+.mobile-menu {
+    transition: all 0.3s ease;
+    max-height: 0;
+    overflow: hidden;
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: white;
+    z-index: 50;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-menu.open {
+    max-height: 500px;
+}

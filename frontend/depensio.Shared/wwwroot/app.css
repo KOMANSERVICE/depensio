@@ -1220,20 +1220,16 @@ video {
   max-height: 390px;
 }
 
+.max-h-\[400px\] {
+  max-height: 400px;
+}
+
 .max-h-\[430px\] {
   max-height: 430px;
 }
 
-.max-h-\[450px\] {
-  max-height: 450px;
-}
-
 .max-h-\[80vh\] {
   max-height: 80vh;
-}
-
-.max-h-\[400px\] {
-  max-height: 400px;
 }
 
 .min-h-0 {
@@ -3184,6 +3180,10 @@ video {
   padding-bottom: 0.5rem;
 }
 
+.pb-3 {
+  padding-bottom: 0.75rem;
+}
+
 .pb-4 {
   padding-bottom: 1rem;
 }
@@ -3206,6 +3206,10 @@ video {
 
 .pl-5 {
   padding-left: 1.25rem;
+}
+
+.pr-2 {
+  padding-right: 0.5rem;
 }
 
 .pr-3 {
@@ -3246,10 +3250,6 @@ video {
 
 .pt-8 {
   padding-top: 2rem;
-}
-
-.pr-2 {
-  padding-right: 0.5rem;
 }
 
 .text-left {
@@ -4324,6 +4324,22 @@ html, body {
   }
 }
 
+.mobile-menu {
+  transition: all 0.3s ease;
+  max-height: 0;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: white;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-menu.open {
+  max-height: 500px;
+}
+
 @media (min-width: 640px) {
   .sm\:container {
     width: 100%;
@@ -5091,12 +5107,12 @@ html, body {
     margin-bottom: 3.5rem;
   }
 
-  .sm\:mt-14 {
-    margin-top: 3.5rem;
-  }
-
   .sm\:mt-0 {
     margin-top: 0px;
+  }
+
+  .sm\:mt-14 {
+    margin-top: 3.5rem;
   }
 
   .sm\:flex {
