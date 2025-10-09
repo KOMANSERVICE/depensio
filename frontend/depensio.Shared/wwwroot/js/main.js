@@ -1,4 +1,4 @@
-window.depensio = window.depensio || {};
+ï»¿window.depensio = window.depensio || {};
 
 window.depensio.initialized = function () {
     
@@ -85,10 +85,10 @@ window.depensio.initialized = function () {
                 // Fake response
                 setTimeout(() => {
                     const responses = [
-                        "Je comprends votre demande. Un membre de notre équipe vous contactera bientôt.",
+                        "Je comprends votre demande. Un membre de notre Ã©quipe vous contactera bientÃ´t.",
                         "Merci pour votre message! Comment puis-je vous aider davantage?",
-                        "J'ai noté votre question. Nous y répondrons dans les plus brefs délais.",
-                        "Pourriez-vous préciser votre demande s'il vous plaît?"
+                        "J'ai notÃ© votre question. Nous y rÃ©pondrons dans les plus brefs dÃ©lais.",
+                        "Pourriez-vous prÃ©ciser votre demande s'il vous plaÃ®t?"
                     ];
                     const randomResponse = responses[Math.floor(Math.random() * responses.length)];
                     addMessage(randomResponse);
