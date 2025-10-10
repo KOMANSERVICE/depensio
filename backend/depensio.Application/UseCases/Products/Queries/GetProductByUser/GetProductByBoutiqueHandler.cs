@@ -25,7 +25,9 @@ public class GetProductByBoutiqueHandler(
                 p.CostPrice,
                 p.Stock,
                 p.ProductItems.Select(pi => pi.Barcode).ToList()
-            )).ToList();
+            ))
+            .OrderBy(p => p.Name)
+            .ToList();
 
 
 
