@@ -34,6 +34,7 @@ public class GetPurchaseByBoutiqueHandler(
                     pi.Id.Value,pi.ProductId.Value, pi.Price, pi.Quantity
                 )).ToList()
             })
+            .OrderByDescending(p => p.DateAchat)
             .ToListAsync();
 
 

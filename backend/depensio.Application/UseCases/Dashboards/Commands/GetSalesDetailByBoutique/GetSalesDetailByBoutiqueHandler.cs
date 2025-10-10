@@ -28,7 +28,8 @@ public class GetSalesDetailByBoutiqueHandler(
                     Quantity = si.Quantity,
                     TotalAmount = si.Price * si.Quantity,
                     AveragePurchasePrice = product.PurchaseItems.Any() ? product.PurchaseItems.Average(pi => pi.Price) : 0,
-                    Balance = (si.Price * si.Quantity) - (product.PurchaseItems.Any() ? product.PurchaseItems.Average(pi => pi.Price) * si.Quantity : 0)
+                    Balance = (si.Price * si.Quantity) - (product.PurchaseItems.Any() ? product.PurchaseItems.Average(pi => pi.Price) * si.Quantity : 0),
+                    TotalPurchase = (product.PurchaseItems.Any() ? product.PurchaseItems.Average(pi => pi.Price) * si.Quantity : 0)
                 })
             )
             .OrderByDescending(s => s.SaleDate)

@@ -2,11 +2,13 @@
 @inject IDashboardServices _dashboardServices
 @inject IGraphComponent<SaleDashboard> _saleGraphComponent
 
+
+<LoadingComponent IsLoad="@isLoad" />
 <div class="px-4 pt-6">
 
     <EditForm EditContext="@editContext" OnValidSubmit="HandleGetSalesData">
         <DataAnnotationsValidator />
-        <div class="mb-2 flex items-end justify-start gap-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+        <div class="mb-2 flex items-center justify-start gap-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
             <ValidationSummaryFancy />
             <div class="flex sm:flex-row flex-col gap-4 items-end justify-start">
                 <div>
@@ -27,11 +29,11 @@
                         <ValidationMessage For="@(() => saleRequest.EndDate)" />
                     </div>
                 </div>
-                <button type="submit" class="mt-6 sm:mt-0 px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-primary-800 transition">
+                <button type="submit" class="mt-6 mb-1 sm:mt-0 px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-primary-800 transition">
                     Rechercher
                 </button>
             </div>
-            
+
         </div>
 
     </EditForm>
@@ -96,15 +98,16 @@
                                         <p class="text-sm text-gray-500 truncate dark:text-gray-400">
                                             Quantité vendu : @saleItems.Quantity
                                         </p>
+                                        <p class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                                            Total vendu: @($"{saleItems.TotalAmount:N0} FCFA")
+                                        </p>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
-                                            Total: @($"{saleItems.TotalAmount:N0} FCFA")
-                                        </p>
+                                       
                                         <p class="text-sm text-gray-500 truncate dark:text-gray-400">
                                             Prix d'achat : @($"{saleItems.AveragePurchasePrice:N0} FCFA")
                                         </p>
-                                        <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                                        <p class="text-sm text-gray-900 font-semibold truncate dark:text-gray-400">
                                             Gain estimé : @($"{saleItems.Balance:N0} FCFA")
                                         </p>
                                     </div>
@@ -136,7 +139,6 @@
     public Guid boutiqueId { get; set; }
 
     public IEnumerable<SaleDashboard> saleDashboards = new List<SaleDashboard>();
-    public IEnumerable<SaleDashboard> saleGroupDashboards = new List<SaleDashboard>();
     public SaleRequest saleRequest = new();
     private bool isLoad = false;
 
@@ -153,20 +155,7 @@
         editContext.OnValidationRequested += (s, e) => messageStore.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
 
-        saleDashboards = await GetSalesDataAsync(boutiqueId);
-
-        saleGroupDashboards = saleDashboards
-            .GroupBy(s => s.Name)
-            .Select(g => new SaleDashboard
-            {
-                Name = g.Key,
-                Quantity = g.Sum(x => x.Quantity),
-                TotalAmount = g.Sum(x => x.TotalAmount),
-                Balance = g.Sum(x => x.Balance),
-                AveragePurchasePrice = g.Average(x => x.AveragePurchasePrice),
-                SalePrice = g.Average(x => x.SalePrice)
-            })
-            .ToList();
+        await IniGetSalesDataAsync();
     }
 
     private async Task<IEnumerable<SaleDashboard>> GetSalesDataAsync(Guid boutiqueId)
@@ -179,25 +168,26 @@
         return new List<SaleDashboard>();
     }
 
+    private async Task IniGetSalesDataAsync()
+    {
+        saleDashboards = await GetSalesDataAsync(boutiqueId);
+               
+    }
+
     private async Task HandleGetSalesData()
     {
         isLoad = true;
         try
         {
-            saleDashboards = await GetSalesDataAsync(boutiqueId);
 
-            saleGroupDashboards = saleDashboards
-                .GroupBy(s => s.Name)
-                .Select(g => new SaleDashboard
-                {
-                    Name = g.Key,
-                    Quantity = g.Sum(x => x.Quantity),
-                    TotalAmount = g.Sum(x => x.TotalAmount),
-                    Balance = g.Sum(x => x.Balance),
-                    AveragePurchasePrice = g.Average(x => x.AveragePurchasePrice),
-                    SalePrice = g.Average(x => x.SalePrice)
-                })
-                .ToList();
+            saleDashboards = new List<SaleDashboard>();
+            // Met à jour le DOM
+            StateHasChanged();
+
+            await IniGetSalesDataAsync();
+            // Met à jour le DOM
+            StateHasChanged();
+
         }
         catch (ApiException ex)
         {

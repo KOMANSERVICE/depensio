@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavManager 
 @inject IMenuService _menuService
+@inject IBoutiqueService _boutiqueService
 
 
 
@@ -22,7 +23,7 @@
             <div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
 
                 <Sidebar 
-                    boutiqueId="@boutiqueId" 
+                    boutique="@boutique" 
                     IsSidebarOpen="@isSidebarOpen" 
                     OnClose="()=>{
                         isSidebarOpen = !isSidebarOpen;
@@ -52,6 +53,7 @@
     private List<MenuUser> menuUsers = new();
     private bool HasAccess = true;    
     private bool isLoad = true;
+    private BoutiqueDTO boutique = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,6 +61,7 @@
         boutiqueId = NavigationHelper.ExtractGuidFromUri(NavManager);
 
         await GetMenuByUserBoutiqueAsync(boutiqueId);
+        await GetOneBoutiqueByUser(boutiqueId);
         isLoad = false; 
     }
 
@@ -74,6 +77,13 @@
 
         var currentPath = $"/{NavManager.ToBaseRelativePath(NavManager.Uri)}";
         HasAccess = menuUsers.Any(m => currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase));
-                
+
     } 
+
+    private async Task GetOneBoutiqueByUser(Guid _boutiqueId)
+    {
+        var resultBoutique = await _boutiqueService.GetOneBoutiqueByUser(_boutiqueId);
+        boutique = resultBoutique.Data.Boutique;
+    
+    }
 }

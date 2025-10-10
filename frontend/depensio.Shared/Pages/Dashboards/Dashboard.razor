@@ -9,6 +9,7 @@
 
 <PageTitle>Depensio - Tableau de bord</PageTitle>
 
+
 <div class="px-4 pt-6">
     <div class="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3 ">
         <!-- Main widget -->
@@ -178,7 +179,8 @@
     public IEnumerable<SaleSummary> SaleSummarys { get; set; } = new List<SaleSummary>();
 
     public List<SaleDashboard> saleDashboards = new();
-    public SaleRequest saleRequest = new(); 
+    public SaleRequest saleRequest = new();
+
 
     protected override async Task OnInitializedAsync()
     {

@@ -50,6 +50,7 @@ public class ProductService(
                    .Include(b => b.Products)
                        .ThenInclude(p => p.ProductItems)
                    .SelectMany(b => b.Products)
+                    .OrderBy(p => p.Name)
                    .Select(productSelector(stockIsAuto));
 
         return products;

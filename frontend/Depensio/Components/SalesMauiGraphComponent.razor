@@ -21,7 +21,7 @@
                          Items="SaleDashboards"
                          Name="Prix d'achat"
                          XValue="@(e => e.Name)"
-                         YAggregate="@(e => e.Sum(e => e.AveragePurchasePrice))"
+                         YAggregate="@(e => e.Sum(e => e.TotalPurchase))"
                          OrderByDescending="e=>e.Y"
                          SeriesType="SeriesType.Bar"
                          Color="#E51C15" />
