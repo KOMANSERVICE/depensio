@@ -288,7 +288,7 @@
             onShowModal();
 
         }
-        catch (ApiException ex)
+         catch (ApiException ex)
         {
             try
             {
@@ -297,27 +297,46 @@
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+
+                // Efface les anciennes erreurs
+                messageStore.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
                 {
-                    messageStore.Add(new FieldIdentifier(productItem, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        // Associer au champ si possible
+                        var fieldIdentifier = new FieldIdentifier(productItem!, propertyName);
+                        messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    // Message global sans champ spécifique
+                    var fieldIdentifier = new FieldIdentifier(productItem!, string.Empty);
+                    messageStore.Add(fieldIdentifier, errorResult.Detail);
                 }
 
-                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
-                {
-                    messageStore.Add(new FieldIdentifier(productItem, string.Empty), errorResult.Detail);
-                    editContext.NotifyValidationStateChanged();
-                }
+                // Rafraîchir l’affichage
+                editContext.NotifyValidationStateChanged();
+                
+
             }
             catch
             {
-                messageStore.Add(new FieldIdentifier(productItem, string.Empty), "Une erreur est survenue.");
-                editContext.NotifyValidationStateChanged();
+                messageStore?.Add(new FieldIdentifier(productItem, string.Empty), "Une erreur est survenue.");
+                editContext?.NotifyValidationStateChanged();
             }
         }
         finally
         {
             isLoad = false;
+            StateHasChanged();
         }
     }
 
