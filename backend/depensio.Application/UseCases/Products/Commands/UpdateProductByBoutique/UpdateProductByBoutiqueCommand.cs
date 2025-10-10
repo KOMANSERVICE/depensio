@@ -13,6 +13,7 @@ public class UpdateProductByBoutiqueCommandValidator : AbstractValidator<UpdateP
     {        
         RuleFor(x => x.Product).NotNull().WithMessage("Product is required");
         RuleFor(x => x.Product.Id).NotEmpty().WithMessage("Id product is required");
+        RuleFor(x => x.Product.Name).NotEmpty().WithMessage("Name product is required");
         RuleFor(x => x.Product.Price).NotEmpty().WithMessage("Price is required");
         RuleFor(x => x.Product.CostPrice).NotEmpty().WithMessage("Cost Price is required");
         RuleFor(x => x.Product.BoutiqueId).NotEmpty().WithMessage("BoutiqueId is required");

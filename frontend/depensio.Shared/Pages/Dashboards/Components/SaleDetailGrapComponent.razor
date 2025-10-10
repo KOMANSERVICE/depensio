@@ -50,7 +50,9 @@
                 <div class="flex flex-col items-end justify-center flex-1 font-medium text-base">
                     <p>Total vendu: @($"{saleDashboards.Sum(x => x.TotalAmount):N0} FCFA")</p>
                     <p>
-                        Gain total estimé: <span class="text-green-500 dark:text-green-400">@($"{saleDashboards.Sum(x => x.Balance):N0} FCFA")</span>
+                        Gain total estimé: <span class="@GetBalanceTextColor(saleDashboards.Sum(x => x.Balance))">
+                            @($"{saleDashboards.Sum(x => x.Balance):N0} FCFA")
+                        </span>
                     </p>
                 </div>
             </div>
@@ -103,7 +105,7 @@
                                         </p>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                       
+
                                         <p class="text-sm text-gray-500 truncate dark:text-gray-400">
                                             Prix d'achat : @($"{saleItems.AveragePurchasePrice:N0} FCFA")
                                         </p>
@@ -171,7 +173,7 @@
     private async Task IniGetSalesDataAsync()
     {
         saleDashboards = await GetSalesDataAsync(boutiqueId);
-               
+
     }
 
     private async Task HandleGetSalesData()
@@ -238,4 +240,19 @@
         }
     }
 
+    private string GetBalanceTextColor(decimal balance)
+    {
+        if (balance > 0)
+        {
+            return "text-green-500 dark:text-green-400"; // Vert pour positif
+        }
+        else if (balance < 0)
+        {
+            return "text-red-500 dark:text-red-400"; // Rouge pour négatif
+        }
+        else
+        {
+            return "text-black dark:text-white"; // Noir pour zéro
+        }
+    }
 }
