@@ -38,6 +38,7 @@ public class GetProductByBoutiqueWithStockSettingHandler(
                 p.Stock,
                 p.ProductItems.Select(pi => pi.Barcode).ToList()
             ))
+            .OrderBy(p => p.Name)
             .ToList();
 
 
