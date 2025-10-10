@@ -110,7 +110,7 @@
                                             Prix d'achat : @($"{saleItems.AveragePurchasePrice:N0} FCFA")
                                         </p>
                                         <p class="text-sm text-gray-900 font-semibold truncate dark:text-gray-400">
-                                            Gain estimé : @($"{saleItems.Balance:N0} FCFA")
+                                            Gain estimé : <span class="@GetBalanceTextColor(saleItems.Balance)">@($"{saleItems.Balance:N0} FCFA")</span>
                                         </p>
                                         <p class="inline-flex items-center text-base font-semibold truncate text-gray-900 dark:text-white">
                                             Total d'Achat: @($"{saleItems.TotalPurchase:N0} FCFA")
