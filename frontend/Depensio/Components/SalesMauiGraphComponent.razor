@@ -10,7 +10,7 @@
 
         <ApexPointSeries TItem="SaleDashboard"
                          Items="SaleDashboards"
-                         Name="Prix de vente"
+                         Name="Total de vente"
                          XValue="@(e => e.Name)"
                          YAggregate="@(e => e.Sum(e => e.TotalAmount))"
                          OrderByDescending="e=>e.Y"
@@ -19,7 +19,7 @@
 
         <ApexPointSeries TItem="SaleDashboard"
                          Items="SaleDashboards"
-                         Name="Prix d'achat"
+                         Name="Total d'achat"
                          XValue="@(e => e.Name)"
                          YAggregate="@(e => e.Sum(e => e.TotalPurchase))"
                          OrderByDescending="e=>e.Y"
