@@ -7,8 +7,10 @@ public record SaleDashboardDTO
     public decimal SalePrice { get; set; }
     public int Quantity { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal TotalPurchase { get; set; }
     public decimal AveragePurchasePrice { get; set; }
     public decimal Balance { get; set; }= 0;
+    
 
 }
 

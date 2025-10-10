@@ -10,4 +10,6 @@ public interface IBoutiqueService
     Task<BaseResponse<CreateBoutiqueResponse>> CreateBoutique(CreateBoutiqueRequest request, CancellationToken cancellationToken = default); 
     [Get("/boutique/user")]
     Task<BaseResponse<GetBoutiqueByUserResponse>> GetBoutiqueByUser(CancellationToken cancellationToken = default);
+    [Get("/boutique/user/{boutiqueId}")]
+    Task<BaseResponse<GetOneBoutiqueByUserResponse>> GetOneBoutiqueByUser(Guid boutiqueId, CancellationToken cancellationToken = default);
 }

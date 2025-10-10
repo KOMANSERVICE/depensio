@@ -30,6 +30,7 @@ public class GetProductItemByBoutiqueHandler(
                     g.Select(x => new ProductItemBarcodeDTO(x.ProductItem.Id.Value, x.ProductItem.Barcode)).ToList()
                     )
                 )
+                .OrderBy(p => p.Name)
                 .ToListAsync();
 
         return new GetProductItemByBoutiqueResult(products);

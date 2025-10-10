@@ -13,5 +13,4 @@ public record BoutiqueDTO
     public string FirstUrl { get; set; } = string.Empty;
 
 }
-
-    
+public record GetOneBoutiqueByUserResponse(BoutiqueDTO Boutique);
