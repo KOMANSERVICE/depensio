@@ -9,7 +9,7 @@
     <EditForm EditContext="@editContext" OnValidSubmit="HandleGetSalesData">
         <DataAnnotationsValidator />
         <div class="mb-2 flex items-center justify-start gap-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-            <ValidationSummaryFancy />
+            <ValidationSummaryFancy editContext="@editContext" />
             <div class="flex sm:flex-row flex-col gap-4 items-end justify-start">
                 <div>
                     <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date début</label>
