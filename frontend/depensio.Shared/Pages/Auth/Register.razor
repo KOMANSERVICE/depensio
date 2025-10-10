@@ -38,7 +38,7 @@
                         <NavLink href="/" class="text-xl opacity-90">
                             Retour à l'accueil
                         </NavLink>
-                   </div>                    
+                    </div>
                 }
 
             </div>
@@ -54,6 +54,20 @@
                 <EditForm EditContext="@editContext" OnValidSubmit="HandleRegister">
                     <DataAnnotationsValidator />
                     <ValidationSummaryFancy />
+                    <div id="errorSummary" class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round"
+                                 class="feather feather-alert-circle text-red-500 mr-2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <h3 class="text-red-800 font-medium">Veuillez corriger les erreurs suivantes :</h3>
+                        </div>
+                        <ValidationSummary class="list-disc pl-5 mt-2 text-red-700 space-y-1" />
+                    </div>
                     <div id="error-summary" class="error-summary hidden">
                         <h3 class="font-medium text-red-600">Veuillez corriger les erreurs suivantes :</h3>
                         <ul id="error-list" class="list-disc pl-5 mt-2 space-y-1"></ul>
@@ -67,8 +81,8 @@
                                     <i class="fas fa-envelope text-gray-400"></i>
                                 </div>
                                 <InputText @bind-Value="registerModel.Email" type="email" id="email" name="email"
-                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                                       placeholder="votre@email.com" />
+                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                           placeholder="votre@email.com" />
                             </div>
                             <div id="email-error" class="error-message">
                                 <ValidationMessage For="@(() => registerModel.Email)" />
@@ -82,9 +96,9 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fas fa-user text-gray-400"></i>
                                     </div>
-                                    <InputText @bind-Value="registerModel.LastName" type="text" id="lastname" name="lastname" 
-                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                                           placeholder="Votre nom" />
+                                    <InputText @bind-Value="registerModel.LastName" type="text" id="lastname" name="lastname"
+                                               class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                               placeholder="Votre nom" />
                                 </div>
                                 <div id="lastname-error" class="error-message">
                                     <ValidationMessage For="@(() => registerModel.LastName)" />
@@ -97,9 +111,9 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fas fa-user text-gray-400"></i>
                                     </div>
-                                    <InputText @bind-Value="registerModel.FirstName" type="text" id="firstname" name="firstname" 
-                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                                           placeholder="Votre prénom" />
+                                    <InputText @bind-Value="registerModel.FirstName" type="text" id="firstname" name="firstname"
+                                               class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                               placeholder="Votre prénom" />
                                 </div>
                                 <div id="firstname-error" class="error-message">
                                     <ValidationMessage For="@(() => registerModel.FirstName)" />
@@ -114,8 +128,8 @@
                                     <i class="fas fa-phone text-gray-400"></i>
                                 </div>
                                 <InputText @bind-Value="registerModel.Tel" type="tel" id="phone" name="phone"
-                                       class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                                       placeholder="06 12 34 56 78" />
+                                           class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
+                                           placeholder="06 12 34 56 78" />
                             </div>
                             <div id="phone-error" class="error-message">
                                 <ValidationMessage For="@(() => registerModel.Tel)" />
@@ -130,7 +144,7 @@
                                 </div>
                                 <InputText @bind-Value="registerModel.Password" type="@PasswordInputType" id="password" name="password"
                                            class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                                       placeholder="••••••••" />
+                                           placeholder="••••••••" />
                                 <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
                                         @onclick="TogglePasswordVisibility">
                                     <i class="@TogglePasswordIcon text-gray-400 hover:text-gray-600"></i>
@@ -149,19 +163,19 @@
                                 </div>
                                 <InputText @bind-Value="registerModel.ConfirmPasswords" type="@PasswordInputType2" id="confirm-password" name="confirm-password"
                                            class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
-                                       placeholder="••••••••" />
+                                           placeholder="••••••••" />
                                 <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
                                         @onclick="TogglePasswordVisibility2">
                                     <i class="@TogglePasswordIcon2 text-gray-400 hover:text-gray-600"></i>
                                 </button>
                             </div>
                             <div id="confirm-password-error" class="error-message">
-                                <ValidationMessage For="@(() => registerModel.ConfirmPasswords)" />                            
-                                </div>
+                                <ValidationMessage For="@(() => registerModel.ConfirmPasswords)" />
+                            </div>
                         </div>
 
                         <div class="flex items-center">
-                            <input id="terms" name="terms" type="checkbox" 
+                            <input id="terms" name="terms" type="checkbox"
                                    class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
                             <label for="terms" class="ml-2 block text-sm text-gray-700">
                                 J'accepte les <a href="#" class="text-primary-700 hover:underline">conditions d'utilisation</a>
@@ -238,14 +252,14 @@
     private ErrorMessage errorMessage = new();
 
     private EditContext? editContext;
-    private ValidationMessageStore?  messageStore;
+    private ValidationMessageStore? messageStore;
 
     private bool showPassword = false;
     private bool showPassword2 = false;
 
     private string PasswordInputType => showPassword ? "text" : "password";
     private string TogglePasswordIcon => showPassword ? "fas fa-eye-slash" : "fas fa-eye";
-    
+
     private string PasswordInputType2 => showPassword2 ? "text" : "password";
     private string TogglePasswordIcon2 => showPassword2 ? "fas fa-eye-slash" : "fas fa-eye";
 
