@@ -114,7 +114,7 @@ public class CreateSaleHandler(
         return new Sale
         {
             Id = saleId,
-            Date = DateTime.UtcNow,
+            Date = DateTime.Now,
             BoutiqueId = BoutiqueId.Of(saleDTO.BoutiqueId),
             SaleItems = saleItems
         };
