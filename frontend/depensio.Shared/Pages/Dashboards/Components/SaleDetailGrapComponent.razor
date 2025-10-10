@@ -89,7 +89,7 @@
                                         @saleItems.SaleDate.ToString("dd/MM/yyyy HH:mm")
                                     </p>
                                 </div>
-                                <div class="flex items-center space-x-4">
+                                <div class="flex items-end space-x-4">
                                     <div class="flex-1 min-w-0">
                                         <p class="font-medium text-gray-900 truncate dark:text-white">
                                             @saleItems.Name
@@ -100,7 +100,7 @@
                                         <p class="text-sm text-gray-500 truncate dark:text-gray-400">
                                             Quantité vendu : @saleItems.Quantity
                                         </p>
-                                        <p class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                                        <p class="inline-flex items-center text-base font-semibold truncate text-gray-900 dark:text-white">
                                             Total vendu: @($"{saleItems.TotalAmount:N0} FCFA")
                                         </p>
                                     </div>
@@ -111,6 +111,9 @@
                                         </p>
                                         <p class="text-sm text-gray-900 font-semibold truncate dark:text-gray-400">
                                             Gain estimé : @($"{saleItems.Balance:N0} FCFA")
+                                        </p>
+                                        <p class="inline-flex items-center text-base font-semibold truncate text-gray-900 dark:text-white">
+                                            Total d'Achat: @($"{saleItems.TotalPurchase:N0} FCFA")
                                         </p>
                                     </div>
                                     @* <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
