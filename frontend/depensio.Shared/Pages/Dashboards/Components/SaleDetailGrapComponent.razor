@@ -47,7 +47,7 @@
                     <span class="text-xl font-bold leading-none text-gray-900 sm:text-2xl dark:text-white">@saleDashboards.Sum(x => x.Quantity)</span>
                     <h3 class="text-base font-light text-gray-500 dark:text-gray-400">Produits vendu</h3>
                 </div>
-                <div class="flex flex-col items-end justify-center flex-1 font-medium text-base">
+                <div class="flex items-end space-x-4">
                     <p>Total vendu: @($"{saleDashboards.Sum(x => x.TotalAmount):N0} FCFA")</p>
                     <p>
                         Gain total estimé: <span class="@GetBalanceTextColor(saleDashboards.Sum(x => x.Balance))">
