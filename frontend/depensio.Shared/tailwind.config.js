@@ -21,7 +21,12 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                primary: { "50": "#FEF9F3", "100": "#F9EEE1", "200": "#F6E3CF", "300": "#F2D8BB", "400": "#EECBA4", "500": "#E7B983", "600": "#DC9F51", "700": "#825513", "800": "#734700", "900": "#895C1C" }
+                primary: {
+                    "50": "#FEF9F3", "100": "#F9EEE1", "200": "#F6E3CF",
+                    "300": "#F2D8BB", "400": "#EECBA4", "500": "#E7B983",
+                    "600": "#DC9F51", "700": "#825513", "800": "#6B440F",
+                    "900": "#55350C"
+                }
             },
             fontFamily: {
                 'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'],

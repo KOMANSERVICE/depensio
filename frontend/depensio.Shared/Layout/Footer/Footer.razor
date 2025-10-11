@@ -8,10 +8,10 @@
                 </div>
                 <p class="text-gray-400 mb-6">Une solution innovante pour transformer votre façon de travailler.</p>
                 <div class="flex space-x-4">
-                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition" aria-label="facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition" aria-label="twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition" aria-label="linkedin"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition" aria-label="instagram"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
             <div>
@@ -20,7 +20,7 @@
                     <li><NavLink href="/#features" class="text-gray-400 hover:text-white transition">Fonctionnalités</NavLink></li>
                     <li><NavLink mptehref="/#pricing" class="text-gray-400 hover:text-white transition">Tarifs</NavLink></li>
                     <li><NavLink href="/#about" class="text-gray-400 hover:text-white transition">À propos</NavLink></li>
-@*                     <li><NavLink href="/#contact" class="text-gray-400 hover:text-white transition">Contact</NavLink></li>
+                    @*                     <li><NavLink href="/#contact" class="text-gray-400 hover:text-white transition">Contact</NavLink></li>
  *@                  @*   <li><a href="#" class="text-gray-400 hover:text-white transition">Blog</a></li> *@
                 </ul>
             </div>
@@ -31,7 +31,7 @@
                     <li><a href="#" class="text-gray-400 hover:text-white transition">Documentation</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-white transition">Tutoriels</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-white transition">FAQ</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white transition">Statut</a></li> 
+                    <li><a href="#" class="text-gray-400 hover:text-white transition">Statut</a></li>
                 </ul>
             </div>
             <div>
@@ -39,7 +39,9 @@
                 <p class="text-gray-400 mb-4">Abonnez-vous pour recevoir nos dernières actualités et offres.</p>
                 <div class="flex">
                     <input type="email" placeholder="Votre email" class="px-4 py-2 bg-gray-800 text-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary-700 w-full">
-                    <button class="px-4 py-2 bg-primary-700 text-white rounded-r-lg hover:bg-primary/90 transition"><i class="fas fa-paper-plane"></i></button>
+                    <button aria-label="Envoyer" class="px-4 py-2 bg-primary-700 text-white rounded-r-lg hover:bg-primary/90 transition">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
