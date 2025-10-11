@@ -53,13 +53,8 @@
                 </div>
                 <EditForm EditContext="@editContext" OnValidSubmit="HandleLogin" class="space-y-6">
                     <DataAnnotationsValidator />
-                    @if (editContext != null && editContext.GetValidationMessages().Any())
-                    {
-                        <ErrorsSummary>
-                            <ValidationSummary class="list-disc pl-5 mt-2 text-red-700 space-y-1" />
-                        </ErrorsSummary>
 
-                    }
+                    <ErrorsSummary editContext="@editContext" />
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
                         <div class="relative">
