@@ -3,11 +3,20 @@
 
 <head>
     <meta charset="utf-8" />
+    <meta name="description" content="Depensio simplifie la gestion de vos ventes, stocks et boutiques en ligne grâce à des tableaux de bord intuitifs et un suivi en temps réel.">
+    <meta name="keywords" content="gestion des ventes, gestion du stock, boutique en ligne, tableaux de bord, rapports personnalisés, multi-magasin, codes-barres, suivi des produits, Depensio, logiciel de gestion commerciale">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    <link rel="stylesheet" href="_content/depensio.Shared/app.css" />
-    @* <link rel="stylesheet" href="depensio.Web.styles.css" /> *@
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+     <!-- Preload and Defer Full CSS -->
+    <link rel="preload" href="_content/depensio.Shared/app.css" as="style" />
+    <link rel="stylesheet" href="_content/depensio.Shared/app.css" media="print" onload="this.media='all'" />
+
+    <!-- Preload and Defer Font Awesome -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'" />
+
+
     <link rel="icon" type="image/png" href="_content/depensio.Shared/favicon.png" />
     <HeadOutlet @rendermode="InteractiveWebAssembly" />
 </head>
@@ -16,16 +25,16 @@
     <Routes @rendermode="InteractiveWebAssembly" />
     @* <script src="js/site.js"></script>
     <script src="js/observer.js"></script> *@
-    <script src="_framework/blazor.web.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-    <script src="_content/depensio.Shared/js/flowbite-interop.js"></script>
-    <script src="_content/depensio.Shared/js/main.js"></script>
+    <script src="_framework/blazor.web.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js" defer></script>
+    <script src="_content/depensio.Shared/js/flowbite-interop.js" defer></script>
+    <script src="_content/depensio.Shared/js/main.js" defer></script>
 
-    <script src="@zxing"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="_content/depensio.Shared/js/qrScanner.js"></script>
-    <script src="_content/depensio.Shared/js/barcode.js"></script>
-    <script src="_content/depensio.Shared/js/print.js"></script>
+    <script src="@zxing" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js" defer></script>
+    <script src="_content/depensio.Shared/js/qrScanner.js" defer></script>
+    <script src="_content/depensio.Shared/js/barcode.js" defer></script>
+    <script src="_content/depensio.Shared/js/print.js" defer></script>
     
     @code {
         private string zxing = "https://unpkg.com/@zxing/library@latest";

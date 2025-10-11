@@ -43,10 +43,10 @@
                     @if (plan.IsDiscount)
                     {
                         <div class="mb-2">
-                            <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Promotion -@((int)((decimal)plan.DiscountRate*100))%</span>
+                            <span class="text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded">Promotion -@((int)((decimal)plan.DiscountRate * 100))%</span>
                         </div>
                         <div class="flex flex-col items-end mb-1">
-                            <span class="line-through text-gray-400 text-xl">@FormatMoney(Billing == BillingCycle.Monthly ? plan.Price : plan.Price * 12) FCFA</span>
+                            <span class="line-through text-gray-600 text-xl font-medium">@FormatMoney(Billing == BillingCycle.Monthly ? plan.Price : plan.Price * 12) FCFA</span>
                             <span class="text-2xl font-bold text-gray-900">@FormatMoney(Billing == BillingCycle.Monthly ? plan.Price * (1 - (decimal)plan.DiscountRate) : (plan.Price * 12) * (1 - (decimal)plan.DiscountRate)) FCFA @GetBillingText()</span>
                         </div>
                     }
