@@ -1,5 +1,4 @@
-﻿
-namespace depensio.Application.UserCases.Boutiques.Commands.UpsetSettingByBoutique;
+﻿namespace depensio.Application.UserCases.Boutiques.Commands.UpsetSettingByBoutique;
 
 public record UpsetSettingByBoutiqueCommand(SettingDTO Setting)
     : ICommand<UpsetSettingByBoutiqueResult>;
@@ -10,9 +9,14 @@ public class UpsetSettingByBoutiqueCommandValidator : AbstractValidator<UpsetSet
 {
     public UpsetSettingByBoutiqueCommandValidator()
     {
-        RuleFor(x => x.Setting).NotNull().WithMessage("Setting is required");
-        RuleFor(x => x.Setting.Key).NotEmpty().WithMessage("Key is required");
-        RuleFor(x => x.Setting.Value).NotEmpty().WithMessage("Value is required");
+        RuleFor(x => x.Setting)
+            .NotNull().WithMessage("Le paramètre est obligatoire.");
+        
+        RuleFor(x => x.Setting.Key)
+            .NotEmpty().WithMessage("La clé est obligatoire.");
+        
+        RuleFor(x => x.Setting.Value)
+            .NotEmpty().WithMessage("La valeur est obligatoire.");
     }
 }
 

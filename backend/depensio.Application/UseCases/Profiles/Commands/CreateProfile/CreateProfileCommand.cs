@@ -3,7 +3,7 @@
 namespace depensio.Application.UseCases.Profiles.Commands.CreateProfile;
 
 public record CreateProfileCommand(Guid BoutiqueId, ProfileDTO Profile)
-    :ICommand<CreateProfileResult>;
+    : ICommand<CreateProfileResult>;
 
 public record CreateProfileResult(Guid Id);
 
@@ -11,10 +11,14 @@ public class CreateProfileCommandValidators : AbstractValidator<CreateProfileCom
 {
     public CreateProfileCommandValidators()
     {
-        RuleFor(x => x.BoutiqueId).NotEmpty().WithMessage("BoutiqueId est obligatoire.");
-        RuleFor(x => x.Profile.Name).NotEmpty().WithMessage("Name est obligatoire.")
-                                       .MaximumLength(100).WithMessage("Name cannot exceed 100 characters.");
-        RuleFor(x => x.Profile.MenuIds).NotEmpty().WithMessage("Ligne de menu est obligatoire.");
+        RuleFor(x => x.BoutiqueId)
+            .NotEmpty().WithMessage("L'identifiant de la boutique est obligatoire.");
+        
+        RuleFor(x => x.Profile.Name)
+            .NotEmpty().WithMessage("Le nom est obligatoire.")
+            .MaximumLength(100).WithMessage("Le nom ne peut pas dépasser 100 caractères.");
+        
+        RuleFor(x => x.Profile.MenuIds)
+            .NotEmpty().WithMessage("Les lignes de menu sont obligatoires.");
     }
-
 }
