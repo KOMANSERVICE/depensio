@@ -15,8 +15,13 @@ public class AssignedProfileToUserValidator
 {
     public AssignedProfileToUserValidator()
     {
-        RuleFor(x => x.BoutiqueId).NotEmpty().WithMessage("BoutiqueId is required.");
-        RuleFor(x => x.AssigneProfile).NotNull().WithMessage("AssigneProfile is required.");
-        RuleFor(x => x.AssigneProfile.ProfileId).NotEmpty().WithMessage("ProfileId is required.");
+        RuleFor(x => x.BoutiqueId)
+            .NotEmpty().WithMessage("L'identifiant de la boutique est obligatoire.");
+        
+        RuleFor(x => x.AssigneProfile)
+            .NotNull().WithMessage("Le profil assigné est obligatoire.");
+        
+        RuleFor(x => x.AssigneProfile.ProfileId)
+            .NotEmpty().WithMessage("L'identifiant du profil est obligatoire.");
     }
 }

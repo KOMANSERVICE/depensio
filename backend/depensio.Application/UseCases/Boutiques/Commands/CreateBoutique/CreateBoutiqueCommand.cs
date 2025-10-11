@@ -11,9 +11,14 @@ public class CreateBoutiqueCommandValidator : AbstractValidator<CreateBoutiqueCo
 {
     public CreateBoutiqueCommandValidator()
     {
-        RuleFor(x => x.Boutique).NotNull().WithMessage("Boutique is required");
-        RuleFor(x => x.Boutique.Name).NotEmpty().WithMessage("Name is required");
-        RuleFor(x => x.Boutique.Location).NotEmpty().WithMessage("Location is required");
+        RuleFor(x => x.Boutique)
+            .NotNull().WithMessage("La boutique est obligatoire.");
+        
+        RuleFor(x => x.Boutique.Name)
+            .NotEmpty().WithMessage("Le nom est obligatoire.");
+        
+        RuleFor(x => x.Boutique.Location)
+            .NotEmpty().WithMessage("L'emplacement est obligatoire.");
     }
 }
 

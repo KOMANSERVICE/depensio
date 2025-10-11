@@ -11,8 +11,13 @@ public class CreateCodeBarreCommandValidator : AbstractValidator<CreateCodeBarre
 {
     public CreateCodeBarreCommandValidator()
     {        
-        RuleFor(x => x.ProductItem).NotNull().WithMessage("ProductItem is required");
-        RuleFor(x => x.ProductItem.BarcodeCount).NotEmpty().WithMessage("BarcodeCount is required");
-        RuleFor(x => x.ProductItem.BoutiqueId).NotEmpty().WithMessage("BoutiqueId is required");
+        RuleFor(x => x.ProductItem)
+            .NotNull().WithMessage("L'article du produit est obligatoire.");
+        
+        RuleFor(x => x.ProductItem.BarcodeCount)
+            .NotEmpty().WithMessage("Le nombre de codes-barres est obligatoire.");
+        
+        RuleFor(x => x.ProductItem.BoutiqueId)
+            .NotEmpty().WithMessage("L'identifiant de la boutique est obligatoire.");
     }
 }
