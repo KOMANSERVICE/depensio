@@ -1,5 +1,7 @@
 
-<div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+@if (editContext != null && editContext.GetValidationMessages().Any())
+                    {
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
     <div class="flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -11,11 +13,13 @@
         </svg>
         <h3 class="text-red-800 font-medium">Veuillez corriger les erreurs suivantes :</h3>
     </div>
-    @ChildContent
+    <ValidationSummary class="list-disc pl-5 mt-2 text-red-700 space-y-1" />
+
 </div>
+}
 
 @code {
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; } = default!;
+    public EditContext editContext { get; set; }
 }
