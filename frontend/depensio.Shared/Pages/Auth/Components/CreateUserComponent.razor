@@ -9,7 +9,7 @@
 
 <EditForm EditContext="@editContext" OnValidSubmit="HandleCreateOrUpdate">
     <DataAnnotationsValidator />
-    <ValidationSummaryFancy editContext="@editContext" />
+    <ErrorsSummary editContext="@editContext" />
 
     <div class="p-6">
         <input type="hidden" id="userId">

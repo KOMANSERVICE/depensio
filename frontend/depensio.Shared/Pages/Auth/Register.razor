@@ -53,7 +53,7 @@
                 </div>
                 <EditForm EditContext="@editContext" OnValidSubmit="HandleRegister">
                     <DataAnnotationsValidator />
-                    <ValidationSummaryFancy editContext="@editContext" />
+                    <ErrorsSummary editContext="@editContext" />
                     
                     
                     <div id="error-summary" class="error-summary hidden">
