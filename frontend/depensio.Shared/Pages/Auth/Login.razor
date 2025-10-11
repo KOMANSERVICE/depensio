@@ -55,9 +55,9 @@
                     <DataAnnotationsValidator />
                     @if (editContext != null && editContext.GetValidationMessages().Any())
                     {
-                        <ValidationSummaryFancy >
+                        <ErrorsSummary>
                             <ValidationSummary class="list-disc pl-5 mt-2 text-red-700 space-y-1" />
-                        </ValidationSummaryFancy>
+                        </ErrorsSummary>
 
                     }
                     <div>
