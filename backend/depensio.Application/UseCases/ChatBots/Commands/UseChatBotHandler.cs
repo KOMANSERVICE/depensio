@@ -17,7 +17,7 @@ public class UseChatBotHandler(
         var output = result.Output;
         if (!string.IsNullOrEmpty(output.Email) && !string.IsNullOrEmpty(output.Nom))
         {
-            var emails = configuration["N8N:Uri"]!.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var emails = configuration["Email:Support"]!.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var emailModel = new EmailModel
             {
                 ToMailIds = emails.ToList(),
