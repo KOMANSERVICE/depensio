@@ -57,7 +57,7 @@
                 <InputTextArea @bind-Value="chatbot.ChatInput" id="chatInput" row="1"
                 placeholder="Tapez votre message..." class="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary" >
                 </InputTextArea>
-                <button type="submit" class="px-4 py-2 bg-primary-700 text-white rounded-r-lg hover:bg-primary-700/90 transition"><i class="fas fa-paper-plane"></i></button>
+                <button disabled="@isTyping" type="submit" class="px-4 py-2 bg-primary-700 text-white rounded-r-lg hover:bg-primary-700/90 transition"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -113,6 +113,9 @@
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(chatbot.ChatInput) || isTyping)
+                return;
+
             AddMessage(chatbot.ChatInput, true);
             var chatbotRequest = new ChatbotDTO
             {
@@ -126,9 +129,11 @@
             {
                 AddMessage(response.Data.ResponseMessage);
             }
+            isTyping = false;
         }
         catch (ApiException ex)
         {
+            isTyping = false;
             try
             {
                 var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
@@ -172,7 +177,6 @@
         }
         finally
         {
-            isTyping = false;
             StateHasChanged();
         }
     }
