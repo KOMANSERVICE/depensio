@@ -126,6 +126,7 @@ jobs:
             JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}           
             N8N_URI=${{ vars.N8N_URI }}
             EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT_PROD }}
+            WEBHOOKID=${{ secrets.WEBHOOKID_PROD }}   
             
             # depensio.web
             API_SETTINGS_URL=${{ vars.API_SETTINGS_URL_PROD }}
