@@ -105,7 +105,9 @@ jobs:
             MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
             JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API }}
             JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API }}
-            JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}
+            JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}            
+            N8N_URI=${{ vars.N8N_URI }}
+            EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT }}
             
             # depensio.web
             API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
