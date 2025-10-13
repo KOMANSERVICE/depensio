@@ -32,7 +32,7 @@ public class UseChatBotHandler(
                 """
             };
 
-            if(emails.Count() > 1)
+            if(emails.Count() > 0)
             {
                 await emailService.SendEmailAsync(emailModel);
             }
