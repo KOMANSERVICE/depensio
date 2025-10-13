@@ -84,6 +84,12 @@ window.depensio = {
 
 
     },
+    scrollChatToBottom: function (elementId) {
+        var el = document.getElementById(elementId);
+        if (el) {
+            el.scrollTop = el.scrollHeight;
+        }
+    }
     //chatbot: function () {
 
     //    // Chatbot

@@ -14,7 +14,7 @@
         </div>
         <div class="p-4 h-64 overflow-y-auto bg-gray-50" id="chatMessages">
             <div class="flex mb-4">
-                <div class="w-8 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
+                <div class="w-12 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
                 <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
                     <p class="text-gray-800">Bonjour ! 👋 <br /> Je m’appelle Diallo. Comment puis-je vous aider aujourd’hui ?</p>
                 </div>
@@ -24,17 +24,17 @@
                 <div class="flex mb-4 @(msg.IsUser ? "justify-end" : "")">
                     @if (!msg.IsUser)
                     {
-                        <div class="w-8 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
+                        <div class="w-12 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
                         <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
-                            <p class="text-gray-800">@msg.Content</p>
+                            <p class="text-gray-800  whitespace-pre-line">@msg.Content</p>
                         </div>
                     }
                     else
                     {
                         <div class="bg-primary-700 text-white p-3 rounded-lg shadow-sm max-w-xs">
-                            <p>@msg.Content</p>
+                            <p class="whitespace-pre-line">@msg.Content</p>
                         </div>
-                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 ml-3">V</div>
+                        <div class="w-12 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 ml-3">V</div>
                     }
                 </div>
             }
@@ -128,12 +128,12 @@
             if (response.Success)
             {
                 AddMessage(response.Data.ResponseMessage);
+                await JSRuntime.InvokeVoidAsync("depensio.scrollChatToBottom", "chatMessages");
+                StateHasChanged();
             }
-            isTyping = false;
         }
         catch (ApiException ex)
         {
-            isTyping = false;
             try
             {
                 var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
@@ -177,6 +177,7 @@
         }
         finally
         {
+            isTyping = false;
             StateHasChanged();
         }
     }
