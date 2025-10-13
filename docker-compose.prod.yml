@@ -98,6 +98,7 @@ services:
       - JWT__Secret=${JWT_SECRET_API}
       - N8N__Uri=${N8N_URI}
       - Email__Support=${EMAIL_SUPPORT}
+      - WebhookId=${WEBHOOKID}
     ports:
       - "9101:8080"
     volumes:
