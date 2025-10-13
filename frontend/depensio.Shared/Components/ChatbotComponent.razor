@@ -1,0 +1,184 @@
+﻿@inject IChatbotService _chatbotService
+@inject IJSRuntime JSRuntime
+
+<!-- Chatbot Icon -->
+<button class="chatbot-icon" @onclick="onShowChatbot" id="chatbotIcon" aria-label="Ouvrir le chat d'assistance" role="button" tabindex="0">
+    <i class="fas fa-comment-dots text-white text-2xl"></i>
+</button>
+
+<EditForm EditContext="@editContext" OnValidSubmit="HandleChat">
+    <div id="chatbotModal" class="@onShowChatbotModal(isShowChatbot)">
+        <div class="bg-primary-700 text-white p-4 flex justify-between items-center">
+            <h3 class="font-semibold">Assistant virtuel</h3>
+            <button type="button" id="closeChatbot" @onclick="onShowChatbot" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-4 h-64 overflow-y-auto bg-gray-50" id="chatMessages">
+            <div class="flex mb-4">
+                <div class="w-8 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
+                <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
+                    <p class="text-gray-800">Bonjour ! 👋 <br /> Je m’appelle Diallo. Comment puis-je vous aider aujourd’hui ?</p>
+                </div>
+            </div>
+            @foreach (var msg in Messages)
+            {
+                <div class="flex mb-4 @(msg.IsUser ? "justify-end" : "")">
+                    @if (!msg.IsUser)
+                    {
+                        <div class="w-8 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
+                        <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
+                            <p class="text-gray-800">@msg.Content</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bg-primary-700 text-white p-3 rounded-lg shadow-sm max-w-xs">
+                            <p>@msg.Content</p>
+                        </div>
+                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 ml-3">V</div>
+                    }
+                </div>
+            }
+            @if (isTyping)
+            {
+                <div class="flex mb-4">
+                    <div class="w-8 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
+                    <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
+                        <div class="flex items-center typing-indicator">
+                            <span class="h-2 w-2 mx-0.5 bg-gray-400 rounded-full inline-block opacity-40"></span>
+                            <span class="h-2 w-2 mx-0.5 bg-gray-400 rounded-full inline-block opacity-40"></span>
+                            <span class="h-2 w-2 mx-0.5 bg-gray-400 rounded-full inline-block opacity-40"></span>
+                        </div>
+                    </div>
+                </div>                
+            }
+        </div>
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex">
+                <InputTextArea @bind-Value="chatbot.ChatInput" id="chatInput" row="1"
+                placeholder="Tapez votre message..." class="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary" >
+                </InputTextArea>
+                <button disabled="@isTyping" type="submit" class="px-4 py-2 bg-primary-700 text-white rounded-r-lg hover:bg-primary-700/90 transition"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private bool isTyping = false;
+    private bool isShowChatbot = false;
+    private ChatbotDTO chatbot = new();
+    private string sessionId = Guid.NewGuid().ToString();
+    private ErrorMessage errorMessage = new();
+
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+
+    public class ChatMessage
+    {
+        public string Content { get; set; } = string.Empty;
+        public bool IsUser { get; set; }
+    }
+
+    private List<ChatMessage> Messages { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(chatbot);
+        messageStore = new ValidationMessageStore(editContext);
+
+        editContext.OnValidationRequested += (s, e) => messageStore.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+
+    }
+
+    private void AddMessage(string message, bool isUser = false)
+    {
+        Messages.Add(new ChatMessage
+        {
+            Content = message,
+            IsUser = isUser
+        });
+        StateHasChanged();
+    }
+
+    private string onShowChatbotModal(bool show) =>
+    show
+    ///? "fixed bottom-24 right-8 w-100 bg-white rounded-xl shadow-xl overflow-hidden z-50" 
+    ? "fixed bottom-24 right-2 w-full max-w-sm sm:right-8 sm:w-100 bg-white rounded-xl shadow-xl overflow-hidden z-50"
+    : "hidden";
+
+    private void onShowChatbot() => isShowChatbot = !isShowChatbot;
+
+    private async Task HandleChat()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(chatbot.ChatInput) || isTyping)
+                return;
+
+            AddMessage(chatbot.ChatInput, true);
+            var chatbotRequest = new ChatbotDTO
+            {
+                ChatInput = chatbot.ChatInput,
+                SessionId = sessionId
+            };
+            chatbot = new ChatbotDTO();
+            isTyping = true;
+            var response = await _chatbotService.UseChatBotAsync(new UseChatBotRequest(chatbotRequest));
+            if (response.Success)
+            {
+                AddMessage(response.Data.ResponseMessage);
+            }
+            isTyping = false;
+        }
+        catch (ApiException ex)
+        {
+            isTyping = false;
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                // Efface les anciennes erreurs
+                messageStore.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
+                {
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        // Associer au champ si possible
+                        var fieldIdentifier = new FieldIdentifier(chatbot!, propertyName);
+                        messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    // Message global sans champ spécifique
+                    var fieldIdentifier = new FieldIdentifier(chatbot!, string.Empty);
+                    messageStore.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                // Rafraîchir l’affichage
+                editContext.NotifyValidationStateChanged();
+
+            }
+            catch
+            {
+                messageStore.Add(new FieldIdentifier(chatbot, string.Empty), "Une erreur est survenue.");
+                editContext.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+}

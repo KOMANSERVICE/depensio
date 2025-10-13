@@ -67,32 +67,8 @@
 <!-- Contact Section -->
 @* <ContactUs /> *@
 
-<!-- Chatbot Icon -->
-<div class="chatbot-icon" id="chatbotIcon" aria-label="Ouvrir le chat d'assistance" role="button" tabindex="0">
-    <i class="fas fa-comment-dots text-white text-2xl"></i>
-</div>
 
-<!-- Chatbot Modal -->
-<div id="chatbotModal" class="hidden fixed bottom-24 right-8 w-80 bg-white rounded-xl shadow-xl overflow-hidden z-50">
-    <div class="bg-primary-700 text-white p-4 flex justify-between items-center">
-        <h3 class="font-semibold">Assistant virtuel</h3>
-        <button id="closeChatbot" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="p-4 h-64 overflow-y-auto bg-gray-50" id="chatMessages">
-        <div class="flex mb-4">
-            <div class="w-8 h-8 bg-primary-700 rounded-full flex items-center justify-center text-white mr-3">A</div>
-            <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
-                <p class="text-gray-800">Bonjour! Comment puis-je vous aider aujourd'hui?</p>
-            </div>
-        </div>
-    </div>
-    <div class="p-4 border-t border-gray-200">
-        <div class="flex">
-            <input type="text" id="chatInput" placeholder="Tapez votre message..." class="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary">
-            <button id="sendMessage" class="px-4 py-2 bg-primary-700 text-white rounded-r-lg hover:bg-primary-700/90 transition"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-</div>
+
 
 
 @code {

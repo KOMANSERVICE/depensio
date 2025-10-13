@@ -21,8 +21,12 @@ public static class DependencyInjection
         services.AddScoped<HeaderTabService>();
         
         var uri = configuration["ApiSettings:Uri"]!;
+
         services.AddRefitClient<IAuthHttpService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri));
+
+        services.AddRefitClient<IChatbotService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri));        
 
         services.AddRefitClient<IBoutiqueService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
@@ -31,7 +35,6 @@ public static class DependencyInjection
         services.AddRefitClient<IProductService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
-
 
         services.AddRefitClient<ISaleService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))

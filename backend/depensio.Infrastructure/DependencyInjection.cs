@@ -1,6 +1,7 @@
 ﻿using depensio.Application.Data;
 using depensio.Application.Interfaces;
 using depensio.Domain.Models;
+using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
 using depensio.Infrastructure.Data.Interceptors;
 using depensio.Infrastructure.Middlewares;
@@ -16,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Refit;
 using System.Reflection.Emit;
 using System.Text.Json;
 
@@ -35,7 +37,8 @@ public static class DependencyInjection
         var host = configuration["MailConfig:Host"]!;
         var ports = configuration["MailConfig:Ports"]!;
 
-        
+        var N8Nuri = configuration["N8N:Uri"] ?? "";
+
         if (string.IsNullOrEmpty(host))
         {
             throw new InvalidOperationException("Mail Host is not provided in configuration");
@@ -146,6 +149,10 @@ public static class DependencyInjection
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserContextService, UserContextService>();
+        services.AddScoped<IChatBotService, ChatBotService>();
+
+        services.AddRefitClient<IN8NChatBotService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(N8Nuri));
 
         //Pour fait fonctionner le middleware UserContextMiddleware
         services.AddHttpContextAccessor();

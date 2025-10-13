@@ -133,7 +133,7 @@
                                 <InputText @bind-Value="registerModel.Password" type="@PasswordInputType" id="password" name="password"
                                            class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
                                            placeholder="••••••••" />
-                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                <button type="button" aria-label="bouton display mot de passe" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
                                         @onclick="TogglePasswordVisibility">
                                     <i class="@TogglePasswordIcon text-gray-400 hover:text-gray-600"></i>
                                 </button>
@@ -152,7 +152,7 @@
                                 <InputText @bind-Value="registerModel.ConfirmPasswords" type="@PasswordInputType2" id="confirm-password" name="confirm-password"
                                            class="pl-10 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent transition duration-200"
                                            placeholder="••••••••" />
-                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                <button type="button" aria-label="bouton display mot de passe" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center"
                                         @onclick="TogglePasswordVisibility2">
                                     <i class="@TogglePasswordIcon2 text-gray-400 hover:text-gray-600"></i>
                                 </button>
