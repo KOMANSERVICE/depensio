@@ -13,8 +13,7 @@ public class GetSaleByBoutiqueHandler(
         var userId = _userContextService.GetUserId();
         
         var sales = await dbContext.Boutiques
-            .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId)
-                        && b.UsersBoutiques.Any(ub => ub.UserId == userId))
+            .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId))
             .Include(b => b.Sales)
             .SelectMany(b => b.Sales)
             .Select(p => new SaleDTO
