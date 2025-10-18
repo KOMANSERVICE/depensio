@@ -40,6 +40,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Depensio.Tests.Acceptance",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Depensio.Tests.Api", "tests\Depensio.Tests.Api\Depensio.Tests.Api.csproj", "{0A02332D-430C-40C6-A67C-A0D5064D84E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Depensio.Tests.Unit", "tests\Depensio.Tests.Unit\Depensio.Tests.Unit.csproj", "{D14B2D62-A3FC-4A48-8638-0ED300B5A9C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,10 @@ Global
 		{0A02332D-430C-40C6-A67C-A0D5064D84E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A02332D-430C-40C6-A67C-A0D5064D84E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A02332D-430C-40C6-A67C-A0D5064D84E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D14B2D62-A3FC-4A48-8638-0ED300B5A9C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D14B2D62-A3FC-4A48-8638-0ED300B5A9C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D14B2D62-A3FC-4A48-8638-0ED300B5A9C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D14B2D62-A3FC-4A48-8638-0ED300B5A9C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,6 +119,7 @@ Global
 		{1DCD9DEC-28D6-E9FC-B0E7-0E1D564AF57B} = {5F1E8A73-29FC-4D33-BB67-5CB7D8654DF2}
 		{8DF425D1-8948-4F91-AC33-1FB9F7ECB206} = {490656DA-42D4-4FA7-BA06-16FD4175348C}
 		{0A02332D-430C-40C6-A67C-A0D5064D84E5} = {490656DA-42D4-4FA7-BA06-16FD4175348C}
+		{D14B2D62-A3FC-4A48-8638-0ED300B5A9C6} = {490656DA-42D4-4FA7-BA06-16FD4175348C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3E07E593-70B8-470C-9DAC-47E2E4F81695}

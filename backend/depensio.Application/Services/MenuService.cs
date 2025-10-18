@@ -23,7 +23,9 @@ public class MenuService(
 
         if (isOwner)
         {
-            //TODO: A revoir, reccuperer les menus du plan
+            //TODO: (A revoir, reccuperer les menus du plan) deja correct
+            // juste mettre un filtre sur chaque API pour s'assurer que le menu fait partir de l`'abom=nement
+            // Le propritaire doit voir tous les menus, le menu ne fesant pas partir de sont plan seron bloquer
             // Propriétaire : tous les menus
             menus = await _dbContext.Menus
                 .Where(m => !string.IsNullOrEmpty(m.Name))

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -38,6 +38,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\backend\depensio.Api\depensio.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Features\Products\*.feature">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
