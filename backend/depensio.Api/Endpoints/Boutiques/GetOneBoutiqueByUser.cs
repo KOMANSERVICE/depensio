@@ -20,7 +20,7 @@ public class GetOneBoutiqueByUser : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetOneBoutiqueByUser")
-        .WithGroupName("Boutiques")
+        .WithTags("Boutiques")
        .Produces<BaseResponse<GetOneBoutiqueByUserResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .WithSummary("GetOneBoutiqueByUser")

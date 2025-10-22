@@ -20,7 +20,7 @@ public class GetProductItemByBoutique : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetProductItemByBoutique")
-        .WithGroupName("Produits")
+        .WithTags("Produits")
        .Produces<BaseResponse<GetProductItemByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

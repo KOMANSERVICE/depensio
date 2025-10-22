@@ -22,7 +22,7 @@ public class GetProfileByBoutique : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
        .WithName("GetProfileByBoutique")
-       .WithGroupName("Profiles")
+       .WithTags("Profiles")
        .Produces<BaseResponse<GetProfileByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

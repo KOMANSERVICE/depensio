@@ -1,5 +1,5 @@
 Tu es un expert en développement .NET et tests unitaires comportementaux (BDD).  
-Ta tâche est de générer les tests unitaires du module **backend/Depensio.Application/UseCases/Products** dans le projet de test **tests/Depensio.Tests.Acceptance**.
+Ta tâche est de générer les tests unitaires du module **backend/Depensio.Application/UseCases/Purchases** dans le projet de test **tests/Depensio.Tests.Acceptance**.
 
 ### Objectif :
 Créer un ou plusieurs fichiers de test complets basés sur la méthode **Gherkin (Given / When / Then)** en utilisant les packages :
@@ -10,16 +10,16 @@ Créer un ou plusieurs fichiers de test complets basés sur la méthode **Gherki
 - `Microsoft.EntityFrameworkCore`
 
 ### Contexte :
-- Le module **UseCases/Products** contient les cas d’usage métier relatifs à la gestion des produits.
+- Le module **UseCases/Purchases** contient les cas d’usage métier relatifs à la gestion des produits.
 - Les tests doivent vérifier le comportement métier (non seulement le résultat mais aussi les interactions avec les dépendances).
 - Utilise des **mocks** pour les dépendances (repositories, context EF, services).
 - Utilise **FluentAssertions** pour des assertions lisibles et expressives.
 - Chaque scénario Gherkin doit correspondre à une classe de test distincte.
 
 ### Structure du code attendue :
-- Dossier de sortie Spec.cs : `tests/Depensio.Tests.Acceptance/Steps/Products`
-- Dossier de sortie .Feature : `tests/Depensio.Tests.Acceptance/Features/Products`
-- Chaque fichier de test doit suivre la convention : `Product<NomDuCas>Spec.cs`
+- Dossier de sortie Spec.cs : `tests/Depensio.Tests.Acceptance/Steps/Purchases`
+- Dossier de sortie .Feature : `tests/Depensio.Tests.Acceptance/Features/Purchases`
+- Chaque fichier de test doit suivre la convention : `Purchase<NomDuCas>Spec.cs`
 - Chaque classe de test doit hériter de `Feature` (de `Xunit.Gherkin.Quick`)
 - Inclure un ou plusieurs scénarios avec les étapes : `Given`, `When`, `Then`
 - Utiliser `Fact` ou `Scenario` selon le contexte
@@ -31,40 +31,40 @@ using Xunit;
 using Xunit.Gherkin.Quick;
 using FluentAssertions;
 using Moq;
-using Depensio.Application.UseCases.Products;
+using Depensio.Application.UseCases.Purchases;
 using Depensio.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Depensio.Tests.Acceptance.Products;
+namespace Depensio.Tests.Acceptance.Purchases;
 
-[FeatureFile("./Products/ProductCreation.feature")]
-public sealed class ProductCreationSteps : Feature
+[FeatureFile("./Purchases/PurchaseCreation.feature")]
+public sealed class PurchaseCreationSteps : Feature
 {
-    private readonly Mock<IProductRepository> _productRepository;
-    private Product _newProduct;
-    private ProductHandler _handler;
+    private readonly Mock<IPurchaseRepository> _PurchaseRepository;
+    private Purchase _newPurchase;
+    private PurchaseHandler _handler;
 
-    public Product_CreationSteps()
+    public Purchase_CreationSteps()
     {
-        _productRepository = new Mock<IProductRepository>();
-        _handler = new ProductHandler(_productRepository.Object);
+        _PurchaseRepository = new Mock<IPurchaseRepository>();
+        _handler = new PurchaseHandler(_PurchaseRepository.Object);
     }
 
     [Given("un produit valide")]
-    public void GivenAValidProduct()
+    public void GivenAValidPurchase()
     {
-        _newProduct = new Product { Name = "Stylo Bleu", Price = 2.5M };
+        _newPurchase = new Purchase { Name = "Stylo Bleu", Price = 2.5M };
     }
 
     [When("je crée le produit")]
-    public void WhenICreateTheProduct()
+    public void WhenICreateThePurchase()
     {
-        _handler.Create(_newProduct);
+        _handler.Create(_newPurchase);
     }
 
     [Then("le produit est ajouté au dépôt")]
-    public void ThenTheProductIsAddedToRepository()
+    public void ThenThePurchaseIsAddedToRepository()
     {
-        _productRepository.Verify(repo => repo.Add(It.Is<Product>(p => p.Name == "Stylo Bleu")), Times.Once);
+        _PurchaseRepository.Verify(repo => repo.Add(It.Is<Purchase>(p => p.Name == "Stylo Bleu")), Times.Once);
     }
 }

@@ -28,7 +28,7 @@ public class GetSalesDetailByBoutique : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("GetSalesDetailByBoutique")
-        .WithGroupName("Dashboard")
+        .WithTags("Dashboard")
         .Produces<BaseResponse<GetSalesDetailByBoutiqueResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

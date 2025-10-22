@@ -25,7 +25,7 @@ public class CreateBoutique : ICarterModule
             return Results.Created($"/boutique/{response.Id}", baseResponse);
         })
         .WithName("CreateBoutique")
-        .WithGroupName("Boutiques")
+        .WithTags("Boutiques")
         .Produces<BaseResponse<CreateBoutiqueResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

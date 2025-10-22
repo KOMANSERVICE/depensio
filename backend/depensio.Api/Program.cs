@@ -6,12 +6,7 @@ using Depensio.Application;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .AddEnvironmentVariables();
-// Add services to the container.
 
-//builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
 
 builder.Services
     .AddApplicationServices(builder.Configuration)
@@ -27,14 +22,20 @@ app.UseApiServices()
 if (app.Environment.IsDevelopment())
 {
     await app.InitialiseDatabaseAsync();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+
+    // Utilisation de la nouvelle syntaxe MapOpenApi avec le bon chemin
+    app.MapOpenApi("/swagger/v1/swagger.json");
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Depensio API v1");
+
+        options.OAuthUsePkce();
+        options.DisplayRequestDuration();
+        options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+
+        options.EnableDeepLinking();
+
+    });
 }
-
-//app.UseHttpsRedirection();
-
-//app.UseAuthorization();
-
-//app.MapControllers();
 
 app.Run();

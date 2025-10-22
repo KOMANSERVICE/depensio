@@ -20,7 +20,7 @@ public class GetListeUser : ICarterModule
             return Results.Ok(baseResponse);
         })
         .WithName("GetListeUser")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<GetListeUserResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

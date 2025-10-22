@@ -15,6 +15,10 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2g
     env_file:
       - ./.env
     networks:
@@ -45,6 +49,10 @@ services:
       - ./.env
     networks:
       - vault-net
+    deploy:
+      resources:
+        limits:
+          memory: 2g
 
   depensio.api:
     depends_on:
@@ -81,6 +89,10 @@ services:
       - ./vault/shared:/app/vault/shared
     networks:
       - vault-net
+    deploy:
+      resources:
+        limits:
+          memory: 2g
 
 networks:
   vault-net:

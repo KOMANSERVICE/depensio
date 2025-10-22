@@ -22,7 +22,7 @@ public class GetMenuByBoutique : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
        .WithName("GetMenuByBoutique")
-       .WithGroupName("Menus")
+       .WithTags("Menus")
        .Produces<BaseResponse<GetMenuByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

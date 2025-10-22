@@ -24,7 +24,7 @@ public class UpsetSettingByBoutique : ICarterModule
             return Results.Created($"/setting/{response.Id}", baseResponse);
         })
         .WithName("UpsetSettingByBoutique")
-        .WithGroupName("Settings")
+        .WithTags("Settings")
         .Produces<BaseResponse<UpsetSettingByBoutiqueResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

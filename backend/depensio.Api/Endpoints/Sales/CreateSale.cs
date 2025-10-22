@@ -25,7 +25,7 @@ public class CreateSale : ICarterModule
             return Results.Created($"/sale/{response.Id}", baseResponse);
         })
         .WithName("CreateSale")
-        .WithGroupName("Sales")
+        .WithTags("Sales")
         .Produces<BaseResponse<CreateSaleResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

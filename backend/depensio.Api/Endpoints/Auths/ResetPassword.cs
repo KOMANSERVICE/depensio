@@ -24,7 +24,7 @@ public class ResetPassword : ICarterModule
             return Results.Created($"/resetpassword/{response.Result}", baseResponse);
         })
         .WithName("ResetPassword")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<BaseResponse<ResetPasswordResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("ResetPassword")

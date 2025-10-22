@@ -24,7 +24,7 @@ public class CreateCodeBarre : ICarterModule
             return Results.Ok(baseResponse);
         })
         .WithName("CreateCodeBarre")
-        .WithGroupName("Produits")
+        .WithTags("Produits")
         .Produces<BaseResponse<CreateCodeBarreResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

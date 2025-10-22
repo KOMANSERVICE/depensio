@@ -28,7 +28,7 @@ public class CreateProfile : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("CreateProfile")
-        .WithGroupName("Profiles")
+        .WithTags("Profiles")
         .Produces<BaseResponse<CreateProfileResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

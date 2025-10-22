@@ -21,7 +21,7 @@ public class GetSaleDetailByBoutique : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetSaleDetailByBoutique")
-       .WithGroupName("Sales")
+       .WithTags("Sales")
        .Produces<BaseResponse<GetSaleDetailByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

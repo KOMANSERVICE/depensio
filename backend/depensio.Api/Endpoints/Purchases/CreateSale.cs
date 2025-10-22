@@ -25,7 +25,7 @@ public class CreatePurchase : ICarterModule
             return Results.Created($"/purchase/{response.Id}", baseResponse);
         })
         .WithName("CreatePurchase")
-        .WithGroupName("Purchases")
+        .WithTags("Purchases")
         .Produces<BaseResponse<CreatePurchaseResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

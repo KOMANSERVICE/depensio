@@ -22,7 +22,7 @@ public class GetUserInfos : ICarterModule
             return Results.Ok(baseResponse);
         })
         .WithName("GetUserInfos")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<GetUserInfosResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

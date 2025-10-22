@@ -23,7 +23,7 @@ public class UpdateUser : ICarterModule
             return Results.Created($"/updateuser/{response}", baseResponse);
         })
         .WithName("UpdateUser")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<BaseResponse<UpdateUserResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

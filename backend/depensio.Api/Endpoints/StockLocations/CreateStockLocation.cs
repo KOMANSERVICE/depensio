@@ -26,7 +26,7 @@ public class CreateStockLocation : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("CreateStockLocation")
-        .WithGroupName("StockLocations")
+        .WithTags("StockLocations")
         .Produces<BaseResponse<CreateStockLocationResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

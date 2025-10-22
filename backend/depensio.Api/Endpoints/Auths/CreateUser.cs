@@ -23,7 +23,7 @@ public class CreateUser : ICarterModule
             return Results.Created($"/createuser/{response.Result}", baseResponse);
         })
         .WithName("CreateUser")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<BaseResponse<CreateUserResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("CreateUser")

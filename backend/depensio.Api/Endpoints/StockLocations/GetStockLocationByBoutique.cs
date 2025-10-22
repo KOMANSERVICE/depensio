@@ -22,7 +22,7 @@ public class GetStockLocationByBoutique : ICarterModule
         })
        .AddEndpointFilter<BoutiqueAuthorizationFilter>()
        .WithName("GetStockLocationByBoutique")
-       .WithGroupName("StockLocations")
+       .WithTags("StockLocations")
        .Produces<BaseResponse<GetStockLocationByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)
