@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Auth.Commands.UpdateUser;
 using depensio.Application.UseCases.Auth.DTOs;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Auths;
 

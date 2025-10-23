@@ -3,7 +3,7 @@ using depensio.Application.Interfaces;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.AspNetCore.Authentication; // Ajoutez cette directive
+using Microsoft.AspNetCore.Authentication;
 
 namespace depensio.Api;
 

@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UserCases.Boutiques.DTOs;
 using depensio.Application.UserCases.Boutiques.Queries.GetBoutiqueByUser;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Boutique;
 

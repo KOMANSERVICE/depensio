@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.StockLocations.DTOs;
 using depensio.Application.UseCases.StockLocations.Queries.GetStockLocationByBoutique;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.StockLocations;
 

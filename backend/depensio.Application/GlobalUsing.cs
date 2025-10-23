@@ -16,3 +16,4 @@ global using depensio.Domain.Constants;
 global using depensio.Application.Helpers;
 global using depensio.Domain.Enums;
 global using IDR.SendMail.Models;
+global using BuildingBlocks.Security.Interfaces;

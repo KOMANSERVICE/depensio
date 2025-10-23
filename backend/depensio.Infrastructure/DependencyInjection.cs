@@ -1,13 +1,12 @@
-﻿using depensio.Application.Data;
+﻿using BuildingBlocks.Security.Models;
+using depensio.Application.Data;
 using depensio.Application.Interfaces;
 using depensio.Domain.Models;
 using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
 using depensio.Infrastructure.Data.Interceptors;
 using depensio.Infrastructure.Middlewares;
-using depensio.Infrastructure.Models;
 using depensio.Infrastructure.Repositories;
-using depensio.Infrastructure.Security;
 using depensio.Infrastructure.Services;
 using IDR.SendMail;
 using IDR.SendMail.Interfaces;
@@ -92,6 +91,7 @@ public static class DependencyInjection
 
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
+                configuration: configuration,
                 vaultUri: vaultSecrets.Vault__Uri,
                 roleId: vaultSecrets.Vault__RoleId,
                 secretId: vaultSecrets.Vault__SecretId

@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Sales.Commands.CreateSale;
 using depensio.Application.UseCases.Sales.DTOs;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Sales;
 

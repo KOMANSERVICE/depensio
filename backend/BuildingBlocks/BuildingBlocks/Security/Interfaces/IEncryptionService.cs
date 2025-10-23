@@ -1,4 +1,4 @@
-﻿namespace depensio.Application.Interfaces;
+﻿namespace BuildingBlocks.Security.Interfaces;
 
 public interface IEncryptionService
 {

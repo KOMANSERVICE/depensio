@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Sales.DTOs;
 using depensio.Application.UseCases.Sales.Queries.GetSaleDetailByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Sales;
 

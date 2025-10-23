@@ -1,7 +1,4 @@
-﻿using depensio.Application.Models;
-using depensio.Application.UseCases.Settings.DTOs;
-using depensio.Application.UseCases.Settings.Queries.GetSettingByBoutique;
-using Depensio.Api.Helpers;
+﻿using depensio.Application.UseCases.Settings.Queries.GetSettingByBoutique;
 
 namespace Depensio.Api.Endpoints.Settings;
 

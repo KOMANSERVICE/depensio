@@ -1,9 +1,9 @@
-﻿using depensio.Application.Interfaces;
+﻿using BuildingBlocks.Security.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace depensio.Infrastructure.Security;
+namespace BuildingBlocks.Security;
 
 public class EncryptionService(IKeyManagementService _keyManagementService, ILogger<EncryptionService> logger) : IEncryptionService
 {

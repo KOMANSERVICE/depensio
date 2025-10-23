@@ -7,3 +7,4 @@ global using Microsoft.IdentityModel.Tokens;
 global using depensio.Application.UserCases.Auth.DTOs;
 global using BuildingBlocks.Responses;
 global using depensio.Application.DTOs;
+global using BuildingBlocks.Security.Interfaces;

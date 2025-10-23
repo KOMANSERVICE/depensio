@@ -1,5 +1,4 @@
 ﻿using depensio.Application.UseCases.Auth.Commands.CreateUser;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Auths;
 

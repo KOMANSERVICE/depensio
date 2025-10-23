@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Profiles.Commands.AssignedProfileToUser;
 using depensio.Application.UseCases.Profiles.DTO;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.AssignedProfiles;
 

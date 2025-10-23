@@ -1,6 +1,6 @@
-﻿namespace depensio.Infrastructure.Models;
+﻿namespace BuildingBlocks.Security.Models;
 
-internal class VaultSecretsConfig
+public class VaultSecretsConfig
 {    
     public string Vault__Uri { get; set; } = default!;
     public string Vault__RoleId { get; set; } = default!;

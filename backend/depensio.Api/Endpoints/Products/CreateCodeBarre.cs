@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Products.Commands.CreateCodeBarre;
 using depensio.Application.UseCases.Products.DTOs;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Products;
 

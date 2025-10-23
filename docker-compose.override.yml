@@ -76,6 +76,8 @@ services:
       - N8N__Uri=${N8N_URI}
       - Email__Support=${EMAIL_SUPPORT}
       - WebhookId=${WEBHOOKID}
+      - Vault__PathMountPoint=${VAULT_PATH_MOUNT_POINT}
+      - Vault__MountPoint=${VAULT_MOUNT_POINT}
     ports:
       - "9101:8080"
       - "9102:8081"

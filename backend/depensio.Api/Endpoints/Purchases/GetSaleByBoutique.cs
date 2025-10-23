@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Purchases.DTOs;
 using depensio.Application.UseCases.Purchases.Queries.GetPurchaseByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Purchases;
 

@@ -1,6 +1,7 @@
-﻿using BuildingBlocks.Responses;
+﻿
+using Microsoft.AspNetCore.Http;
 
-namespace Depensio.Api.Helpers;
+namespace BuildingBlocks.Responses;
 
 public static class ResponseFactory
 {

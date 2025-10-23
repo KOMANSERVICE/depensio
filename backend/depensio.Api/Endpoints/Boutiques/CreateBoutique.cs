@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.Responses;
 using depensio.Application.UserCases.Boutiques.Commands.CreateBoutique;
 using depensio.Application.UserCases.Boutiques.DTOs;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Boutique;
 

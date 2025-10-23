@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Menus.DTOs;
 using depensio.Application.UseCases.Menus.Queries.GetMenuByUserBoutique;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Menus;
 

@@ -1,9 +1,9 @@
-﻿using depensio.Application.Interfaces;
+﻿using BuildingBlocks.Security.Interfaces;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace depensio.Infrastructure.Security;
+namespace BuildingBlocks.Security;
 
 public class KeyManagementService(ISecureSecretProvider secureSecret) : IKeyManagementService
 {

@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.ChatBots.Commands;
 using depensio.Application.UseCases.ChatBots.DTOs;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.ChatBots;
 

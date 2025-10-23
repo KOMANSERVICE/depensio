@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Products.DTOs;
 using depensio.Application.UseCases.Products.Queries.GetProductItemByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Products;
 

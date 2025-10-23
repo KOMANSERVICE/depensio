@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Auth.DTOs;
 using depensio.Application.UseCases.Auth.Queries.ListeUser;
 using depensio.Application.UserCases.Auth.Queries.GetUserInfos;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Auths;
 

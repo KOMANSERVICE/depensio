@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Settings.DTOs;
 using depensio.Application.UserCases.Boutiques.Commands.UpsetSettingByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Settings;
 

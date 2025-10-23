@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Dashboard.DTOs;
 using depensio.Application.UseCases.Dashboards.Commands.GetSalesDetailByBoutique;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Dashboards;
 
