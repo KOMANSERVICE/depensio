@@ -1,9 +1,4 @@
-﻿using depensio.Application.Interfaces;
-using depensio.Application.UserCases.Boutiques.DTOs;
-using depensio.Domain.Models;
-using depensio.Domain.ValueObjects;
-
-namespace depensio.Application.UserCases.Boutiques.Commands.CreateBoutique;
+﻿namespace depensio.Application.UserCases.Boutiques.Commands.CreateBoutique;
 
 public class CreateSettingByBoutiqueHandler(
     IGenericRepository<Boutique> _boutiqueRepository,

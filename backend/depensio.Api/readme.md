@@ -1,4 +1,4 @@
-﻿## Configuration du SIO
+﻿## Configuration du SEO
 https://search.google.com/search-console/welcome?hl=fr
 https://search.google.com/search-console?resource_id=sc-domain%3Adepensio.com
 
@@ -19,6 +19,7 @@ dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startu
 dotnet ef migrations remove --project backend/depensio.Infrastructure --startup-project backend/depensio.Api
 
 docker compose exec depensio.api dotnet ef migrations remove  --project backend/depensio.Infrastructure   --startup-project backend/depensio.Api
+
 ## Configuration des secrets
 
 # Voir les logs en direct 

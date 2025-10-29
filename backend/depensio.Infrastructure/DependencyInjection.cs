@@ -28,7 +28,10 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices
         (this IServiceCollection services, IConfiguration configuration)
     {
-        var jsonPath = configuration["Vault:Path"]!;
+
+        var vaultUri = configuration["Vault:Uri"]!;
+        var roleId = configuration["Vault:RoleId"]!;
+        var secretId = configuration["Vault:SecretId"]!;
         var dataBase = configuration.GetConnectionString("DataBase")!;
         var mailPassword = configuration["MailConfig:FromMailIdPassword"]!;
         var fromMailId  = configuration["MailConfig:FromMailId"]!;
@@ -67,37 +70,21 @@ public static class DependencyInjection
             throw new InvalidOperationException("Mail Host is not provided in configuration");
         }
 
-        if (string.IsNullOrEmpty(jsonPath) )
+        if (string.IsNullOrEmpty(vaultUri) ||
+            string.IsNullOrEmpty(roleId) ||
+            string.IsNullOrEmpty(secretId))
         {
-            throw new InvalidOperationException("Vault configuration path is not provided in configuration");
-        }
-
-        if (!File.Exists(jsonPath))
-        {
-            throw new FileNotFoundException($"Vault configuration file not found at path: {jsonPath}");
-        }
-
-        var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(
-            File.ReadAllText(jsonPath)
-        )!;
-
-        if(vaultSecrets == null ||
-            string.IsNullOrEmpty(vaultSecrets.Vault__Uri) ||
-            string.IsNullOrEmpty(vaultSecrets.Vault__RoleId) ||
-            string.IsNullOrEmpty(vaultSecrets.Vault__SecretId))
-        {
-            throw new InvalidOperationException("Invalid Vault configuration");
+            throw new InvalidOperationException("Vault configuration is not provided in configuration");
         }
 
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
                 configuration: configuration,
-                vaultUri: vaultSecrets.Vault__Uri,
-                roleId: vaultSecrets.Vault__RoleId,
-                secretId: vaultSecrets.Vault__SecretId
+                vaultUri: vaultUri,
+                roleId: roleId,
+                secretId: secretId
             )
         );
-
 
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();

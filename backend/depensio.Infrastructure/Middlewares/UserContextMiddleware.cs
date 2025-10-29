@@ -28,7 +28,6 @@ public class UserContextMiddleware
                 context.Items["Email"] = email;
             }
         }
-
         await _next(context);
     }
 }
