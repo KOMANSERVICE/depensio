@@ -6,12 +6,10 @@ namespace depensio.Infrastructure.Middlewares;
 public class UserContextMiddleware
 {
     private readonly RequestDelegate _next;
-
     public UserContextMiddleware(RequestDelegate next)
     {
         _next = next;
     }
-
     public async Task Invoke(HttpContext context)
     {
         if (context.User.Identity?.IsAuthenticated == true)

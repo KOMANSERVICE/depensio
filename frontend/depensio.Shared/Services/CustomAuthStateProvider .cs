@@ -7,7 +7,7 @@ namespace depensio.Shared.Services;
 public class CustomAuthStateProvider : AuthenticationStateProvider
 {
 	private readonly IStorageService _storage;
-	private const string TokenKey = "authToken";
+	public static string TOKEN_KEY = "authToken";
 	private bool _isInitialized = false;
 	private ClaimsPrincipal? _cachedUser;
 
@@ -33,7 +33,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 	{
 		try
 		{
-			var token = await _storage.GetAsync(TokenKey);
+			var token = await _storage.GetAsync(TOKEN_KEY);
 			if (!string.IsNullOrWhiteSpace(token))
 			{
 				var claims = ParseClaimsFromJwt(token);
@@ -86,7 +86,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 
 			var claims = new List<Claim>();
 
-			foreach (var kvp in claimsDict)
+            foreach (var kvp in claimsDict)
 			{
 				if (kvp.Key.Equals("role", StringComparison.OrdinalIgnoreCase) ||
 					kvp.Key.Equals("roles", StringComparison.OrdinalIgnoreCase))
@@ -112,7 +112,8 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 				claims.Add(new Claim(claimType, kvp.Value?.ToString() ?? string.Empty));
 			}
 
-			return claims;
+            claims.Add(new Claim("token", jwt));
+            return claims;
 		}
 		catch
 		{
