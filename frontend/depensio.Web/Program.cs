@@ -6,6 +6,7 @@ using depensio.Shared.Services;
 using depensio.Web.Client.Services;
 using depensio.Web.Components;
 using depensio.Web.Services;
+using IDR.Library.Blazor.LocalStorages;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.IdentityModel.Tokens;

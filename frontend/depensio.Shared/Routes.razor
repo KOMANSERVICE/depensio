@@ -1,5 +1,5 @@
 ﻿
-<AuthInitializer>
+<AuthInitializer PInvokeVoid=@JsMethode>
     <Router AppAssembly="typeof(Layout.SecondaryLayout).Assembly">
         <Found Context="routeData">
             <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.SecondaryLayout)" />
@@ -10,3 +10,10 @@
         </NotFound>
     </Router>
 </AuthInitializer>
+
+@code{
+    public List<string> JsMethode = new List<string>()
+    {
+        "depensio.initialized"
+    };
+}

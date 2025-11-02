@@ -1,7 +1,9 @@
 @page "/login"
+@using IDR.Library.Blazor.Auths
 @inherits FlowbitePage
 @inject NavigationManager NavManager
 @inject IAuthService _authService
+@inject IAuthHttpService _authHttpService
 @inject IFormFactor FormFactor
 @layout NoContentLayout
 
@@ -156,7 +158,8 @@
         isLoad = true;
         try
         {
-            var isConnected = await _authService.SignInAsync(new SignInRequest(loginModel));
+            var request = await _authHttpService.SignIn(new SignInRequest(loginModel));
+            var isConnected = await _authService.SetTokenAsync(request.Token);
             if (isConnected)
             {
                 NavManager.NavigateTo("/listboutique");

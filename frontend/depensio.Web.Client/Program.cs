@@ -5,6 +5,7 @@ using depensio.Shared.Pages.Dashboards.Models;
 using depensio.Shared.Pages.Produits.Models;
 using depensio.Shared.Services;
 using depensio.Web.Client.Services;
+using IDR.Library.Blazor.LocalStorages;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

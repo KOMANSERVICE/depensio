@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using depensio.Shared.Services;
+using IDR.Library.Blazor.LocalStorages;
 
 namespace depensio.Web.Client.Services;
 

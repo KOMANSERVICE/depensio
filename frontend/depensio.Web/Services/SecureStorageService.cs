@@ -1,4 +1,5 @@
 ﻿using depensio.Shared.Services;
+using IDR.Library.Blazor.LocalStorages;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace depensio.Web.Services;

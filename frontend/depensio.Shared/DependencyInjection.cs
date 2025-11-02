@@ -1,5 +1,7 @@
 ﻿using depensio.Shared.Components.Toast;
 using depensio.Shared.Services;
+using IDR.Library.Blazor.Auths;
+using IDR.Library.Blazor.Auths.Handlers;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,12 +13,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddHttpClientFactoryServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<JwtAuthorizationHandler>();
-        services.AddScoped<CustomAuthStateProvider>();
-        services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+
+        services.AddAuthServices();
+
         services.AddScoped<ToastService>();
 
-        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFlowbiteService, FlowbiteService>();
         services.AddScoped<HeaderTabService>();
         
