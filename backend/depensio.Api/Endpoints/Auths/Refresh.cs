@@ -3,18 +3,17 @@ using IDR.Library.BuildingBlocks.Responses;
 
 namespace depensio.Api.Endpoints.Auths;
 
-public record RefreshTokenRequest();
+public record RefreshTokenRequest(bool RemenberMe);
 public record RefreshTokenResponse(string AccessToken);
 
 public class Refresh : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/auth/refresh", async (ISender sender) =>
+        app.MapPost("/auth/refresh", async (RefreshTokenRequest request, ISender sender) =>
         {
 
-            var query = new RefreshTokenCommand();
-
+            var query = request.Adapt<RefreshTokenCommand>();
             var result = await sender.Send(query);
 
             var response = result.Adapt<RefreshTokenResponse>();

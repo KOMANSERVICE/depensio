@@ -20,7 +20,7 @@ public class AuthorizationService(
             throw new UnauthorizedException("You are not authorized to add barcode to this product");
         }
     }
-    public async Task<AccessToken> GetTokenAsync(JwtTokenModel jwtTokenModel)
+    public async Task<AccessToken> GetTokenAsync(JwtTokenModel jwtTokenModel, bool remeberMe)
     {
         var JWT_Secret = _configuration["JWT:Secret"]!;
         var JWT_ValidIssuer = _configuration["JWT:ValidIssuer"]!;
@@ -39,17 +39,22 @@ public class AuthorizationService(
             JwtAudience = JWT_ValidAudience,
             Expiration = DateTime.Now.AddMinutes(1)
         };
-        var token = AuthHelper.GetTokenAsync(jwtToken);
 
+        var refreshToken = new RefreshTokenModel
+        {
+            RefreshTokenExpiration = DateTime.UtcNow.AddDays(7),
+            remeberMe = remeberMe
+        };
         var httpContext = _httpContextAccessor.HttpContext;
-        var refreshToken = AuthHelper.GenerateRefreshToken(
-                httpContext: httpContext,
-                expiration: DateTime.Now.AddDays(7)
-            );
+
+        var accesToken = AuthHelper.GetAccessToken(httpContext, jwtToken, refreshToken);
+
         return new AccessToken
         {
-            Token = token,
-            RefreshToken = refreshToken
+            Token = accesToken.Token,
+            RefreshToken = accesToken.RefreshToken,
+            RefreshTokenHash = accesToken.RefreshTokenHash,
+            RefreshTokenExpiration = accesToken.RefreshTokenExpiration
         };
     }
 

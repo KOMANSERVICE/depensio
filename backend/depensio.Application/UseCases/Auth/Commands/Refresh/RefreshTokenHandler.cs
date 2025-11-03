@@ -14,6 +14,8 @@ public class RefreshTokenHandler(
 {
     public async Task<RefreshTokenResult> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
+        var remenberMe = request.RemenberMe;
+
         var httpContext = _httpContextAccessor.HttpContext;
         if (!httpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken)
             || string.IsNullOrWhiteSpace(refreshToken))
@@ -40,21 +42,30 @@ public class RefreshTokenHandler(
             Role = "DashbordAdmin",
         };
 
-        var result = await _authServices.GetTokenAsync(jwtToken);
+        var result = await _authServices.GetTokenAsync(jwtToken, remenberMe);
         tokenEntity.IsRevoked = true;
         tokenEntity.RevokedReason = "Utilisé pour refresh";
         _refreshTokenRepository.UpdateData(tokenEntity);
 
-        refreshTokenHash = AuthHelper.HashToken(result.RefreshToken);
+        var tokens = await _dbContext.RefreshTokens
+        .Where(rt => rt.UserId == tokenEntity.UserId && !rt.IsRevoked)
+        .ToListAsync();
+
+        foreach (var token in tokens)
+        {
+            token.IsRevoked = true;
+        }
+        _refreshTokenRepository.UpdateRangeData(tokens);
+
         var newTokenEntity = new RefreshToken
         {
             Id = Guid.NewGuid(),
-            TokenHash = refreshTokenHash,
+            TokenHash = result.RefreshTokenHash,
             Email = tokenEntity.Email,
             UserId = tokenEntity.UserId,
             Role = tokenEntity.Role,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            ExpiresAt = result.RefreshTokenExpiration,
             IsRevoked = false
         };
 

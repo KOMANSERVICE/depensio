@@ -9,6 +9,6 @@
     protected override async Task OnInitializedAsync()
     {
         await _authService.RemoveTokenAsync();
-        NavManager.NavigateTo("login", forceLoad: true);
+        NavManager.NavigateTo("login");
     }
 }

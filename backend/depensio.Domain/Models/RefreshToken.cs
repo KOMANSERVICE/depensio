@@ -18,7 +18,7 @@ public class RefreshToken
     [Column("fc6")]
     public DateTime CreatedAt { get; set; }
     [Column("fc7")]
-    public DateTime ExpiresAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
     [Column("fc8")]
     public bool IsRevoked { get; set; }
     [Column("fc9")]
