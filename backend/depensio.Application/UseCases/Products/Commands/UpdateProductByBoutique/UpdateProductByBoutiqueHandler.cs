@@ -38,7 +38,7 @@ public class UpdateProductByBoutiqueHandler(
 
         var product = await UpdateProductAsync(command.Product);
 
-        _productRepository.UpdateData(product, cancellationToken);
+        _productRepository.UpdateData(product);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
         return new UpdateProductByBoutiqueResult(product.Id.Value);

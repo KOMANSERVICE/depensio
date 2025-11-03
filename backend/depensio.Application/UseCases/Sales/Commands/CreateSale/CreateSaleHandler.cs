@@ -1,16 +1,5 @@
-﻿using BuildingBlocks.Exceptions;
-using depensio.Application.Helpers;
-using depensio.Application.Models;
-using depensio.Application.UseCases.Sales.Commands.CreateSale;
-using depensio.Application.UseCases.Sales.DTOs;
-using depensio.Domain.Constants;
-using depensio.Domain.Models;
-using depensio.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+﻿using depensio.Application.UseCases.Sales.DTOs;
 using System.Text.Json;
-using System.Threading;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace depensio.Application.UseCases.Sales.Commands.CreateSale;
 

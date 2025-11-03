@@ -1,6 +1,7 @@
 ﻿using depensio.Application.UserCases.Boutiques.DTOs;
 using depensio.Application.UserCases.Boutiques.Queries.GetBoutiqueByUser;
 
+
 namespace Depensio.Api.Endpoints.Boutique;
 
 public record GetBoutiqueByUserResponse(IEnumerable<BoutiqueDTO> Boutiques);

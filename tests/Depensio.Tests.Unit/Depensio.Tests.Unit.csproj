@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\backend\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
     <ProjectReference Include="..\..\backend\depensio.Application\depensio.Application.csproj" />
     <ProjectReference Include="..\..\backend\depensio.Domain\depensio.Domain.csproj" />
     <ProjectReference Include="..\..\backend\depensio.Infrastructure\depensio.Infrastructure.csproj" />

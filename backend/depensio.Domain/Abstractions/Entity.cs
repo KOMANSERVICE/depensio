@@ -1,4 +1,5 @@
 ﻿
+using IDR.Library.BuildingBlocks.Abstractions;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace depensio.Domain.Abstractions;

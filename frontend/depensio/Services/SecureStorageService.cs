@@ -1,11 +1,12 @@
 ﻿using depensio.Shared.Services;
+using IDR.Library.Blazor.Enums;
 using IDR.Library.Blazor.LocalStorages;
 
 namespace depensio.Services;
 
 public class SecureStorageService : IStorageService
 {
-    public Task SetAsync(string key, string value)
+    public Task SetAsync(string key, string value, StorageType storageType = StorageType.Local)
     {
         Preferences.Set(key, value);
         return Task.CompletedTask;

@@ -1,9 +1,4 @@
-﻿using BuildingBlocks.Exceptions.Handler;
-using depensio.Application.Interfaces;
-using Microsoft.OpenApi.Models;
-using System.Text;
-using Microsoft.AspNetCore.OpenApi;
-using Microsoft.AspNetCore.Authentication;
+﻿using IDR.Library.BuildingBlocks.Exceptions.Handler;
 
 namespace depensio.Api;
 
@@ -36,7 +31,8 @@ public static class DependencyInjection
                 {
                     policy.WithOrigins(JWT_ValidIssuer)
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials();
                 });
         });
         services.AddAuthorizationBuilder().AddPolicy(MyAllowSpecificOrigins,
@@ -70,7 +66,8 @@ public static class DependencyInjection
                     ValidateIssuerSigningKey = true,
                     ValidAudience = JWT_ValidAudience,
                     ValidIssuer = JWT_ValidIssuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT_Secret))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT_Secret)),
+                    ClockSkew = TimeSpan.Zero //Supprime la tolérance de 5 min par défaut
                 };
             });
        

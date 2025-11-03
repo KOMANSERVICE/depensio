@@ -1,24 +1,16 @@
-﻿using BuildingBlocks.Security.Models;
-using depensio.Application.Data;
-using depensio.Application.Interfaces;
-using depensio.Domain.Models;
+﻿using depensio.Application.Data;
 using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
-using depensio.Infrastructure.Data.Interceptors;
-using depensio.Infrastructure.Middlewares;
-using depensio.Infrastructure.Repositories;
 using depensio.Infrastructure.Services;
-using IDR.SendMail;
-using IDR.SendMail.Interfaces;
+using IDR.Library.BuildingBlocks;
+using IDR.Library.BuildingBlocks.Contexts;
+using IDR.Library.BuildingBlocks.Interceptors;
+using IDR.Library.BuildingBlocks.Security;
+using IDR.Library.BuildingBlocks.Security.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Refit;
-using System.Reflection.Emit;
-using System.Text.Json;
 
 
 namespace depensio.Infrastructure;
@@ -118,38 +110,32 @@ public static class DependencyInjection
             options.EnableSsl = true;
         });
 
-        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<IDepensioDbContext, DepensioDbContext>();
-
 
         services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<DepensioDbContext>()
             .AddDefaultTokenProviders();
 
-
-
-        services.AddTransient<ISendMailService, SendMailService>();
         services.AddTransient<IEmailService, EmailService>();
 
-        services.AddScoped<IKeyManagementService, KeyManagementService>();
-        services.AddScoped<IEncryptionService, EncryptionService>();
-        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IUserContextService, UserContextService>();
+        services.AddGenericRepositories<DepensioDbContext>();
+
+        services.AddInterceptors();
+        services.AddSecurities();
+        services.AddContextMiddleware();
+
         services.AddScoped<IChatBotService, ChatBotService>();
 
         services.AddRefitClient<IN8NChatBotService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(N8Nuri));
 
-        //Pour fait fonctionner le middleware UserContextMiddleware
-        services.AddHttpContextAccessor();
 
         return services;
     }
 
     public static WebApplication UseInfrastructureServices(this WebApplication app)
     {
-        app.UseMiddleware<UserContextMiddleware>();
+        app.UseContextMiddleware();
         return app;
     }
 }

@@ -11,7 +11,10 @@ public class SignInHandler(
         SignInManager<ApplicationUser> _signInManager,
         IConfiguration _configuration,
         UserManager<ApplicationUser> _userManager,
-        ISecureSecretProvider _secureSecretProvider
+        ISecureSecretProvider _secureSecretProvider,
+        AuthorizationService _authServices,
+        IGenericRepository<RefreshToken> _refreshTokenContext,
+        IUnitOfWork _unitOfWork
     )    
     : IQueryHandler<SignInQuery, SignInResult>
 {
@@ -26,18 +29,45 @@ public class SignInHandler(
         }
         var user = await _userManager.FindByNameAsync(signIn.Email);
 
+        if (user == null)
+            throw new BadRequestException("Le mot de passe ou l'adresse email est incorrect.");
+
         var isConfirm = await _userManager.IsEmailConfirmedAsync(user);
         if (!isConfirm)
             throw new UnauthorizedException("Email non confirmé. Veuillez vérifier votre boîte mail.");
 
-
         if (user.LockoutEnabled)
             throw new UnauthorizedException("Le compte est désactivé. Contactez l’administrateur.");
 
+        var roles = await _userManager.GetRolesAsync(user);
+        
 
-        var token = await GenerateTokenAsync(signIn);
+        var jwtToken = new JwtTokenModel
+        {
+            Email = user.Email,
+            UserId = user.Id,
+            Roles = roles.ToList(),
+        };
 
-        return new SignInResult(token);
+        var resultToken = await _authServices.GetTokenAsync(jwtToken);
+        var refreshTokenHash = AuthHelper.HashToken(resultToken.RefreshToken);
+
+        var refreshTokenEntity = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = refreshTokenHash,
+            Email = jwtToken.Email,
+            UserId = jwtToken.UserId, // Ou un vrai UserId si vous en avez
+            Role = string.Join(";", roles),
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+
+        await _refreshTokenContext.AddDataAsync(refreshTokenEntity);
+        await _unitOfWork.SaveChangesDataAsync(cancellationToken);
+
+        return new SignInResult(resultToken.Token);
     }
 
     private async Task<string> GenerateTokenAsync(SignInDTO signIn)

@@ -27,12 +27,12 @@ builder.Services.AddScoped<ProtectedLocalStorage>();
 
 
 builder.Services.AddApexCharts();
-builder.Services.AddAuthorization();
 builder.Services.AddScoped<IGraphComponent<SaleSummary>, WebGraphComponentService>();
 builder.Services.AddScoped<IGraphComponent<SaleDashboard>, SalesGraphComponentService>();
 
 
 // Fallback si pas de configuration JWT
+builder.Services.AddAuthorization();
 builder.Services.AddAuthentication();
 
 
@@ -56,7 +56,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-// Middleware d'authentification
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -1,17 +1,4 @@
-﻿using depensio.Application.Models;
-using depensio.Application.UseCases.Settings.DTOs;
-using depensio.Domain.Abstractions;
-using depensio.Domain.Constants;
-using depensio.Domain.Enums;
-using depensio.Domain.Models;
-using depensio.Domain.ValueObjects;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Caching.Memory;
-using System.Text.Json;
-
-namespace depensio.Application.Services;
+﻿namespace depensio.Application.Services;
 
 public class BoutiqueSettingService(
     IDepensioDbContext _dbContext,

@@ -1,4 +1,3 @@
-using BuildingBlocks.Exceptions;
 using depensio.Application.Interfaces;
 using depensio.Application.UseCases.Products.Commands.CreateCodeBarre;
 using depensio.Application.UseCases.Products.DTOs;
@@ -7,6 +6,8 @@ using depensio.Domain.Models;
 using depensio.Domain.ValueObjects;
 using depensio.Infrastructure.Data;
 using FluentAssertions;
+using IDR.Library.BuildingBlocks.Contexts.Services;
+using IDR.Library.BuildingBlocks.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;

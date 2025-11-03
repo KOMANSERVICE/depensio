@@ -1,5 +1,4 @@
 using System.Text.Json;
-using BuildingBlocks.Exceptions;
 using depensio.Application.DTOs;
 using depensio.Application.Helpers;
 using depensio.Application.Interfaces;
@@ -15,6 +14,7 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
+using IDR.Library.BuildingBlocks.Exceptions;
 
 namespace Depensio.Tests.Unit.Services;
 

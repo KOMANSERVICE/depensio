@@ -1,8 +1,4 @@
 ﻿
-using BuildingBlocks.Exceptions;
-using depensio.Application.Interfaces;
-using IDR.SendMail;
-using IDR.SendMail.Interfaces;
 
 namespace depensio.Infrastructure.Services;
 
