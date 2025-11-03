@@ -1,4 +1,5 @@
 ﻿using depensio.Application.Services;
+using IDR.Library.BuildingBlocks.Services;
 
 namespace depensio.Application.UseCases.Auth.Commands.Refresh;
 
@@ -6,9 +7,8 @@ namespace depensio.Application.UseCases.Auth.Commands.Refresh;
 public class RefreshTokenHandler(
         IHttpContextAccessor _httpContextAccessor,
         AuthorizationService _authServices,
-        IDepensioDbContext _dbContext,
         IUnitOfWork _unitOfWork,
-        IGenericRepository<RefreshToken> _refreshTokenRepository
+        RefreshTokenService<RefreshToken> _refreshTokenService
     )
     : ICommandHandler<RefreshTokenCommand, RefreshTokenResult>
 {
@@ -25,12 +25,7 @@ public class RefreshTokenHandler(
 
         var refreshTokenHash = AuthHelper.HashToken(refreshToken);
 
-        var tokenEntity = await _dbContext.RefreshTokens
-            .FirstOrDefaultAsync(r =>
-                r.TokenHash == refreshTokenHash &&
-                !r.IsRevoked &&
-                r.ExpiresAt > DateTime.UtcNow,
-                cancellationToken);
+        var tokenEntity = await _refreshTokenService.GetRefreshTokenByHashAsync(refreshTokenHash, cancellationToken);
 
         if (tokenEntity == null)
             return (RefreshTokenResult)Results.Unauthorized();
@@ -42,36 +37,14 @@ public class RefreshTokenHandler(
             Role = "DashbordAdmin",
         };
 
-        var result = await _authServices.GetTokenAsync(jwtToken, remenberMe);
-        tokenEntity.IsRevoked = true;
-        tokenEntity.RevokedReason = "Utilisé pour refresh";
-        _refreshTokenRepository.UpdateData(tokenEntity);
+        var resultToken = await _authServices.GetTokenAsync(jwtToken, remenberMe);
+        await _refreshTokenService.RevokeRefreshTokenAsync(refreshTokenHash, "Utilisé pour refresh", cancellationToken);
 
-        var tokens = await _dbContext.RefreshTokens
-        .Where(rt => rt.UserId == tokenEntity.UserId && !rt.IsRevoked)
-        .ToListAsync();
+        await _refreshTokenService.RevokeAllUserTokensAsync(tokenEntity.UserId, "Utilisé pour refresh", cancellationToken);
+        await _refreshTokenService.SaveRefreshTokenAsync(resultToken, jwtToken, cancellationToken);
 
-        foreach (var token in tokens)
-        {
-            token.IsRevoked = true;
-        }
-        _refreshTokenRepository.UpdateRangeData(tokens);
-
-        var newTokenEntity = new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            TokenHash = result.RefreshTokenHash,
-            Email = tokenEntity.Email,
-            UserId = tokenEntity.UserId,
-            Role = tokenEntity.Role,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = result.RefreshTokenExpiration,
-            IsRevoked = false
-        };
-
-        await _refreshTokenRepository.AddDataAsync(newTokenEntity);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
-        return new RefreshTokenResult(result.Token);
+        return new RefreshTokenResult(resultToken.Token);
     }
 }

@@ -10,6 +10,8 @@ using depensio.Domain.Models;
 using depensio.Domain.ValueObjects;
 using depensio.Infrastructure.Data;
 using FluentAssertions;
+using IDR.Library.BuildingBlocks.Contexts.Services;
+using IDR.Library.BuildingBlocks.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Linq.Expressions;
@@ -50,8 +52,8 @@ public sealed class ProductUpdateManualBarcodeSpec : Feature
         _settingOptionService = new SettingOptionService(_boutiqueSettingService.Object);
 
         _productRepository
-            .Setup(repo => repo.UpdateData(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
-            .Callback<Product, CancellationToken>((product, _) => _updatedProduct = product);
+            .Setup(repo => repo.UpdateData(It.IsAny<Product>()))
+            .Callback<Product>((product) => _updatedProduct = product);
 
         _unitOfWork
             .Setup(u => u.SaveChangesDataAsync(It.IsAny<CancellationToken>()))

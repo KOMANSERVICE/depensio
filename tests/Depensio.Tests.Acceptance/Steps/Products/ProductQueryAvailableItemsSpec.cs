@@ -6,6 +6,7 @@ using depensio.Domain.Models;
 using depensio.Domain.ValueObjects;
 using depensio.Infrastructure.Data;
 using FluentAssertions;
+using IDR.Library.BuildingBlocks.Contexts.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;

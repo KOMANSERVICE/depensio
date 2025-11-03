@@ -4,8 +4,8 @@ using depensio.Application.UseCases.StockLocations.DTOs;
 using depensio.Domain.Models;
 using depensio.Domain.ValueObjects;
 using depensio.Infrastructure.Data;
-using depensio.Infrastructure.Repositories;
 using FluentAssertions;
+using IDR.Library.BuildingBlocks.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
@@ -32,7 +32,7 @@ public sealed class CreateStockLocationSteps : Feature
         _db = new DepensioDbContext(options);
         _db.Database.EnsureCreated();
         _repository = new GenericRepository<StockLocation>(_db);
-        _unitOfWork = new UnitOfWork(_db);
+        _unitOfWork = new UnitOfWork<DepensioDbContext>(_db);
         _handler = new CreateStockLocationHandler(
             _repository, 
             _unitOfWork

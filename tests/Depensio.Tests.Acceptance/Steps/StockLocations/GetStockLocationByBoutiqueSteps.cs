@@ -10,6 +10,7 @@ using Moq;
 using Xunit.Gherkin.Quick;
 using Feature = Xunit.Gherkin.Quick.Feature;
 using FluentAssertions;
+using IDR.Library.BuildingBlocks.Contexts.Services;
 
 namespace Depensio.Tests.Acceptance.Steps.StockLocations;
 

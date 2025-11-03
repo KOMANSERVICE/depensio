@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using IDR.Library.BuildingBlocks.Abstractions;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace depensio.Domain.Models;
 
 [Table("TR00001")]
-public class RefreshToken
+public class RefreshToken : IRefreshToken
 {
     [Column("fc1")]
     public Guid Id { get; set; }
