@@ -41,7 +41,11 @@ services:
       export JWT__Secret=${JWT_SECRET_API} &&
       export ConnectionStrings__DataBase=${CONNECTION_STRING_API} &&
       export MailConfig__FromMailIdPassword=${MAIL_CONFIG_PASSWORD} &&
-      export Vault__Path=${VAULT_PATH} &&
+      export Vault__PathMountPoint=${VAULT_PATH_MOUNT_POINT} &&
+      export Vault__MountPoint=${VAULT_MOUNT_POINT} &&
+      export Vault__Uri=${VAULT_URI} &&
+      export Vault__RoleId=${VAULT_ROLE_ID} &&
+      export Vault__SecretId=${VAULT_SECRET_ID} &&
       dotnet ef database update --project backend/depensio.Infrastructure --startup-project backend/depensio.Api"
     networks:
       - vault-net
