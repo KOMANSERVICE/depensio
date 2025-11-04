@@ -20,7 +20,7 @@ public class RefreshTokenHandler(
         if (!httpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken)
             || string.IsNullOrWhiteSpace(refreshToken))
         {
-            return (RefreshTokenResult)Results.Unauthorized(); ;
+            throw new UnauthorizedException("Unauthorized");
         }
 
         var refreshTokenHash = AuthHelper.HashToken(refreshToken);
@@ -28,7 +28,7 @@ public class RefreshTokenHandler(
         var tokenEntity = await _refreshTokenService.GetRefreshTokenByHashAsync(refreshTokenHash, cancellationToken);
 
         if (tokenEntity == null)
-            return (RefreshTokenResult)Results.Unauthorized();
+            throw new UnauthorizedException("Unauthorized");
 
         var jwtToken = new JwtTokenModel
         {
@@ -38,7 +38,6 @@ public class RefreshTokenHandler(
         };
 
         var resultToken = await _authServices.GetTokenAsync(jwtToken, remenberMe);
-        await _refreshTokenService.RevokeRefreshTokenAsync(refreshTokenHash, "Utilisé pour refresh", cancellationToken);
 
         await _refreshTokenService.RevokeAllUserTokensAsync(tokenEntity.UserId, "Utilisé pour refresh", cancellationToken);
         await _refreshTokenService.SaveRefreshTokenAsync(resultToken, jwtToken, cancellationToken);

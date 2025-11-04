@@ -13,10 +13,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 // Add device-specific services used by the depensio.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>()
                 .AddScoped<IStorageService, SecureStorageService>()
+                .AddBlazoredLocalStorage()
+                .AddAuthorizationCore()
                 .AddHttpClientFactoryServices(builder.Configuration);
 
-builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddAuthorizationCore();
 builder.Services.AddApexCharts();
 builder.Services.AddScoped<IGraphComponent<SaleSummary>, WebGraphComponentService>();
 builder.Services.AddScoped<IGraphComponent<SaleDashboard>, SalesGraphComponentService>();

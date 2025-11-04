@@ -22,8 +22,8 @@ builder.Services.AddRazorComponents()
 // Add device-specific services used by the depensio.Shared project
 builder.Services.AddSingleton<IFormFactor, WebFormFactor>()
                 .AddScoped<IStorageService, WebSecureStorageService>()
+                .AddScoped<ProtectedLocalStorage>()
                 .AddHttpClientFactoryServices(builder.Configuration);
-builder.Services.AddScoped<ProtectedLocalStorage>();
 
 
 builder.Services.AddApexCharts();
