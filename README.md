@@ -94,3 +94,46 @@ dotnet outdated
 
 - Issues and feature requests: open a ticket in this repository.
 - For secrets management and deployments, review the scripts in `vault/` and `maintenance/` before running in production.
+
+
+# Configuration Apache2
+    sudo apt update (Facultative)
+    sudo apt install apache2 -y
+    sudo a2enmod proxy
+    sudo a2enmod proxy_http
+    sudo a2enmod headers
+    sudo a2enmod rewrite
+    sudo systemctl restart apache2
+
+    sudo nano /etc/apache2/sites-available/vename.com.conf
+
+    <VirtualHost *:80>
+        ServerName vename.com
+        ServerAlias www.vename.com
+
+        # Proxy vers votre application locale (port 3000)
+        ProxyPreserveHost On
+        ProxyPass / http://localhost:3000/
+        ProxyPassReverse / http://localhost:3000/
+
+        # Headers forwarding
+        RequestHeader set X-Forwarded-Proto "http"
+        RequestHeader set X-Forwarded-Port "80"
+
+        # Logs
+        ErrorLog ${APACHE_LOG_DIR}/vename.com-error.log
+        CustomLog ${APACHE_LOG_DIR}/vename.com-access.log combined
+    </VirtualHost>
+    
+    # Activer le virtual host
+        sudo a2ensite vename.com.conf
+
+    # Recharger Apache
+        sudo systemctl reload apache2
+
+    # Tester la configuration
+        sudo apache2ctl configtest
+
+    # SSL avec Let's Encrypt
+        sudo apt install certbot python3-certbot-apache
+        sudo certbot --apache -d vename.com -d www.vename.com
