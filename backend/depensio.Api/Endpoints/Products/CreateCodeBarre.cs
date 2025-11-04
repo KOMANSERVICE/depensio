@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Products.Commands.CreateCodeBarre;
 using depensio.Application.UseCases.Products.DTOs;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Products;
 
@@ -24,7 +23,7 @@ public class CreateCodeBarre : ICarterModule
             return Results.Ok(baseResponse);
         })
         .WithName("CreateCodeBarre")
-        .WithGroupName("Produits")
+        .WithTags("Produits")
         .Produces<BaseResponse<CreateCodeBarreResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

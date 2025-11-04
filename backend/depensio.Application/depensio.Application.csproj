@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -27,19 +27,14 @@
 
   <ItemGroup>
     <PackageReference Include="IDR.SendMail" Version="2.4.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.17" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\depensio.Domain\depensio.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="IDR.SendMail">
-      <HintPath>..\..\..\..\SendMail\SendMail\bin\Release\netstandard2.1\IDR.SendMail.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="UseCases\Dashboards\Queries\" />

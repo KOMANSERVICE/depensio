@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Auth.Commands.ResetPassword;
 using depensio.Application.UseCases.Auth.DTOs;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Auths;
 
@@ -24,7 +23,7 @@ public class ResetPassword : ICarterModule
             return Results.Created($"/resetpassword/{response.Result}", baseResponse);
         })
         .WithName("ResetPassword")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<BaseResponse<ResetPasswordResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("ResetPassword")

@@ -1,5 +1,7 @@
 ﻿using depensio.Shared.Components.Toast;
 using depensio.Shared.Services;
+using IDR.Library.Blazor.Auths;
+using IDR.Library.Blazor.Auths.Handlers;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,57 +13,67 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddHttpClientFactoryServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<JwtAuthorizationHandler>();
-        services.AddScoped<CustomAuthStateProvider>();
-        services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+        var uri = configuration["ApiSettings:Uri"]!;
+
+        services.AddAuthServices(configuration);
+
         services.AddScoped<ToastService>();
 
-        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFlowbiteService, FlowbiteService>();
         services.AddScoped<HeaderTabService>();
         
-        var uri = configuration["ApiSettings:Uri"]!;
 
         services.AddRefitClient<IAuthHttpService>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri));
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>();
 
         services.AddRefitClient<IChatbotService>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri));        
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>();        
 
         services.AddRefitClient<IBoutiqueService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<IProductService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<ISaleService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<IPurchaseService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<IBoutiqueSettingService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<IAuthUserService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<IProfileService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<IMenuService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         services.AddRefitClient<IDashboardServices>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
         

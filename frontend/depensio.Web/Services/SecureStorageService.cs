@@ -1,11 +1,13 @@
 ﻿using depensio.Shared.Services;
+using IDR.Library.Blazor.Enums;
+using IDR.Library.Blazor.LocalStorages;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace depensio.Web.Services;
 
 public class WebSecureStorageService(ProtectedLocalStorage _storage) : IStorageService
 {    
-    public async Task SetAsync(string key, string value) => await _storage.SetAsync(key, value);
+    public async Task SetAsync(string key, string value, StorageType storageType = StorageType.Local) => await _storage.SetAsync(key, value);
 
     public async Task<string?> GetAsync(string key)
     {

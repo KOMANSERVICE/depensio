@@ -1,12 +1,18 @@
 ﻿
-<AuthInitializer>
+<AuthInitializer PInvokeVoid=@JsMethode RedirectToLogin="/login">
     <Router AppAssembly="typeof(Layout.SecondaryLayout).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.SecondaryLayout)" />
-            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.SecondaryLayout)" />            
         </Found>
         <NotFound>
             <p>Page introuvable</p>
         </NotFound>
     </Router>
 </AuthInitializer>
+
+@code{
+    public List<string> JsMethode = new List<string>()
+    {
+        "depensio.initialized"
+    };
+}

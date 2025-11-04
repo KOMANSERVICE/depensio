@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Purchases.DTOs;
 using depensio.Application.UseCases.Purchases.Queries.GetPurchaseByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Purchases;
 
@@ -20,7 +19,7 @@ public class GetPurchaseByBoutique : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetPurchaseByBoutique")
-       .WithGroupName("Purchases")
+       .WithTags("Purchases")
        .Produces<BaseResponse<GetPurchaseByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

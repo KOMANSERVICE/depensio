@@ -1,7 +1,10 @@
 @page "/login"
+@using IDR.Library.Blazor.Auths
+@using IDR.Library.Blazor.Forms.Validations
 @inherits FlowbitePage
 @inject NavigationManager NavManager
 @inject IAuthService _authService
+@inject IAuthHttpService _authHttpService
 @inject IFormFactor FormFactor
 @layout NoContentLayout
 
@@ -91,11 +94,10 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center">
-                        <input id="remember-me" name="remember-me" type="checkbox"
-                               class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
-                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-                            Se souvenir de moi
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                            <InputCheckbox @bind-Value="loginModel.RememberMe" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded" />
+                            <span class="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
                         </label>
                     </div>
 
@@ -132,7 +134,6 @@
     private string factor => FormFactor.GetFormFactor();
     private bool isLoad = false;
     private SignInDTO loginModel = new();
-    private ErrorMessage errorMessage = new();
 
     private EditContext editContext;
     private ValidationMessageStore messageStore;
@@ -156,54 +157,19 @@
         isLoad = true;
         try
         {
-            var isConnected = await _authService.SignInAsync(new SignInRequest(loginModel));
+            var request = await _authHttpService.SignIn(new SignInRequest(loginModel));
+            var isConnected = await _authService.SetTokenAsync(request.Token, loginModel.RememberMe);
             if (isConnected)
             {
-                NavManager.NavigateTo("/listboutique");
+                var query = System.Web.HttpUtility.ParseQueryString(new Uri(NavManager.Uri).Query);
+                var returnUrl = query["returnUrl"] ?? "/listboutique";
+                NavManager.NavigateTo(returnUrl);
             }
         }
         catch (ApiException ex)
         {
-            try
-            {
-                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                // Efface les anciennes erreurs
-                messageStore.Clear();
-
-                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
-                {
-                    foreach (var validationError in errorResult.ValidationErrors)
-                    {
-                        // Nettoyer le nom de propriété (ex: Product.Name -> Name)
-                        var propertyName = validationError.PropertyName;
-                        if (propertyName.Contains('.'))
-                            propertyName = propertyName.Split('.').Last();
-
-                        // Associer au champ si possible
-                        var fieldIdentifier = new FieldIdentifier(loginModel!, propertyName);
-                        messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
-                    }
-                }
-                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
-                {
-                    // Message global sans champ spécifique
-                    var fieldIdentifier = new FieldIdentifier(loginModel!, string.Empty);
-                    messageStore.Add(fieldIdentifier, errorResult.Detail);
-                }
-
-                // Rafraîchir l’affichage
-                editContext.NotifyValidationStateChanged();
-
-            }
-            catch
-            {
-                messageStore.Add(new FieldIdentifier(loginModel, string.Empty), "Une erreur est survenue.");
-                editContext.NotifyValidationStateChanged();
-            }
+            ApiErrorHandler.ApplyApiErrors<SignInDTO>(messageStore, editContext, ex.Content);
+            editContext.NotifyValidationStateChanged();
         }
         finally
         {

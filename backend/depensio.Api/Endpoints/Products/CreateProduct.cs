@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Products.Commands.CreateProduct;
 using depensio.Application.UseCases.Products.DTOs;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Products;
 
@@ -24,7 +23,7 @@ public class CreateProduct : ICarterModule
             return Results.Created($"/product/{response.Id}", baseResponse);
         })
         .WithName("CreateProduct")
-        .WithGroupName("Produits")
+        .WithTags("Produits")
         .Produces<BaseResponse<CreateProductResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

@@ -1,25 +1,16 @@
 ﻿using depensio.Application.Data;
-using depensio.Application.Interfaces;
-using depensio.Domain.Models;
 using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
-using depensio.Infrastructure.Data.Interceptors;
-using depensio.Infrastructure.Middlewares;
-using depensio.Infrastructure.Models;
-using depensio.Infrastructure.Repositories;
-using depensio.Infrastructure.Security;
 using depensio.Infrastructure.Services;
-using IDR.SendMail;
-using IDR.SendMail.Interfaces;
+using IDR.Library.BuildingBlocks;
+using IDR.Library.BuildingBlocks.Contexts;
+using IDR.Library.BuildingBlocks.Interceptors;
+using IDR.Library.BuildingBlocks.Security;
+using IDR.Library.BuildingBlocks.Security.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Refit;
-using System.Reflection.Emit;
-using System.Text.Json;
 
 
 namespace depensio.Infrastructure;
@@ -29,7 +20,10 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices
         (this IServiceCollection services, IConfiguration configuration)
     {
-        var jsonPath = configuration["Vault:Path"]!;
+
+        var vaultUri = configuration["Vault:Uri"]!;
+        var roleId = configuration["Vault:RoleId"]!;
+        var secretId = configuration["Vault:SecretId"]!;
         var dataBase = configuration.GetConnectionString("DataBase")!;
         var mailPassword = configuration["MailConfig:FromMailIdPassword"]!;
         var fromMailId  = configuration["MailConfig:FromMailId"]!;
@@ -68,36 +62,21 @@ public static class DependencyInjection
             throw new InvalidOperationException("Mail Host is not provided in configuration");
         }
 
-        if (string.IsNullOrEmpty(jsonPath) )
+        if (string.IsNullOrEmpty(vaultUri) ||
+            string.IsNullOrEmpty(roleId) ||
+            string.IsNullOrEmpty(secretId))
         {
-            throw new InvalidOperationException("Vault configuration path is not provided in configuration");
-        }
-
-        if (!File.Exists(jsonPath))
-        {
-            throw new FileNotFoundException($"Vault configuration file not found at path: {jsonPath}");
-        }
-
-        var vaultSecrets = JsonSerializer.Deserialize<VaultSecretsConfig>(
-            File.ReadAllText(jsonPath)
-        )!;
-
-        if(vaultSecrets == null ||
-            string.IsNullOrEmpty(vaultSecrets.Vault__Uri) ||
-            string.IsNullOrEmpty(vaultSecrets.Vault__RoleId) ||
-            string.IsNullOrEmpty(vaultSecrets.Vault__SecretId))
-        {
-            throw new InvalidOperationException("Invalid Vault configuration");
+            throw new InvalidOperationException("Vault configuration is not provided in configuration");
         }
 
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
-                vaultUri: vaultSecrets.Vault__Uri,
-                roleId: vaultSecrets.Vault__RoleId,
-                secretId: vaultSecrets.Vault__SecretId
+                configuration: configuration,
+                vaultUri: vaultUri,
+                roleId: roleId,
+                secretId: secretId
             )
         );
-
 
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();
@@ -131,38 +110,32 @@ public static class DependencyInjection
             options.EnableSsl = true;
         });
 
-        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<IDepensioDbContext, DepensioDbContext>();
-
 
         services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<DepensioDbContext>()
             .AddDefaultTokenProviders();
 
-
-
-        services.AddTransient<ISendMailService, SendMailService>();
         services.AddTransient<IEmailService, EmailService>();
 
-        services.AddScoped<IKeyManagementService, KeyManagementService>();
-        services.AddScoped<IEncryptionService, EncryptionService>();
-        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IUserContextService, UserContextService>();
+        services.AddGenericRepositories<DepensioDbContext>();
+
+        services.AddInterceptors();
+        services.AddSecurities();
+        services.AddContextMiddleware();
+
         services.AddScoped<IChatBotService, ChatBotService>();
 
         services.AddRefitClient<IN8NChatBotService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(N8Nuri));
 
-        //Pour fait fonctionner le middleware UserContextMiddleware
-        services.AddHttpContextAccessor();
 
         return services;
     }
 
     public static WebApplication UseInfrastructureServices(this WebApplication app)
     {
-        app.UseMiddleware<UserContextMiddleware>();
+        app.UseContextMiddleware();
         return app;
     }
 }

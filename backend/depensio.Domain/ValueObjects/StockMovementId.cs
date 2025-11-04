@@ -1,0 +1,20 @@
+﻿using depensio.Domain.Exceptions;
+
+namespace depensio.Domain.ValueObjects;
+
+public record StockMovementId
+{
+    public Guid Value { get; }
+    private StockMovementId(Guid value) => Value = value;
+    public static StockMovementId Of(Guid value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        if (value == Guid.Empty)
+        {
+            throw new DomainException("StockMovementId cannot be empty.");
+        }
+        return new StockMovementId(value);
+    }
+
+
+}

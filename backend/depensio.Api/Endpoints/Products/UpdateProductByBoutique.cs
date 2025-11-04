@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Products.Commands.UpdateProductByBoutique;
 using depensio.Application.UseCases.Products.DTOs;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Products;
 
@@ -23,7 +22,7 @@ public class UpdateProductByBoutique : ICarterModule
             return Results.Created($"/product/{response.Id}", baseResponse);
         })
         .WithName("UpdateProductByBoutique")
-        .WithGroupName("Produits")
+        .WithTags("Produits")
         .Produces<BaseResponse<UpdateProductByBoutiqueResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

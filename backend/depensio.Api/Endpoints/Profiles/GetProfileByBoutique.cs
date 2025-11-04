@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Profiles.DTO;
 using depensio.Application.UseCases.Profiles.Queries.GetProfileByBoutique;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Profiles;
 
@@ -22,7 +21,7 @@ public class GetProfileByBoutique : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
        .WithName("GetProfileByBoutique")
-       .WithGroupName("Profiles")
+       .WithTags("Profiles")
        .Produces<BaseResponse<GetProfileByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

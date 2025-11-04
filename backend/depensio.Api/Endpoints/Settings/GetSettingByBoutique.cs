@@ -1,7 +1,4 @@
-﻿using depensio.Application.Models;
-using depensio.Application.UseCases.Settings.DTOs;
-using depensio.Application.UseCases.Settings.Queries.GetSettingByBoutique;
-using Depensio.Api.Helpers;
+﻿using depensio.Application.UseCases.Settings.Queries.GetSettingByBoutique;
 
 namespace Depensio.Api.Endpoints.Settings;
 
@@ -21,7 +18,7 @@ public class GetSettingByBoutique : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetSettingByBoutique")
-       .WithGroupName("Settings")
+       .WithTags("Settings")
        .Produces<BaseResponse<GetSettingByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

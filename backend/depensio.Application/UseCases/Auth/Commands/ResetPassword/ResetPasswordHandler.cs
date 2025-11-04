@@ -22,6 +22,7 @@ public class ResetPasswordHandler(
         var result = await _userManager.ResetPasswordAsync(user, decodedToken, requestModel.NewPassword);
         if (result.Succeeded)
         {
+            await _userManager.SetLockoutEnabledAsync(user!, false);
             await SendMailAsync(user);
             return new ResetPasswordResult(true);
         }

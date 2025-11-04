@@ -17,4 +17,5 @@ public interface IDepensioDbContext
     DbSet<PlanMenu> PlanMenus { get; }
     DbSet<Profile> Profiles { get; }
     DbSet<ProfileMenu> ProfileMenus { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
 }

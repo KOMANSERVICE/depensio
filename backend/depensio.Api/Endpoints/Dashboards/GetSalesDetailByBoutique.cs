@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Dashboard.DTOs;
 using depensio.Application.UseCases.Dashboards.Commands.GetSalesDetailByBoutique;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Dashboards;
 
@@ -28,7 +27,7 @@ public class GetSalesDetailByBoutique : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("GetSalesDetailByBoutique")
-        .WithGroupName("Dashboard")
+        .WithTags("Dashboard")
         .Produces<BaseResponse<GetSalesDetailByBoutiqueResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

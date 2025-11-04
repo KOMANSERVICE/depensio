@@ -1,5 +1,4 @@
 ﻿using depensio.Application.UseCases.Auth.Commands.CreateUser;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Auths;
 
@@ -23,7 +22,7 @@ public class CreateUser : ICarterModule
             return Results.Created($"/createuser/{response.Result}", baseResponse);
         })
         .WithName("CreateUser")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<BaseResponse<CreateUserResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("CreateUser")

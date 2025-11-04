@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Menus.DTOs;
 using depensio.Application.UseCases.Menus.Queries.GetMenuByUserBoutique;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Menus;
 
@@ -22,7 +21,7 @@ public class GetMenuByUserBoutique : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
        .WithName("GetMenuByUserBoutique")
-       .WithGroupName("Menus")
+       .WithTags("Menus")
        .Produces<BaseResponse<GetMenuByUserBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

@@ -1,8 +1,4 @@
-﻿using BuildingBlocks.Exceptions.Handler;
-using depensio.Application.Interfaces;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Filters;
-using System.Text;
+﻿using IDR.Library.BuildingBlocks.Exceptions.Handler;
 
 namespace depensio.Api;
 
@@ -35,7 +31,8 @@ public static class DependencyInjection
                 {
                     policy.WithOrigins(JWT_ValidIssuer)
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials();
                 });
         });
         services.AddAuthorizationBuilder().AddPolicy(MyAllowSpecificOrigins,
@@ -44,24 +41,13 @@ public static class DependencyInjection
                     .RequireClaim("scope", "greetings_api"));
 
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(options =>
+        services.AddOpenApi(options =>
         {
-            options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-            {
-                Description = "Authorization oauth2",
-                In = ParameterLocation.Header,
-                Name = "Authorization",
-                Type = SecuritySchemeType.ApiKey
-            });
-
-            options.OperationFilter<SecurityRequirementsOperationFilter>();
-            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Depensio API", Version = "v1" });
-            options.DocInclusionPredicate((docName, apiDesc) =>
-            {
-                var groupName = apiDesc.GroupName ?? string.Empty;
-                return docName == "v1" || groupName == docName;
-            });
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
         });
+
+
+
         services.AddAuthorization();
         services.AddAuthentication(option =>
         {
@@ -80,10 +66,11 @@ public static class DependencyInjection
                     ValidateIssuerSigningKey = true,
                     ValidAudience = JWT_ValidAudience,
                     ValidIssuer = JWT_ValidIssuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT_Secret))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT_Secret)),
+                    ClockSkew = TimeSpan.Zero //Supprime la tolérance de 5 min par défaut
                 };
             });
-
+       
 
         return services;
     }
@@ -105,5 +92,37 @@ public static class DependencyInjection
         app.UseAuthorization();
 
         return app;
+    }
+}
+internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
+{
+    public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
+    {
+        var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
+        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
+        {
+            // Add the security scheme at the document level
+            var requirements = new Dictionary<string, OpenApiSecurityScheme>
+            {
+                ["Bearer"] = new OpenApiSecurityScheme
+                {
+                    Description = "Authorization oauth2",
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                }
+            };
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes = requirements;
+
+            // Apply it as a requirement for all operations
+            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            {
+                operation.Value.Security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme } }] = Array.Empty<string>()
+                });
+            }
+        }
     }
 }

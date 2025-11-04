@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.ChatBots.Commands;
 using depensio.Application.UseCases.ChatBots.DTOs;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.ChatBots;
 
@@ -24,7 +23,7 @@ public class UseChatBot : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("UseChatBot")
-       .WithGroupName("ChatBot")
+       .WithTags("ChatBot")
        .Produces<BaseResponse<UseChatBotResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

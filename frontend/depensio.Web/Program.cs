@@ -6,6 +6,7 @@ using depensio.Shared.Services;
 using depensio.Web.Client.Services;
 using depensio.Web.Components;
 using depensio.Web.Services;
+using IDR.Library.Blazor.LocalStorages;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.IdentityModel.Tokens;
@@ -21,41 +22,19 @@ builder.Services.AddRazorComponents()
 // Add device-specific services used by the depensio.Shared project
 builder.Services.AddSingleton<IFormFactor, WebFormFactor>()
                 .AddScoped<IStorageService, WebSecureStorageService>()
+                .AddScoped<ProtectedLocalStorage>()
                 .AddHttpClientFactoryServices(builder.Configuration);
-builder.Services.AddScoped<ProtectedLocalStorage>();
 
 
 builder.Services.AddApexCharts();
-builder.Services.AddAuthorization();
 builder.Services.AddScoped<IGraphComponent<SaleSummary>, WebGraphComponentService>();
 builder.Services.AddScoped<IGraphComponent<SaleDashboard>, SalesGraphComponentService>();
 
-// Configuration JWT
-var JWTValidIssuer = builder.Configuration["JWT:ValidIssuer"];
-var JWTValidAudience = builder.Configuration["JWT:ValidAudience"];
-var JWTSecret = builder.Configuration["JWT:Secret"];
 
-if (!string.IsNullOrEmpty(JWTSecret))
-{
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidIssuer = JWTValidIssuer,
-                ValidAudience = JWTValidAudience,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(JWTSecret))
-            };
-        });
-}
-else
-{
-    // Fallback si pas de configuration JWT
-    builder.Services.AddAuthentication();
-}
+// Fallback si pas de configuration JWT
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication();
+
 
 builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.Logging.AddFilter("Refit", LogLevel.Warning);
@@ -77,7 +56,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-// Middleware d'authentification
 app.UseAuthentication();
 app.UseAuthorization();
 

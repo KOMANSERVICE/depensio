@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Settings.DTOs;
 using depensio.Application.UserCases.Boutiques.Commands.UpsetSettingByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Settings;
 
@@ -24,7 +23,7 @@ public class UpsetSettingByBoutique : ICarterModule
             return Results.Created($"/setting/{response.Id}", baseResponse);
         })
         .WithName("UpsetSettingByBoutique")
-        .WithGroupName("Settings")
+        .WithTags("Settings")
         .Produces<BaseResponse<UpsetSettingByBoutiqueResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

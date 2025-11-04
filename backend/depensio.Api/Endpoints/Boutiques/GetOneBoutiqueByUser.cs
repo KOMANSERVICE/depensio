@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Boutiques.Queries.GetOneBoutiqueByUser;
 using depensio.Application.UserCases.Boutiques.DTOs;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Boutiques;
 
@@ -20,7 +19,7 @@ public class GetOneBoutiqueByUser : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetOneBoutiqueByUser")
-        .WithGroupName("Boutiques")
+        .WithTags("Boutiques")
        .Produces<BaseResponse<GetOneBoutiqueByUserResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .WithSummary("GetOneBoutiqueByUser")

@@ -1,9 +1,4 @@
-﻿using BuildingBlocks.Exceptions;
-using depensio.Application.Interfaces;
-using depensio.Application.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-
+﻿
 namespace depensio.Infrastructure.Filters;
 
 public class BoutiqueAuthorizationFilter(

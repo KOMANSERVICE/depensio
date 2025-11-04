@@ -5,6 +5,7 @@ using depensio.Shared;
 using depensio.Shared.Pages.Dashboards.Models;
 using depensio.Shared.Pages.Produits.Models;
 using depensio.Shared.Services;
+using IDR.Library.Blazor.LocalStorages;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

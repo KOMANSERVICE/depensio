@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Auth.Commands.ForgetPassword;
 using depensio.Application.UseCases.Auth.DTOs;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Auths;
 
@@ -24,7 +23,7 @@ public class ForgotPassword : ICarterModule
             return Results.Created($"/forgotpassword/{response.Result}", baseResponse);
         })
         .WithName("ForgotPassword")
-        .WithGroupName("Login")
+        .WithTags("Login")
         .Produces<BaseResponse<ForgotPasswordResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("ForgotPassword")

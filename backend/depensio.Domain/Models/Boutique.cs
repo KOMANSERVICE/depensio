@@ -15,7 +15,7 @@ public class Boutique : Entity<BoutiqueId>
     public ICollection<Subscription> Subscriptions { get; set; }
     public virtual ICollection<Profile> Profiles { get; set; } = new HashSet<Profile>();
     public ICollection<Product> Products { get; set; }
-    //public ICollection<StockLocation> StockLocations { get; set; }
+    public ICollection<StockLocation> StockLocations { get; set; }
     public ICollection<Sale> Sales { get; set; }
     public ICollection<BoutiqueSetting> BoutiqueSettings { get; set; }
     public ICollection<Purchase> Purchases { get; set; }

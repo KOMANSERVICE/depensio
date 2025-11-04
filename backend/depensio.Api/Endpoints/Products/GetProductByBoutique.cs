@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Products.DTOs;
 using depensio.Application.UseCases.Products.Queries.GetProductByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Products;
 
@@ -20,7 +19,7 @@ public class GetProductByBoutique : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetProductByBoutique")
-        .WithGroupName("Produits")
+        .WithTags("Produits")
        .Produces<BaseResponse<GetProductByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)

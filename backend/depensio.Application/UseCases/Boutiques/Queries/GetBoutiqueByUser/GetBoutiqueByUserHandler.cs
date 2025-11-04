@@ -1,4 +1,5 @@
 ﻿using depensio.Application.Services;
+using IDR.Library.BuildingBlocks.Contexts.Services;
 
 namespace depensio.Application.UserCases.Boutiques.Queries.GetBoutiqueByUser;
 

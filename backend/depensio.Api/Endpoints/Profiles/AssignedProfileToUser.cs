@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Profiles.Commands.AssignedProfileToUser;
 using depensio.Application.UseCases.Profiles.DTO;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.AssignedProfiles;
 
@@ -27,7 +26,7 @@ public class AssignedProfileToUser : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("AssignedAssignedProfileToUser")
-        .WithGroupName("AssignedProfiles")
+        .WithTags("AssignedProfiles")
         .Produces<BaseResponse<AssignedProfileToUserResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

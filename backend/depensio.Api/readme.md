@@ -1,4 +1,4 @@
-﻿## Configuration du SIO
+﻿## Configuration du SEO
 https://search.google.com/search-console/welcome?hl=fr
 https://search.google.com/search-console?resource_id=sc-domain%3Adepensio.com
 
@@ -19,6 +19,7 @@ dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startu
 dotnet ef migrations remove --project backend/depensio.Infrastructure --startup-project backend/depensio.Api
 
 docker compose exec depensio.api dotnet ef migrations remove  --project backend/depensio.Infrastructure   --startup-project backend/depensio.Api
+
 ## Configuration des secrets
 
 # Voir les logs en direct 
@@ -96,7 +97,7 @@ SELECT * FROM "TABLE";
 # Transférer un dossier local vers le serveur distant
 scp -r build/ root@123.45.67.89:/var/www/mon-site/
 
-# Configurer le serveur web sur ton VPS
+# Configurer le serveur web sur ton VPS NGINX
 sudo apt update (Facultative)
 sudo apt install nginx -y (Facultative)
 sudo systemctl status nginx
@@ -166,7 +167,7 @@ sudo ln -s /etc/nginx/sites-available/vename.com /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 
-# deinstaller
+# deinstaller NGINX
 
 sudo apt remove nginx nginx-common
 sudo apt purge nginx nginx-common
@@ -179,6 +180,107 @@ ls -l /etc/nginx/sites-available/
 # Activer le HTTPS avec Let’s Encrypt
 sudo apt install certbot python3-certbot-nginx
 sudo certbot --nginx -d vename.com -d www.vename.com
+
+
+
+# Activer le virtual host
+sudo a2ensite vename.com.conf
+
+# Désactiver le site par défaut (optionnel)
+sudo a2dissite 000-default.conf
+
+# Tester la configuration
+sudo apache2ctl configtest
+
+# Recharger Apache
+sudo systemctl reload apache2
+
+# securite
+    <VirtualHost *:80>
+        ServerName vename.com
+        ServerAlias www.vename.com
+
+        # Redirection automatique vers HTTPS
+        RewriteEngine On
+        RewriteCond %{HTTPS} off
+        RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
+    </VirtualHost>
+
+    <VirtualHost *:443>
+        ServerName vename.com
+        ServerAlias www.vename.com
+
+        # Certificat SSL (Let's Encrypt)
+        SSLEngine on
+        SSLCertificateFile /etc/letsencrypt/live/vename.com/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/vename.com/privkey.pem
+
+        # Proxy vers votre application Blazor/ASP.NET Core
+        ProxyPreserveHost On
+        ProxyPass / http://localhost:3000/
+        ProxyPassReverse / http://localhost:3000/
+
+        # Support WebSocket (important pour Blazor Server)
+        RewriteEngine On
+        RewriteCond %{HTTP:Upgrade} websocket [NC]
+        RewriteCond %{HTTP:Connection} upgrade [NC]
+        RewriteRule ^/?(.*) "ws://localhost:3000/$1" [P,L]
+
+        # Headers de sécurité
+        Header always set X-Content-Type-Options "nosniff"
+        Header always set X-Frame-Options "SAMEORIGIN"
+        Header always set X-XSS-Protection "1; mode=block"
+        Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+        # Headers forwarding
+        RequestHeader set X-Forwarded-Proto "https"
+        RequestHeader set X-Forwarded-Port "443"
+        RequestHeader set X-Real-IP %{REMOTE_ADDR}s
+
+        # Logs
+        ErrorLog ${APACHE_LOG_DIR}/vename.com-error.log
+        CustomLog ${APACHE_LOG_DIR}/vename.com-access.log combined
+    </VirtualHost>
+# Modules essentiels pour le reverse proxy
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo a2enmod headers
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+# a supprimer
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo a2enmod proxy_wstunnel  # Pour WebSocket (Blazor Server)
+sudo a2enmod ssl              # Pour HTTPS
+sudo a2enmod rewrite          # Pour les redirections
+sudo a2enmod headers          # Pour manipuler les headers
+
+# Installation et configuration
+sudo apt install apache2
+sudo a2enmod proxy proxy_http proxy_wstunnel ssl rewrite headers
+sudo nano /etc/apache2/sites-available/vename.com.conf
+sudo a2ensite vename.com.conf
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+
+# SSL avec Let's Encrypt
+sudo apt install certbot python3-certbot-apache
+sudo certbot --apache -d vename.com -d www.vename.com
+
+# Firewall
+sudo ufw allow 'Apache Full'
+
+# Redémarrer Apache
+sudo systemctl restart apache2
+
+# Obtenir un certificat SSL (automatique)
+sudo certbot --apache -d vename.com -d www.vename.com
+
+# Renouvellement automatique (déjà configuré par défaut)
+sudo certbot renew --dry-run
+
+sudo ufw allow 'Apache Full'
 
 
 sudo certbot delete --cert-name demo.depensio.com

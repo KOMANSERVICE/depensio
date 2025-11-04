@@ -1,7 +1,6 @@
 ﻿using depensio.Application.UseCases.Profiles.Commands.CreateProfile;
 using depensio.Application.UseCases.Profiles.DTO;
 using depensio.Infrastructure.Filters;
-using Depensio.Api.Helpers;
 
 namespace depensio.Api.Endpoints.Profiles;
 
@@ -28,7 +27,7 @@ public class CreateProfile : ICarterModule
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("CreateProfile")
-        .WithGroupName("Profiles")
+        .WithTags("Profiles")
         .Produces<BaseResponse<CreateProfileResponse>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

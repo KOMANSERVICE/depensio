@@ -1,6 +1,5 @@
 ﻿using depensio.Application.UseCases.Sales.DTOs;
 using depensio.Application.UseCases.Sales.Queries.GetSaleDetailByBoutique;
-using Depensio.Api.Helpers;
 
 namespace Depensio.Api.Endpoints.Sales;
 
@@ -21,7 +20,7 @@ public class GetSaleDetailByBoutique : ICarterModule
             return Results.Ok(baseResponse);
         })
        .WithName("GetSaleDetailByBoutique")
-       .WithGroupName("Sales")
+       .WithTags("Sales")
        .Produces<BaseResponse<GetSaleDetailByBoutiqueResponse>>(StatusCodes.Status200OK)
        .ProducesProblem(StatusCodes.Status400BadRequest)
        .ProducesProblem(StatusCodes.Status404NotFound)
