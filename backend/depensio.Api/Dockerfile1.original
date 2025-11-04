@@ -15,6 +15,7 @@ WORKDIR /src
 COPY ["backend/depensio.Api/depensio.Api.csproj", "backend/depensio.Api/"]
 COPY ["backend/depensio.Application/depensio.Application.csproj", "backend/depensio.Application/"]
 COPY ["backend/depensio.Domain/depensio.Domain.csproj", "backend/depensio.Domain/"]
+COPY ["backend/BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "backend/BuildingBlocks/BuildingBlocks/"]
 COPY ["backend/depensio.Infrastructure/depensio.Infrastructure.csproj", "backend/depensio.Infrastructure/"]
 RUN dotnet restore "./backend/depensio.Api/depensio.Api.csproj"
 COPY . .
