@@ -22,7 +22,7 @@ services:
       - vault-net
     
   ef-migrator:
-    image: mcr.microsoft.com/dotnet/sdk:8.0
+    image: mcr.microsoft.com/dotnet/sdk:9.0
     container_name: ef-migrator
     depends_on:
       depensioDB:
