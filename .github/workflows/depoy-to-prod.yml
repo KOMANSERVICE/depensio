@@ -126,7 +126,12 @@ jobs:
             JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}           
             N8N_URI=${{ vars.N8N_URI }}
             EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT_PROD }}
-            WEBHOOKID=${{ secrets.WEBHOOKID_PROD }}   
+            WEBHOOKID=${{ secrets.WEBHOOKID_PROD }}      
+            VAULT_URI=${{ vars.VAULT_ADDR }}
+            VAULT_ROLE_ID=${{ secrets.ROLE_ID_PROD }}
+            VAULT_SECRET_ID=${{ secrets.SECRET_ID_PROD }}
+            VAULT_PATH_MOUNT_POINT=${{ secrets.VAULT_PATH_MOUNT_POINT }}
+            VAULT_MOUNT_POINT=${{ secrets.VAULT_MOUNT_POINT }}
             
             # depensio.web
             API_SETTINGS_URL=${{ vars.API_SETTINGS_URL_PROD }}
