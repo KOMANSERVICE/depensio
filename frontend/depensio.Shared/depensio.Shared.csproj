@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="IDR.Library.Blazor" Version="1.0.1" />
+    <PackageReference Include="IDR.Library.Blazor" Version="1.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />

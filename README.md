@@ -137,3 +137,70 @@ dotnet outdated
     # SSL avec Let's Encrypt
         sudo apt install certbot python3-certbot-apache
         sudo certbot --apache -d vename.com -d www.vename.com
+
+
+# Installation de logiciel de virtualisation
+    KVM + Cockpit
+
+    Étape 1 : Installation de KVM et Cockpit
+    sudo apt update
+    sudo apt upgrade -y
+    sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst cockpit cockpit-machines -y
+
+    # Remplacez "votre_nom_utilisateur" par votre nom d'utilisateur SSH
+    sudo usermod -aG libvirt votre_nom_utilisateur
+
+    sudo ufw status
+    sudo ufw allow 9090/tcp
+
+    2. Désactiver la liaison IPv6 pour SPICE (Solution recommandée)
+    sudo nano /etc/libvirt/qemu.conf
+    Trouvez et modifiez la ligne spice_listen :
+    Recherchez la ligne suivante (elle est peut-être commentée avec un #).
+    #spice_listen = "127.0.0.1"
+    Décommentez-la et assurez-vous qu'elle utilise l'adresse IPv4 de localhost :
+    spice_listen = "127.0.0.1"
+    sudo systemctl restart libvirtd
+
+    mettre image dans /var/cache/libvirt
+
+    sudo nano /etc/NetworkManager/conf.d/disable-wifi-powersave.conf
+    [connection]
+    wifi.powersave = 2
+
+    [device]
+    wifi.powersave = 2
+
+    Dans votre contexte KVM/VM
+    Vous avez posé des questions sur la vérification de la connexion de votre VM Win10 au réseau. NetworkManager gère 
+    l'interface physique de votre serveur. L'outil libvirt crée un pont réseau (virbr0) qui se connecte à cette interface gérée 
+    par NetworkManager. 
+    
+    Pour vérifier le pont : 
+    Utilisez "nmcli device status" sur votre serveur pour voir si virbr0 est actif et a une adresse 
+    IP (généralement 192.168.122.1).
+    
+    Pour que la VM ait accès au réseau : Dans Cockpit, la VM doit être configurée pour utiliser ce pont 
+    (le réglage par défaut "NAT" ou "pont par défaut" fait généralement cela).
+
+    sudo virsh domifaddr vm-diallo
+    virsh list --state-running
+    virsh list --all
+    nmcli device status
+
+## Configuration DNS pour serveur mail avec Poste.io
+    smtp.ivoirecasa.com
+    mail.ivoirecasa.com
+    
+    Type	Nom (Host)	Valeur (Cible)	Description
+    A	mail	IP_publique_du_serveur	ton VPS
+    MX	@	mail.ivoirecasa.com	serveur mail
+    TXT	@	v=spf1 mx ~all	autorise ton serveur à envoyer
+    TXT	_dmarc	v=DMARC1; p=none; rua=mailto:admin@ivoirecasa.com	DMARC
+    TXT	default._domainkey	(valeur fournie par Poste.io)	DKIM
+
+    DKIM
+    Nom (Host)
+    default._domainkey
+    Valeur (TXT Record)
+    v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...

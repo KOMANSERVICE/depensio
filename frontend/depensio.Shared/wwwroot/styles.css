@@ -112,9 +112,9 @@ html, body {
     transition: transform 0.2s ease-in-out;
 }
 
-    .hover-scale:hover {
-        transform: scale(1.02);
-    }
+.hover-scale:hover {
+    transform: scale(1.02);
+}
 
 
 .animation-pulse {
