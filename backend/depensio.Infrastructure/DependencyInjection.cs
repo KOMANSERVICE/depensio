@@ -101,10 +101,10 @@ public static class DependencyInjection
 
         services.AddEmailServices((options) =>
         {
-            options.FromMailId = "admin@ivoirecasa.com";//"demo@ivoirecasa.com";
-            options.FromMailIdPassword = "94065204ef9d403c61c8d9346971c68c-02300200-82711f94";// "DemoPass123@";
-            options.FromMailName = "Test";
-            options.Host = "smtp.mailgun.org";
+            options.FromMailId = fromMailId;
+            options.FromMailIdPassword = fromMailIdPassword;
+            options.FromMailName = fromMailName;
+            options.Host = host;
             options.Ports = int.Parse(ports);
             options.IsBodyHtml = true;
             options.EnableSsl = true;
