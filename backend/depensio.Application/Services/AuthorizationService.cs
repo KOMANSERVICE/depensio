@@ -37,7 +37,7 @@ public class AuthorizationService(
             JwtSecret = secret,
             JwtIssuer = JWT_ValidIssuer,
             JwtAudience = JWT_ValidAudience,
-            Expiration = DateTime.UtcNow.AddMinutes(1)
+            Expiration = DateTime.UtcNow.AddMinutes(5)
         };
 
         var refreshToken = new RefreshTokenModel
