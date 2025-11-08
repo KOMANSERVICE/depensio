@@ -18,7 +18,7 @@ public static class DependencyInjection
         services.AddAuthServices(configuration, (options) =>
         {
             options.Uri = uri;
-            options.Logout = "logout";
+            options.Logout = "/logout";
         });
 
         services.AddScoped<ToastService>();
