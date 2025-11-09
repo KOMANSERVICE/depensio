@@ -204,3 +204,9 @@ dotnet outdated
     default._domainkey
     Valeur (TXT Record)
     v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
+
+
+# Docker ghcr.io
+
+echo Github_TOKEN | docker login ghcr.io -u github_username --password-stdin
+>> docker compose -f docker-compose.prod.yml  --env-file .env up -d --build  --remove-orphans
