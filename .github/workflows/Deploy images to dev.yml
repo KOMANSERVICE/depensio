@@ -35,13 +35,13 @@ jobs:
             passphrase: ${{ secrets.SSH_PASSPHRASE }}
             port: 22
             script: |
-              ENV_PATH="/home/komanatse/depensio"
-              cd $ENV_PATH
+              DIR_PATH="/home/komanatse/depensio"
+              cd $DIR_PATH
               
               echo "🛑 Arrêt des anciens conteneurs"
               docker compose down
   
-              ENV_PATH="$ENV_PATH/.env"    
+              ENV_PATH="$DIR_PATH/.env"    
 
               # ✅ Si le fichier existe déjà, on le renomme avec un timestamp
               if [ -f "$ENV_PATH" ]; then
@@ -59,7 +59,7 @@ jobs:
 
               
               
-              cat <<EOF > $ENV_PATH/.env
+              cat <<EOF > $DIR_PATH/.env
               # Base de données PostgreSQL
               POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
               POSTGRES_DB=${{ vars.POSTGRES_DB }}
@@ -95,8 +95,8 @@ jobs:
               JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
               EOF
   
-              chmod 644 $ENV_PATH/.env
-              dos2unix $ENV_PATH/.env
+              chmod 644 $DIR_PATH/.env
+              dos2unix $DIR_PATH/.env
               
               # 🔑 Login Docker pour GHCR
               # echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
