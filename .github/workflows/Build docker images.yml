@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  REGISTRY: ghcr.io/laserda
+  REGISTRY: komanatse
   IMAGE_API: depensioapi
   IMAGE_WEB: depensioweb
 
