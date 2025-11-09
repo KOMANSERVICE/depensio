@@ -130,6 +130,39 @@ jobs:
             chmod 644 $ENV_PATH
             dos2unix $ENV_PATH
 
+            mkdir -p $DIR_PATH/frontend/depensio.Web.Client/wwwroot
+            mkdir -p $DIR_PATH/frontend/depensio.Web
+            
+            cat <<EOF > $DIR_PATH/frontend/depensio.Web.Client/wwwroot/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": "https://dev.api.example.com"
+              }
+            }
+            EOF
+            
+            cat <<EOF > $DIR_PATH/frontend/depensio.Web/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": "https://dev.api.example.com"
+              }
+            }
+            EOF
+
             echo "🔑 Login GHCR"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
