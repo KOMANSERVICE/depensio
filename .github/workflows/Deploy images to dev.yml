@@ -35,6 +35,10 @@ jobs:
             passphrase: ${{ secrets.SSH_PASSPHRASE }}
             port: 22
             script: |
+              echo "🚀 Lancement du script de sauvegarde des volumes Docker"
+              chmod +x /home/savevolume/backup_docker_volumes.sh
+              /home/komanatse/savevolume/backup_docker_volumes.sh
+              
               DIR_PATH="/home/komanatse/depensio"
               cd $DIR_PATH
               
