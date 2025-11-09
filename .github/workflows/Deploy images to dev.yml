@@ -2,9 +2,6 @@ name: Deploy images to dev
 
 on:
   workflow_dispatch:
-  push:
-    tags:x
-      - 'v*'   # déclenche sur création de tag prod
 
 env:
   REGISTRY: ghcr.io/komanservice
