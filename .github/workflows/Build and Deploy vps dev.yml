@@ -51,12 +51,16 @@ jobs:
     needs: build-and-push
 
     steps:
+      - name: List files before SCP
+        run: ls -la
+        
       - name: Copy docker-compose and .env to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           source: "docker-compose.prod.yml"
           target: "/home/komanatse/depensio/app"
