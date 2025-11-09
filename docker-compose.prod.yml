@@ -53,6 +53,9 @@
     depends_on:
       depensio.api:
         condition: service_started
+    volumes:
+      - ./frontend/depensio.Web.Client/wwwroot/appsettings.json:/app/wwwroot/appsettings.json:ro
+      - ./frontend/depensio.Web/appsettings.json:/app/appsettings.json:ro
     env_file:
       - ./.env
     networks:
