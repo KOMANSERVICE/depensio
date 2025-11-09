@@ -1,9 +1,6 @@
 name: 🚀 Deploy to PROD
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'   # Se déclenche automatiquement sur tous les tags v*
 
 jobs:
   deploy-prod:
