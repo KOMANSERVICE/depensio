@@ -2,112 +2,105 @@ name: Deploy images to dev
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag Docker à déployer (ex: dev, latest, v1.4.2)"
+        required: true
+        default: "dev"
 
 env:
-  REGISTRY: ghcr.io/komanservice
+  DEPLOY_PATH: /home/komanatse/depensio
 
 jobs:
   deploy:
-      name: Deploy to VPS
-      runs-on: ubuntu-latest
-  
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
-          
-        - name: Copy docker-compose and .env to VPS
-          uses: appleboy/scp-action@v0.1.7
-          with:
-            host: ${{ secrets.SSH_HOST }}
-            username: ${{ secrets.SSH_USER }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            passphrase: ${{ secrets.SSH_PASSPHRASE }}
-            port: 22
-            source: "docker-compose.prod.yml"
-            target: "/home/komanatse/depensio"
-  
-        - name: SSH to VPS and deploy stack
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ secrets.SSH_HOST }}
-            username: ${{ secrets.SSH_USER }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            passphrase: ${{ secrets.SSH_PASSPHRASE }}
-            port: 22
-            script: |              
-              DIR_PATH="/home/komanatse/depensio"
-              cd $DIR_PATH
-              
-              echo "🛑 Arrêt des anciens conteneurs"
-              docker compose -f docker-compose.prod.yml down
-              
-              echo "🚀 Lancement du script de sauvegarde des volumes Docker"
-              chmod +x /home/savevolume/backup_docker_volumes.sh
-              /home/komanatse/savevolume/backup_docker_volumes.sh
-              
-              ENV_PATH="$DIR_PATH/.env"  
-              # ✅ Si le fichier existe déjà, on le renomme avec un timestamp
-              if [ -f "$ENV_PATH" ]; then
-                TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-                mv "$ENV_PATH" "${ENV_PATH}_${TIMESTAMP}.bak"
-                echo "🌀 Fichier .env existant renommé en ${ENV_PATH}_${TIMESTAMP}.bak"
-              fi
+    name: Deploy to VPS Dev
+    runs-on: ubuntu-latest
 
-              # ✅ Création du fichier s'il n'existe pas
-              if [ ! -f "$ENV_PATH" ]; then
-                echo "📄 Création du fichier $ENV_PATH"
-                touch "$ENV_PATH"
-                chmod +x  "$ENV_PATH"
-              fi
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-              
-              
-              cat <<EOF > $DIR_PATH/.env
-              # Base de données PostgreSQL
-              POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-              POSTGRES_DB=${{ vars.POSTGRES_DB }}
-              POSTGRES_USER=${{ vars.POSTGRES_USER }}
-              
-              # Vault secret path
-              VAULT_PATH=${{ vars.VAULT_PATH }}
-              VAULT_URI=${{ vars.VAULT_ADDR }}
-              VAULT_ROLE_ID=${{ secrets.ROLE_ID }}
-              VAULT_SECRET_ID=${{ secrets.SECRET_ID }}
-              VAULT_PATH_MOUNT_POINT=${{ secrets.VAULT_PATH_MOUNT_POINT }}
-              VAULT_MOUNT_POINT=${{ secrets.VAULT_MOUNT_POINT }}
-  
-              # depensio.api
-              CONNECTION_STRING_API=${{ secrets.CONNECTION_STRING_API }}
-              MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID }}
-              MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD }}
-              MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME }}
-              MAIL_CONFIG_HOST=${{ vars.MAIL_CONFIG_HOST }}
-              MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
-              JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API }}
-              JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API }}
-              JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}            
-              N8N_URI=${{ vars.N8N_URI }}
-              EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT }}
-              WEBHOOKID=${{ secrets.WEBHOOKID }}  
-              CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}   
-              
-              # depensio.web
-              API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
-              JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
-              JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
-              JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
-              EOF
-  
-              chmod 644 $DIR_PATH/.env
-              dos2unix $DIR_PATH/.env
-              
-              # 🔑 Login Docker pour GHCR
-              # echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-              
-              echo "📦 Pull des nouvelles images"
-              docker compose  -f docker-compose.prod.yml pull
-  
-              echo "🚀 Démarrage du stack"
-              docker compose -f docker-compose.prod.yml  --env-file .env up -d --build --remove-orphans
-  
-              echo "✅ Stack redéployée avec succès !"
+      - name: Copy docker-compose and .env to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: 22
+          source: "docker-compose.prod.yml"
+          target: ${{ env.DEPLOY_PATH }}
+
+      - name: SSH to VPS and deploy stack
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: 22
+          script: |
+            TAG="${{ github.event.inputs.tag }}"
+            DIR_PATH="${{ env.DEPLOY_PATH }}"
+
+            echo "📦 Déploiement avec le tag Docker : ${TAG}"
+
+            cd $DIR_PATH
+
+            echo "🛑 Arrêt des anciens conteneurs"
+            docker compose -f docker-compose.prod.yml down
+
+            echo "🚀 Sauvegarde des volumes"
+            chmod +x /home/komanatse/savevolume/backup_docker_volumes.sh
+            /home/komanatse/savevolume/backup_docker_volumes.sh
+
+            ENV_PATH="$DIR_PATH/.env"
+
+            if [ -f "$ENV_PATH" ]; then
+              TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+              mv "$ENV_PATH" "${ENV_PATH}_${TIMESTAMP}.bak"
+              echo "🌀 Fichier .env renommé : ${ENV_PATH}_${TIMESTAMP}.bak"
+            fi
+
+            cat <<EOF > $ENV_PATH
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            VAULT_PATH=${{ vars.VAULT_PATH }}
+            VAULT_URI=${{ vars.VAULT_ADDR }}
+            VAULT_ROLE_ID=${{ secrets.ROLE_ID }}
+            VAULT_SECRET_ID=${{ secrets.SECRET_ID }}
+            VAULT_PATH_MOUNT_POINT=${{ secrets.VAULT_PATH_MOUNT_POINT }}
+            VAULT_MOUNT_POINT=${{ secrets.VAULT_MOUNT_POINT }}
+            CONNECTION_STRING_API=${{ secrets.CONNECTION_STRING_API }}
+            MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID }}
+            MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD }}
+            MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME }}
+            MAIL_CONFIG_HOST=${{ vars.MAIL_CONFIG_HOST }}
+            MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
+            JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API }}
+            JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API }}
+            JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}
+            N8N_URI=${{ vars.N8N_URI }}
+            EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT }}
+            WEBHOOKID=${{ secrets.WEBHOOKID }}
+            CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+            API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
+            JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
+            JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
+            JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
+            EOF
+
+            chmod 644 $ENV_PATH
+            dos2unix $ENV_PATH
+
+            # echo "🔑 Login GHCR"
+            # echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "📦 Pull des images version ${TAG}"
+            docker compose -f docker-compose.prod.yml pull
+
+            echo "🚀 Démarrage du stack avec le tag ${TAG}"
+            DOCKER_TAG=$TAG docker compose -f docker-compose.prod.yml --env-file .env up -d --build --remove-orphans
+
+            echo "✅ Déploiement terminé avec succès"
