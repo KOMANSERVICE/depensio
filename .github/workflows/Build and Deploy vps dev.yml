@@ -63,7 +63,7 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           source: "docker-compose.prod.yml"
-          target: "/home/komanatse/depensio/app"
+          target: "/home/komanatse/depensio"
 
       - name: SSH to VPS and deploy stack
         uses: appleboy/ssh-action@v1.0.3
@@ -74,7 +74,7 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |
-            ENV_PATH="/home/komanatse/depensio/app"
+            ENV_PATH="/home/komanatse/depensio"
             cd $ENV_PATH
             
             echo "🛑 Arrêt des anciens conteneurs"
