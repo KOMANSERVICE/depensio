@@ -125,7 +125,10 @@ jobs:
 
             chmod 644 $ENV_PATH/.env
             dos2unix $ENV_PATH/.env
-
+            
+            # 🔑 Login Docker pour GHCR
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
             echo "📦 Pull des nouvelles images"
             docker compose pull
 
