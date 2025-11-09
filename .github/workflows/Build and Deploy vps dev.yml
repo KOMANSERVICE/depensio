@@ -1,6 +1,7 @@
 name: Build and Deploy Docker Compose Stack to VPS
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [closed]
     branches: [main]
@@ -167,6 +168,6 @@ jobs:
             docker compose pull
 
             echo "🚀 Démarrage du stack"
-            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build --pull --remove-orphans
+            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build --remove-orphans
 
             echo "✅ Stack redéployée avec succès !"
