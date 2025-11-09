@@ -26,10 +26,10 @@ jobs:
       - name: Copy docker-compose and .env to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          host: ${{ secrets.SSH_HOST_PROD }}
+          username: ${{ secrets.SSH_USER_PROD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE_PROD }}
           port: 22
           source: "docker-compose.prod.yml"
           target: ${{ env.DEPLOY_PATH }}
@@ -37,10 +37,10 @@ jobs:
       - name: SSH to VPS and deploy stack
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          host: ${{ secrets.SSH_HOST_PROD }}
+          username: ${{ secrets.SSH_USER_PROD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE_PROD }}
           port: 22
           script: |
             TAG="latest"
@@ -70,24 +70,24 @@ jobs:
             POSTGRES_USER=${{ vars.POSTGRES_USER }}
             VAULT_PATH=${{ vars.VAULT_PATH }}
             VAULT_URI=${{ vars.VAULT_ADDR }}
-            VAULT_ROLE_ID=${{ secrets.ROLE_ID }}
-            VAULT_SECRET_ID=${{ secrets.SECRET_ID }}
+            VAULT_ROLE_ID=${{ secrets.ROLE_ID_PROD }}
+            VAULT_SECRET_ID=${{ secrets.SECRET_ID_PROD }}
             VAULT_PATH_MOUNT_POINT=${{ secrets.VAULT_PATH_MOUNT_POINT }}
             VAULT_MOUNT_POINT=${{ secrets.VAULT_MOUNT_POINT }}
             CONNECTION_STRING_API=${{ secrets.CONNECTION_STRING_API }}
-            MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID }}
+            MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID_PROD }}
             MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD }}
             MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME }}
             MAIL_CONFIG_HOST=${{ vars.MAIL_CONFIG_HOST }}
             MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
-            JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API }}
-            JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API }}
+            JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API_PROD }}
+            JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API_PROD  }}
             JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}
             N8N_URI=${{ vars.N8N_URI }}
-            EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT }}
-            WEBHOOKID=${{ secrets.WEBHOOKID }}
+            EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT_PROD }}
+            WEBHOOKID=${{ secrets.WEBHOOKID_PROD }}
             CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
-            API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
+            API_SETTINGS_URL=${{ vars.API_SETTINGS_URL_PROD }}
             JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
             JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
             JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
