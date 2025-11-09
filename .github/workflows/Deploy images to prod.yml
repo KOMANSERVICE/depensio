@@ -97,6 +97,40 @@ jobs:
             chmod 644 $ENV_PATH
             dos2unix $ENV_PATH
 
+            
+            mkdir -p $DIR_PATH/frontend/depensio.Web.Client/wwwroot
+            mkdir -p $DIR_PATH/frontend/depensio.Web
+            
+            cat <<EOF > $DIR_PATH/frontend/depensio.Web.Client/wwwroot/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": "${{ vars.API_SETTINGS_URL_PROD  }}"
+              }
+            }
+            EOF
+            
+            cat <<EOF > $DIR_PATH/frontend/depensio.Web/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": "${{ vars.API_SETTINGS_URL_PROD  }}"
+              }
+            }
+            EOF
+            
             echo "📦 Pull des images version ${TAG}"
             docker compose -f docker-compose.prod.yml pull
 
