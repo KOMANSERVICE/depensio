@@ -106,7 +106,7 @@ jobs:
               # echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
               
               echo "📦 Pull des nouvelles images"
-              docker compose pull
+              docker compose  -f docker-compose.prod.yml pull
   
               echo "🚀 Démarrage du stack"
               docker compose -f docker-compose.prod.yml  --env-file .env up -d --build --remove-orphans
