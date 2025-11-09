@@ -2,7 +2,7 @@ services:
   depensioDB:
     image: postgres:15
     container_name: depensioDB
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -51,11 +51,8 @@ services:
       - vault-net
 
   depensio.web:
-    image: ${DOCKER_REGISTRY-}depensioweb
-    restart: always
-    build:
-      context: .
-      dockerfile: frontend/depensio.Web/Dockerfile
+    image: ghcr.io/komanservice/depensioweb:latest
+    restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
@@ -79,14 +76,11 @@ services:
       - vault-net
 
   depensio.api:
-    image: ${DOCKER_REGISTRY-}depensioapi
-    restart: always
-    build:
-      context: .
-      dockerfile: backend/depensio.Api/Dockerfile
-    depends_on:
-      ef-migrator:
-        condition: service_completed_successfully
+    image: ghcr.io/komanservice/depensioapi:latest
+    restart: unless-stopped
+    # depends_on:
+    #   ef-migrator:
+    #     condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
       - ASPNETCORE_HTTP_PORTS=8080     
