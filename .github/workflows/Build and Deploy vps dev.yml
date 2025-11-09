@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  REGISTRY: ghcr.io/laserda
+  REGISTRY: ghcr.io/komanservice
   IMAGE_API: depensioapi
   IMAGE_WEB: depensioweb
 
