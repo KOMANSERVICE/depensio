@@ -1,9 +1,9 @@
 name: Build and Deploy Docker Compose Stack to VPS
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types: [closed]
+    branches: [main]
 
 env:
   REGISTRY: ghcr.io/komanservice
