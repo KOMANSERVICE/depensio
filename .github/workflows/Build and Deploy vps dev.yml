@@ -37,6 +37,39 @@ jobs:
               -f backend/depensio.Api/Dockerfile .
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE_API }}:latest
 
+        # Update appsettings Web
+        - name: Create appsettings.json for Web
+          run: |
+            cat <<EOF > frontend/depensio.Web.Client/wwwroot/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": "${{ vars.API_SETTINGS_URL }}"
+              }
+            }
+            EOF
+        
+            cat <<EOF > frontend/depensio.Web/appsettings.json
+            {
+              "Logging": {
+                "LogLevel": {
+                  "Default": "Information",
+                  "Microsoft.AspNetCore": "Warning"
+                }
+              },
+              "AllowedHosts": "*",
+              "ApiSettings": {
+                "Uri": "${{ vars.API_SETTINGS_URL }}"
+              }
+            }
+            EOF
+            
         # Build et push Web
         - name: Build & push depensio.web
           run: |
