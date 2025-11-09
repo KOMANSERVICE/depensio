@@ -47,6 +47,7 @@ jobs:
         # Build et générer le SQL
         - name: Generate EF SQL
           run: |
+            dotnet restore backend/depensio.Api/
             dotnet build backend/depensio.Api/ --no-restore --configuration Release
             dotnet ef migrations script --project backend/depensio.Infrastructure --startup-project backend/depensio.Api --output migrations.sql --idempotent
         
