@@ -13,6 +13,7 @@ env:
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Deploy to VPS (auto-tag)
     runs-on: ubuntu-latest
 
