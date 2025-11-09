@@ -35,7 +35,6 @@ services:
   #     - ./.env
   #   entrypoint: sh -c "
   #     echo '? Attente des secrets Vault...' &&
-  #     until [ -f ${VAULT_PATH} ]; do sleep 1; done &&
   #     dotnet tool install --global dotnet-ef &&
   #     export PATH=$PATH:/root/.dotnet/tools &&  
   #     export JWT__Secret=${JWT_SECRET_API} &&
