@@ -129,6 +129,11 @@ jobs:
             
             # Vault secret path
             VAULT_PATH=${{ vars.VAULT_PATH }}
+            VAULT_URI=${{ vars.VAULT_ADDR }}
+            VAULT_ROLE_ID=${{ secrets.ROLE_ID }}
+            VAULT_SECRET_ID=${{ secrets.SECRET_ID }}
+            VAULT_PATH_MOUNT_POINT=${{ secrets.VAULT_PATH_MOUNT_POINT }}
+            VAULT_MOUNT_POINT=${{ secrets.VAULT_MOUNT_POINT }}
 
             # depensio.api
             CONNECTION_STRING_API=${{ secrets.CONNECTION_STRING_API }}
@@ -142,12 +147,8 @@ jobs:
             JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}            
             N8N_URI=${{ vars.N8N_URI }}
             EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT }}
-            WEBHOOKID=${{ secrets.WEBHOOKID }}   
-            VAULT_URI=${{ vars.VAULT_ADDR }}
-            VAULT_ROLE_ID=${{ secrets.ROLE_ID }}
-            VAULT_SECRET_ID=${{ secrets.SECRET_ID }}
-            VAULT_PATH_MOUNT_POINT=${{ secrets.VAULT_PATH_MOUNT_POINT }}
-            VAULT_MOUNT_POINT=${{ secrets.VAULT_MOUNT_POINT }}
+            WEBHOOKID=${{ secrets.WEBHOOKID }}  
+            CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}   
             
             # depensio.web
             API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
