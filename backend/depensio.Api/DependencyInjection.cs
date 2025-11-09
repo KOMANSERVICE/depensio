@@ -24,12 +24,16 @@ public static class DependencyInjection
         //.AddSqlServer(configuration.GetConnectionString("Database")!);
 
         //Add cors
+        var Allow_origin = configuration["Allow:Origins"]!;
+        var origin = vaultSecretProvider.GetSecretAsync(Allow_origin).Result;
+        var origins = origin.Split(';', StringSplitOptions.RemoveEmptyEntries).ToArray();
+
         services.AddCors(options =>
         {
             options.AddPolicy(name: MyAllowSpecificOrigins,
                 policy =>
                 {
-                    policy.WithOrigins(JWT_ValidIssuer)
+                    policy.WithOrigins(origins)
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();

@@ -24,6 +24,7 @@ docker compose exec depensio.api dotnet ef migrations remove  --project backend/
 
 # Voir les logs en direct 
 docker logs -f <nom_du_conteneur>
+docker compose logs -f <nom_du_conteneur>
 
 # Se connecter a HashiCorp Vault sur docker 
 
