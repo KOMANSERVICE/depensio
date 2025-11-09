@@ -82,12 +82,16 @@ jobs:
             echo "🚀 Pushing $image:${{ steps.vars.outputs.version_tag }}"
             docker push ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }}
 
-            # Historiser les tags supplémentaires
-            for tag in ${{ steps.vars.outputs.extra_tags }}; do
-              docker tag ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} ${{ env.REGISTRY }}/$image:$tag
-              docker push ${{ env.REGISTRY }}/$image:$tag
-              echo "🕒 Image historisée : $image:$tag"
-            done
+            # Historiser les tags supplémentaires            
+            if [[ "${{ steps.vars.outputs.env }}" == "prod" ]]; then
+              docker tag ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} ${{ env.REGISTRY }}/$image::latest
+              docker push ${{ env.REGISTRY }}/$image:latest
+            fi
+            # for tag in ${{ steps.vars.outputs.extra_tags }}; do
+            #   docker tag ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} ${{ env.REGISTRY }}/$image:$tag
+            #   docker push ${{ env.REGISTRY }}/$image:$tag
+            #   echo "🕒 Image historisée : $image:$tag"
+            # done
           }
 
           build_and_push "${{ env.IMAGE_SQL }}" "depensiosql.Dockerfile"
