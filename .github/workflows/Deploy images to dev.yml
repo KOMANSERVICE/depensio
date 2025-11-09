@@ -41,13 +41,23 @@ jobs:
               echo "🛑 Arrêt des anciens conteneurs"
               docker compose down
   
-              ENV_PATH="$ENV_PATH/.env"            
+              ENV_PATH="$ENV_PATH/.env"    
+
+              # ✅ Si le fichier existe déjà, on le renomme avec un timestamp
+              if [ -f "$ENV_PATH" ]; then
+                TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+                mv "$ENV_PATH" "${ENV_PATH}_${TIMESTAMP}.bak"
+                echo "🌀 Fichier .env existant renommé en ${ENV_PATH}_${TIMESTAMP}.bak"
+              fi
+
               # ✅ Création du fichier s'il n'existe pas
               if [ ! -f "$ENV_PATH" ]; then
                 echo "📄 Création du fichier $ENV_PATH"
                 touch "$ENV_PATH"
                 chmod +x  "$ENV_PATH"
               fi
+
+              
               
               cat <<EOF > $ENV_PATH/.env
               # Base de données PostgreSQL
