@@ -23,6 +23,16 @@ jobs:
     steps:
         - name: Checkout repository
           uses: actions/checkout@v4
+
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v3
+          with:
+            dotnet-version: 9.0.x
+  
+        - name: Install dotnet-ef tool
+          run: |
+            dotnet tool install --global dotnet-ef
+            export PATH="$PATH:$HOME/.dotnet/tools"
   
         #- name: Login to GitHub Container Registry
         #  uses: docker/login-action@v3
@@ -37,9 +47,7 @@ jobs:
         # Build et générer le SQL
         - name: Generate EF SQL
           run: |
-            cd backend/depensio.Api
-            dotnet restore
-            dotnet build
+            dotnet build backend/depensio.Api/ --no-restore --configuration Release
             dotnet ef migrations script --project backend/depensio.Infrastructure --startup-project backend/depensio.Api --output migrations.sql --idempotent
         
         # Build ef-migrator image
