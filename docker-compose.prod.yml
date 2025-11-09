@@ -27,8 +27,6 @@
     depends_on:
       depensioDB:
         condition: service_healthy
-    volumes:
-      - ./migrations:/migrations:ro   # SQL généré par GitHub Action
     environment:
       DB_HOST: depensioDB
       DB_USER: ${POSTGRES_USER}
@@ -36,10 +34,6 @@
       DB_NAME: ${POSTGRES_DB}
     env_file:
       - ./.env
-    entrypoint: >
-      sh -c "
-        echo '🔄 Application des migrations...';
-        psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f /migrations/migrations.sql"
     networks:
       - vault-net
 
@@ -71,9 +65,9 @@
   depensio.api:
     image: komanatse/depensioapi:latest
     restart: unless-stopped
-    # depends_on:
-    #   ef-migrator:
-    #     condition: service_completed_successfully
+    depends_on:
+      ef-migrator:
+        condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Poduction
       - ASPNETCORE_HTTP_PORTS=8080     
