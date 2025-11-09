@@ -49,13 +49,10 @@ jobs:
     name: Deploy to VPS
     runs-on: ubuntu-latest
     needs: build-and-push
-    permissions:
-      contents: read
-      packages: write   # ✅ nécessaire pour push vers GHCR
 
     steps:
       - name: Copy docker-compose and .env to VPS
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
