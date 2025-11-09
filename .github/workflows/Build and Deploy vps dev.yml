@@ -59,7 +59,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
-          source: "docker-compose.yml .env"
+          source: "docker-compose.prod.yml"
           target: "/home/komanatse/depensio/app"
 
       - name: SSH to VPS and deploy stack
@@ -71,15 +71,62 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           script: |
-            cd /home/komanatse/depensio/app
-
+            ENV_PATH="/home/komanatse/depensio/app"
+            cd $ENV_PATH
+            
             echo "🛑 Arrêt des anciens conteneurs"
             docker compose down
+
+            ENV_PATH="$ENV_PATH/.env"            
+            # ✅ Création du fichier s'il n'existe pas
+            if [ ! -f "$ENV_PATH" ]; then
+              echo "📄 Création du fichier $ENV_PATH"
+              touch "$ENV_PATH"
+              chmod +x  "$ENV_PATH"
+            fi
+            
+            cat <<EOF > $ENV_PATH/.env
+            # Base de données PostgreSQL
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            
+            # Vault secret path
+            VAULT_PATH=${{ vars.VAULT_PATH }}
+
+            # depensio.api
+            CONNECTION_STRING_API=${{ secrets.CONNECTION_STRING_API }}
+            MAIL_CONFIG_ID=${{ vars.MAIL_CONFIG_ID }}
+            MAIL_CONFIG_PASSWORD=${{ vars.MAIL_CONFIG_PASSWORD }}
+            MAIL_CONFIG_NAME=${{ vars.MAIL_CONFIG_NAME }}
+            MAIL_CONFIG_HOST=${{ vars.MAIL_CONFIG_HOST }}
+            MAIL_CONFIG_PORT=${{ vars.MAIL_CONFIG_PORT }}
+            JWT_VALID_AUDIENCE_API=${{ vars.JWT_VALID_AUDIENCE_API }}
+            JWT_VALID_ISSUER_API=${{ vars.JWT_VALID_ISSUER_API }}
+            JWT_SECRET_API=${{ secrets.JWT_SECRET_API }}            
+            N8N_URI=${{ vars.N8N_URI }}
+            EMAIL_SUPPORT=${{ vars.EMAIL_SUPPORT }}
+            WEBHOOKID=${{ secrets.WEBHOOKID }}   
+            VAULT_URI=${{ vars.VAULT_ADDR }}
+            VAULT_ROLE_ID=${{ secrets.ROLE_ID }}
+            VAULT_SECRET_ID=${{ secrets.SECRET_ID }}
+            VAULT_PATH_MOUNT_POINT=${{ secrets.VAULT_PATH_MOUNT_POINT }}
+            VAULT_MOUNT_POINT=${{ secrets.VAULT_MOUNT_POINT }}
+            
+            # depensio.web
+            API_SETTINGS_URL=${{ vars.API_SETTINGS_URL }}
+            JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
+            JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
+            JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
+            EOF
+
+            chmod 644 $ENV_PATH/.env
+            dos2unix $ENV_PATH/.env
 
             echo "📦 Pull des nouvelles images"
             docker compose pull
 
             echo "🚀 Démarrage du stack"
-            docker compose up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build
 
             echo "✅ Stack redéployée avec succès !"
