@@ -57,7 +57,6 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: 22
           source: "docker-compose.prod.yml"
           target: "/home/komanatse/depensio/app"
@@ -127,6 +126,6 @@ jobs:
             docker compose pull
 
             echo "🚀 Démarrage du stack"
-            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build
+            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build  --remove-orphans
 
             echo "✅ Stack redéployée avec succès !"
