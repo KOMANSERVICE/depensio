@@ -1,17 +1,14 @@
-name: Build docker images
+name: Deploy images to dev
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [closed]
-    branches: [main]
 
 env:
   REGISTRY: ghcr.io/komanservice
 
 jobs:
   deploy:
-      name: Deploy images to dev
+      name: Deploy to VPS
       runs-on: ubuntu-latest
   
       steps:
