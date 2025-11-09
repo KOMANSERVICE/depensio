@@ -14,6 +14,7 @@ dotnet ef database update  --project backend/depensio.Infrastructure  --startup-
 
 # Generer un script SQL pour la migration
 dotnet ef migrations script  --project backend/depensio.Infrasturcture  --startup-project backend/depensio.Api  --output ./deploiementsql/deploy-20260606.sql  --idempotent
+dotnet ef migrations script  --project backend/depensio.Infrastructure  --startup-project backend/depensio.Api --idempotent --output migrations.sql
 
 # Remove migration
 dotnet ef migrations remove --project backend/depensio.Infrastructure --startup-project backend/depensio.Api

@@ -12,10 +12,23 @@ public static class DependencyInjection
 
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();
-        var JWT_Secret = vaultSecretProvider.GetSecretAsync(configuration["JWT:Secret"]!).Result;
+
+        var secretKey = configuration["JWT:Secret"]!;
+
+        if (string.IsNullOrEmpty(secretKey))
+        {
+            throw new InvalidOperationException("JWT Secret is not provided in configuration");
+        }
+
+        var JWT_Secret = vaultSecretProvider.GetSecretAsync(secretKey).Result;
         
         var JWT_ValidIssuer = configuration["JWT:ValidIssuer"];
         var JWT_ValidAudience = configuration["JWT:ValidAudience"];
+
+        if(string.IsNullOrEmpty(JWT_ValidIssuer) || string.IsNullOrEmpty(JWT_ValidAudience))
+        {
+            throw new InvalidOperationException("JWT ValidIssuer or ValidAudience is not provided in configuration");
+        }
 
         services.AddCarter();
 
@@ -25,6 +38,10 @@ public static class DependencyInjection
 
         //Add cors
         var Allow_origin = configuration["Allow:Origins"]!;
+        if (string.IsNullOrEmpty(Allow_origin))
+        {
+            throw new InvalidOperationException("CORS origins are not provided in configuration");
+        }
         var origin = vaultSecretProvider.GetSecretAsync(Allow_origin).Result;
         var origins = origin.Split(';', StringSplitOptions.RemoveEmptyEntries).ToArray();
 
