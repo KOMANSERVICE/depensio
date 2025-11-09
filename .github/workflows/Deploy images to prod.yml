@@ -65,9 +65,9 @@ jobs:
             fi
 
             cat <<EOF > $ENV_PATH
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ vars.POSTGRES_DB }}
-            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_PROD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB_PROD }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER_PROD  }}
             VAULT_PATH=${{ vars.VAULT_PATH }}
             VAULT_URI=${{ vars.VAULT_ADDR }}
             VAULT_ROLE_ID=${{ secrets.ROLE_ID_PROD }}
