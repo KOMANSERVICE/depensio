@@ -2,7 +2,7 @@ name: Deploy images to prod
 
 on:
   workflow_run:
-    workflows: ["Deploy images to dev"]  # workflow DEV
+    workflows: ["Build and Push Docker Images"]  # workflow DEV
     types:
       - completed  # se déclenche après la fin du workflow DEV
 
