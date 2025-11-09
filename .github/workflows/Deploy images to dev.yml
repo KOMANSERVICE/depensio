@@ -2,25 +2,18 @@ name: Deploy images to dev
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'        # build prod sur tag versionné
-  pull_request:
-    types: [closed]
-    branches: [main]
   workflow_run:
     workflows: ["Build and Push Docker Images"]  # nom exact du workflow précédent
     types:
       - completed  # se déclenche quand le workflow précédent est terminé
 
 env:
-  REGISTRY: ghcr.io/komanservice
   DEPLOY_PATH: /home/komanatse/depensio
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    name: Deploy to VPS (auto-tag)
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    name: Deploy to DEV VPS (auto-tag)
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +25,14 @@ jobs:
         id: vars
         run: |
           set -e
-          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          REF="${{ github.event.workflow_run.head_sha }}"
+
+          echo "🔍 Workflow build triggered on branch/tag: $BRANCH"
+
+          # Si c'est un tag versionné (vX.X.X)
+          if [[ "$BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "env=prod" >> $GITHUB_OUTPUT
             echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
             echo "✅ Déploiement de la version de production : ${GITHUB_REF_NAME}"
