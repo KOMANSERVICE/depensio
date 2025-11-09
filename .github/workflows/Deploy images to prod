@@ -2,6 +2,10 @@ name: Deploy images to prod
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Deploy images to dev"]  # nom exact du workflow précédent
+    types:
+      - completed  # se déclenche quand le workflow précédent est terminé
 
 env:
   DEPLOY_PATH: /home/komanatse/depensio
