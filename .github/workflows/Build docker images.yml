@@ -10,6 +10,7 @@ env:
   REGISTRY: komanatse
   IMAGE_API: depensioapi
   IMAGE_WEB: depensioweb
+  IMAGE_SQL: depensiosql
 
 jobs:
   build-and-push:
@@ -33,7 +34,19 @@ jobs:
         - name: Login to Docker Hub
           run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ env.REGISTRY }}" --password-stdin
 
+        # Build et générer le SQL
+        - name: Generate EF SQL
+          run: |
+            dotnet restore
+            dotnet build
+            dotnet ef migrations script --project backend/depensio.Infrastructure --startup-project backend/depensio.Api --output migrations.sql --idempotent
         
+        # Build ef-migrator image
+        - name: Build ef-migrator image
+          run: |
+            docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_SQL }} -f depensiosql.Dockerfile .
+            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_SQL }}:latest
+            
         # Build et push API
         - name: Build & push depensio.api
           run: |
