@@ -1,19 +1,21 @@
 name: Deploy images to prod
 
 on:
-  workflow_dispatch:
   workflow_run:
-    workflows: ["Deploy images to dev"]  # nom exact du workflow précédent
+    workflows: ["Deploy images to dev"]  # workflow DEV
     types:
-      - completed  # se déclenche quand le workflow précédent est terminé
+      - completed  # se déclenche après la fin du workflow DEV
 
 env:
   DEPLOY_PATH: /home/komanatse/depensio
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_commit.message, 'v') }}
-    name: Deploy to VPS (auto-tag)
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    name: Deploy to VPS PROD (auto-tag)
     runs-on: ubuntu-latest
 
     steps:
