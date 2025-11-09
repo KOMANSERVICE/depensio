@@ -5,10 +5,10 @@ WORKDIR /app
 COPY migrations/migrations.sql /migrations/migrations.sql
 
 # Variables d'environnement par défaut (peut être remplacé par docker-compose)
-ENV DB_HOST=db \
-    $DB_PORT=5432 \
-    DB_USER=pa \
-    DB_PASSWORD=as \
-    DB_NAME=d
+ENV DB_HOST=depensioDB \
+    $DB_PORT=5436 \
+    DB_USER=${POSTGRES_USER} \
+    DB_PASSWORD=${POSTGRES_PASSWORD} \
+    DB_NAME=${POSTGRES_DB}
 
 CMD ["sh", "-c", "psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations.sql"]
