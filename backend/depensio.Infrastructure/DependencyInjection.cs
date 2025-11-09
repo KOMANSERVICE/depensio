@@ -69,6 +69,7 @@ public static class DependencyInjection
             throw new InvalidOperationException("Vault configuration is not provided in configuration");
         }
 
+
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
                 configuration: configuration,
@@ -80,8 +81,8 @@ public static class DependencyInjection
 
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();
-        var connectionString = vaultSecretProvider.GetSecretAsync(dataBase).Result;
-        var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(mailPassword).Result;
+        var connectionString = vaultSecretProvider.GetSecretAsync(dataBase).Result ?? "";
+        var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(mailPassword).Result ?? "";
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
