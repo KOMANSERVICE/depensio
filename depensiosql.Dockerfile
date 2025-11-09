@@ -11,4 +11,4 @@ ENV DB_HOST=depensioDB \
     DB_PASSWORD=${POSTGRES_PASSWORD} \
     DB_NAME=${POSTGRES_DB}
 
-CMD ["sh", "-c", "psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations.sql"]
+CMD ["sh", "-c", "for f in /migrations/*.sql; do echo 'Running $f'; psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f $f; done"]
