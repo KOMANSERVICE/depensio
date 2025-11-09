@@ -21,37 +21,37 @@ services:
     networks:
       - vault-net
     
-  ef-migrator:
-    image: mcr.microsoft.com/dotnet/sdk:9.0
-    container_name: ef-migrator
-    depends_on:
-      depensioDB:
-        condition: service_healthy
-    volumes:
-      - ./vault/shared:/app/vault/shared
-      - .:/src
-    working_dir: /src
-    env_file:
-      - ./.env
-    entrypoint: sh -c "
-      echo '? Attente des secrets Vault...' &&
-      until [ -f ${VAULT_PATH} ]; do sleep 1; done &&
-      dotnet tool install --global dotnet-ef &&
-      export PATH=$PATH:/root/.dotnet/tools &&  
-      export JWT__Secret=${JWT_SECRET_API} &&
-      export ConnectionStrings__DataBase=${CONNECTION_STRING_API} &&
-      export MailConfig__FromMailIdPassword=${MAIL_CONFIG_PASSWORD} &&
-      export Vault__PathMountPoint=${VAULT_PATH_MOUNT_POINT} &&
-      export Vault__MountPoint=${VAULT_MOUNT_POINT} &&
-      export Vault__Uri=${VAULT_URI} &&
-      export Vault__RoleId=${VAULT_ROLE_ID} &&
-      export Vault__SecretId=${VAULT_SECRET_ID} &&
-      dotnet ef database update --project backend/depensio.Infrastructure --startup-project backend/depensio.Api"
-    networks:
-      - vault-net
+  # ef-migrator:
+  #   image: mcr.microsoft.com/dotnet/sdk:9.0
+  #   container_name: ef-migrator
+  #   depends_on:
+  #     depensioDB:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./vault/shared:/app/vault/shared
+  #     - .:/src
+  #   working_dir: /src
+  #   env_file:
+  #     - ./.env
+  #   entrypoint: sh -c "
+  #     echo '? Attente des secrets Vault...' &&
+  #     until [ -f ${VAULT_PATH} ]; do sleep 1; done &&
+  #     dotnet tool install --global dotnet-ef &&
+  #     export PATH=$PATH:/root/.dotnet/tools &&  
+  #     export JWT__Secret=${JWT_SECRET_API} &&
+  #     export ConnectionStrings__DataBase=${CONNECTION_STRING_API} &&
+  #     export MailConfig__FromMailIdPassword=${MAIL_CONFIG_PASSWORD} &&
+  #     export Vault__PathMountPoint=${VAULT_PATH_MOUNT_POINT} &&
+  #     export Vault__MountPoint=${VAULT_MOUNT_POINT} &&
+  #     export Vault__Uri=${VAULT_URI} &&
+  #     export Vault__RoleId=${VAULT_ROLE_ID} &&
+  #     export Vault__SecretId=${VAULT_SECRET_ID} &&
+  #     dotnet ef database update --project backend/depensio.Infrastructure --startup-project backend/depensio.Api"
+  #   networks:
+  #     - vault-net
 
   depensio.web:
-    image: ghcr.io/komanservice/depensioweb:latest
+    image: komanatse/depensioweb:latest
     restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -76,7 +76,7 @@ services:
       - vault-net
 
   depensio.api:
-    image: ghcr.io/komanservice/depensioapi:latest
+    image: komanatse/depensioapi:latest
     restart: unless-stopped
     # depends_on:
     #   ef-migrator:
