@@ -34,19 +34,18 @@ jobs:
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             passphrase: ${{ secrets.SSH_PASSPHRASE }}
             port: 22
-            script: |
-              echo "🚀 Lancement du script de sauvegarde des volumes Docker"
-              chmod +x /home/savevolume/backup_docker_volumes.sh
-              /home/komanatse/savevolume/backup_docker_volumes.sh
-              
+            script: |              
               DIR_PATH="/home/komanatse/depensio"
               cd $DIR_PATH
               
               echo "🛑 Arrêt des anciens conteneurs"
               docker compose -f docker-compose.prod.yml down
-  
-              ENV_PATH="$DIR_PATH/.env"    
-
+              
+              echo "🚀 Lancement du script de sauvegarde des volumes Docker"
+              chmod +x /home/savevolume/backup_docker_volumes.sh
+              /home/komanatse/savevolume/backup_docker_volumes.sh
+              
+              ENV_PATH="$DIR_PATH/.env"  
               # ✅ Si le fichier existe déjà, on le renomme avec un timestamp
               if [ -f "$ENV_PATH" ]; then
                 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
