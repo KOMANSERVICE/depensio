@@ -167,6 +167,6 @@ jobs:
             docker compose pull
 
             echo "🚀 Démarrage du stack"
-            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build  --remove-orphans
+            docker compose -f docker-compose.prod.yml  --env-file .env up -d --build --pull --remove-orphans
 
             echo "✅ Stack redéployée avec succès !"
