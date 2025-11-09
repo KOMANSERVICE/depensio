@@ -117,7 +117,7 @@ jobs:
 
             # Historiser les tags supplémentaires            
             if [[ "${{ steps.vars.outputs.env }}" == "prod" ]]; then
-              docker tag ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} ${{ env.REGISTRY }}/$image::latest
+              docker tag ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} ${{ env.REGISTRY }}/$image:latest
               docker push ${{ env.REGISTRY }}/$image:latest
             fi
             # for tag in ${{ steps.vars.outputs.extra_tags }}; do
