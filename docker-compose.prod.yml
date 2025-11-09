@@ -22,7 +22,7 @@
       - vault-net
     
   ef-migrator:
-    image: komanatse/depensiosql:latest
+    image: komanatse/depensiosql:${DOCKER_TAG}
     container_name: ef-migrator
     depends_on:
       depensioDB:
@@ -39,7 +39,7 @@
       - vault-net
 
   depensio.web:
-    image: komanatse/depensioweb:latest
+    image: komanatse/depensioweb:${DOCKER_TAG}
     restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -59,7 +59,7 @@
       - vault-net
 
   depensio.api:
-    image: komanatse/depensioapi:latest
+    image: komanatse/depensioapi:${DOCKER_TAG}
     restart: unless-stopped
     depends_on:
       ef-migrator:
