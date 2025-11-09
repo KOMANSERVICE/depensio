@@ -143,7 +143,7 @@ jobs:
               },
               "AllowedHosts": "*",
               "ApiSettings": {
-                "Uri": "https://dev.api.example.com"
+                "Uri": "${{ vars.API_SETTINGS_URL }}"
               }
             }
             EOF
@@ -158,7 +158,7 @@ jobs:
               },
               "AllowedHosts": "*",
               "ApiSettings": {
-                "Uri": "https://dev.api.example.com"
+                "Uri": "${{ vars.API_SETTINGS_URL }}"
               }
             }
             EOF
