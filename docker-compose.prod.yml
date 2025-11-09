@@ -85,7 +85,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Poduction
       - ASPNETCORE_HTTP_PORTS=8080     
       - ConnectionStrings__DataBase=${CONNECTION_STRING_API}
-      - Vault__Path=${VAULT_PATH}
       - MailConfig__FromMailId=${MAIL_CONFIG_ID}
       - MailConfig__FromMailIdPassword=${MAIL_CONFIG_PASSWORD}
       - MailConfig__FromMailName=${MAIL_CONFIG_NAME}
