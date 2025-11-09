@@ -39,7 +39,7 @@ jobs:
               cd $DIR_PATH
               
               echo "🛑 Arrêt des anciens conteneurs"
-              docker compose down
+              docker compose -f docker-compose.prod.yml down
   
               ENV_PATH="$DIR_PATH/.env"    
 
