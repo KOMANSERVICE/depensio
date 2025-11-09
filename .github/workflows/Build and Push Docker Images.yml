@@ -1,0 +1,111 @@
+name: Build and Push Docker Images
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'          # Build prod sur tag versionné
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+env:
+  REGISTRY: komanatse
+  IMAGE_API: depensioapi
+  IMAGE_WEB: depensioweb
+  IMAGE_SQL: depensiosql
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install dotnet-ef tool
+        run: |
+          dotnet tool install --global dotnet-ef
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ env.REGISTRY }}" --password-stdin
+
+      # Déterminer le tag Docker à utiliser
+      - name: Define Docker tag
+        id: vars
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+            echo "env=prod" >> $GITHUB_OUTPUT
+          else
+            echo "tag=dev" >> $GITHUB_OUTPUT
+            echo "env=nonprod" >> $GITHUB_OUTPUT
+          fi
+
+      # Générer le SQL EF
+      - name: Generate EF SQL
+        run: |
+          dotnet restore backend/depensio.Api/
+          dotnet build backend/depensio.Api/ --no-restore --configuration Release
+          dotnet ef migrations script \
+            --project backend/depensio.Infrastructure \
+            --startup-project backend/depensio.Api \
+            --idempotent \
+            --output migrations/migrations.sql
+
+      # Build et push ef-migrator
+      - name: Build & push ef-migrator image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_SQL }}:${{ steps.vars.outputs.tag }} -f depensiosql.Dockerfile .
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_SQL }}:${{ steps.vars.outputs.tag }}
+          # Si production, aussi tagger latest
+          if [[ "${{ steps.vars.outputs.env }}" == "prod" ]]; then
+            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_SQL }}:${{ steps.vars.outputs.tag }} ${{ env.REGISTRY }}/${{ env.IMAGE_SQL }}:latest
+            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_SQL }}:latest
+          fi
+
+      # Build et push API
+      - name: Build & push depensio.api
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_API }}:${{ steps.vars.outputs.tag }} -f backend/depensio.Api/Dockerfile .
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_API }}:${{ steps.vars.outputs.tag }}
+          if [[ "${{ steps.vars.outputs.env }}" == "prod" ]]; then
+            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_API }}:${{ steps.vars.outputs.tag }} ${{ env.REGISTRY }}/${{ env.IMAGE_API }}:latest
+            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_API }}:latest
+          fi
+
+      # Générer appsettings web (API URL dynamique)
+      - name: Create appsettings.json for Web
+        run: |
+          mkdir -p frontend/depensio.Web/wwwroot
+          cat <<EOF > frontend/depensio.Web/wwwroot/appsettings.json
+          {
+            "Logging": {
+              "LogLevel": { "Default": "Information", "Microsoft.AspNetCore": "Warning" }
+            },
+            "AllowedHosts": "*",
+            "ApiSettings": {
+              "Uri": "${{ vars.API_SETTINGS_URL }}"
+            }
+          }
+          EOF
+
+      # Build et push Web
+      - name: Build & push depensio.web
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_WEB }}:${{ steps.vars.outputs.tag }} -f frontend/depensio.Web/Dockerfile .
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_WEB }}:${{ steps.vars.outputs.tag }}
+          if [[ "${{ steps.vars.outputs.env }}" == "prod" ]]; then
+            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_WEB }}:${{ steps.vars.outputs.tag }} ${{ env.REGISTRY }}/${{ env.IMAGE_WEB }}:latest
+            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_WEB }}:latest
+          fi
