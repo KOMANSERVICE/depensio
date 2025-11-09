@@ -29,7 +29,7 @@
         condition: service_healthy
     environment:
       DB_HOST: depensioDB
-      DB_PORT: 5436
+      DB_PORT: 5432
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
