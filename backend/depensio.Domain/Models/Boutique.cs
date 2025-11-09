@@ -1,7 +1,9 @@
 ﻿using depensio.Domain.ValueObjects;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace depensio.Domain.Models;
 
+[Table("TB00001")]
 public class Boutique : Entity<BoutiqueId>
 {
     public string Name { get; set; } = string.Empty;
