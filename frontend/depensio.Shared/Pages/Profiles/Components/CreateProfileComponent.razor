@@ -21,11 +21,11 @@
                 <div>
                     <label for="prodctId"
                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Profile</label>
-                    <select @bind="profileMenu.MenuId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                    <select @bind="profileMenu.Reference" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                         <option selected="">Choix de produit</option>
                         @foreach (var prod in menus)
                         {
-                            <option value="@prod.Id">@prod.Name</option>
+                            <option value="@prod.Reference">@prod.Name</option>
                         }
                     </select>
                 </div>
@@ -76,7 +76,7 @@
                                                 </div>
                                             </td>
                                             <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                                                @(menus.FirstOrDefault(p => p.Id == @item.MenuId).Name ?? "")
+                                                @(menus.FirstOrDefault(p => p.Reference == @item.Reference).Name ?? "")
                                             </td>
                                         </tr>
 
@@ -175,10 +175,10 @@
 
     private void AddItem()
     {
-        if (profileMenu.MenuId == Guid.Empty)
+        if (string.IsNullOrEmpty(profileMenu.Reference))
             return;
 
-        bool alreadyExists = profile.MenuIds.Any(i => i.MenuId == profileMenu.MenuId);
+        bool alreadyExists = profile.MenuIds.Any(i => i.Reference == profileMenu.Reference);
 
         if (alreadyExists)
         {
@@ -189,7 +189,7 @@
 
         profile.MenuIds.Add(new()
         {
-            MenuId = profileMenu.MenuId,
+            Reference = profileMenu.Reference,
             IsActive = true
         });
 
