@@ -27,7 +27,7 @@ public class ProfileMenuConfiguration : IEntityTypeConfiguration<ProfileMenu>
                 menuId => menuId.Value,
                 dbId => MenuId.Of(dbId)
             )
-            .IsRequired();
+            .IsRequired(false);
 
         // ✅ Config explicite de la relation
         builder.HasOne(e => e.Profiles)
@@ -35,18 +35,12 @@ public class ProfileMenuConfiguration : IEntityTypeConfiguration<ProfileMenu>
             .HasForeignKey(e => e.ProfileId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // 🎯 Conversion propre pour ProduitId
-        builder.Property(e => e.MenuId)
-            .HasConversion(
-                menuId => menuId.Value,
-                dbId => MenuId.Of(dbId)
-            )
-            .IsRequired();
 
         // ✅ Config explicite de la relation
         builder.HasOne(e => e.Menu)
             .WithMany(b => b.ProfileMenus)
             .HasForeignKey(e => e.MenuId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
     }

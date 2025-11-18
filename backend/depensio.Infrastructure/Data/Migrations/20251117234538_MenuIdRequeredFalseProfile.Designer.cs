@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using depensio.Infrastructure.Data;
@@ -11,9 +12,11 @@ using depensio.Infrastructure.Data;
 namespace depensio.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(DepensioDbContext))]
-    partial class DepensioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251117234538_MenuIdRequeredFalseProfile")]
+    partial class MenuIdRequeredFalseProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -696,7 +699,7 @@ namespace depensio.Infrastructure.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid?>("MenuId")
+                    b.Property<Guid>("MenuId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ProfileId")
@@ -1245,7 +1248,8 @@ namespace depensio.Infrastructure.Data.Migrations
                     b.HasOne("depensio.Domain.Models.Menu", "Menu")
                         .WithMany("ProfileMenus")
                         .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("depensio.Domain.Models.Profile", "Profiles")
                         .WithMany("ProfileMenus")

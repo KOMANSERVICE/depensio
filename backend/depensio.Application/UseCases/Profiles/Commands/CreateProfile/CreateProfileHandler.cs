@@ -40,7 +40,7 @@ public class CreateProfileHandler(
 
         var profileMenus = profileDTO.MenuIds.Select(m => new ProfileMenu()
         {
-            MenuId = MenuId.Of(m.MenuId),
+            ReferenceMenu = m.Reference,
             IsActive = m.IsActive,
             ProfileId = profileId
         }).ToList();
