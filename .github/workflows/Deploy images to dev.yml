@@ -124,6 +124,7 @@ jobs:
             JWT_VALID_AUDIENCE_WEB=${{ vars.JWT_VALID_AUDIENCE_WEB }}
             JWT_VALID_ISSUER_WEB=${{ vars.JWT_VALID_ISSUER_WEB }}
             JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
+            SERVICE_MENU_URI=${{ secrets.SERVICE_MENU_URI }}
             DOCKER_TAG=$TAG
             EOF
 
