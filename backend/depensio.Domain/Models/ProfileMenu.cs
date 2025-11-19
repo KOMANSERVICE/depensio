@@ -6,6 +6,7 @@ public class ProfileMenu : Entity<ProfileMenuId>
 {
     public ProfileId ProfileId { get; set; }
     public MenuId MenuId { get; set; }
+    public string ReferenceMenu { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 
     public virtual Profile? Profiles { get; set; }

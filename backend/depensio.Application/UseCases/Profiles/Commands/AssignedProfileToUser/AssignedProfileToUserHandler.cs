@@ -22,12 +22,12 @@ public class AssignedProfileToUserHandler(
     private async Task<Guid> UpdateUserBoutique(Guid boutiqueId, AssigneProfileDTO assigneProfile)
     {
         var user = await _userManager.FindByEmailAsync(assigneProfile.Email) 
-            ?? throw new BadRequestException("User not found");
+            ?? throw new BadRequestException("Utilisateur non trouvé");
 
         var userBoutique = await _usersBoutiqueRepository
             .FindAsync(ub => ub.BoutiqueId == BoutiqueId.Of(boutiqueId)
             && ub.UserId == user.Id) 
-            ?? throw new BadRequestException("User not found in this boutique");
+            ?? throw new BadRequestException("Utilisateur non trouvé dans cette boutique");
 
         userBoutique.ProfileId = ProfileId.Of(assigneProfile.ProfileId);
 

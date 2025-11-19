@@ -1,4 +1,5 @@
-﻿using depensio.Application.Data;
+﻿using depensio.Application.ApiExterne.Menus;
+using depensio.Application.Data;
 using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
 using depensio.Infrastructure.Services;
@@ -33,6 +34,8 @@ public static class DependencyInjection
 
         var N8Nuri = configuration["N8N:Uri"] ?? "";
 
+        var menuServiceUri = configuration["Service:Menu"]!;
+
         if (string.IsNullOrEmpty(host))
         {
             throw new InvalidOperationException("Mail Host is not provided in configuration");
@@ -62,6 +65,11 @@ public static class DependencyInjection
             throw new InvalidOperationException("Mail Host is not provided in configuration");
         }
 
+        if (string.IsNullOrEmpty(menuServiceUri))
+        {
+            throw new InvalidOperationException("Menu Service Uri is not provided in configuration");
+        }
+
         if (string.IsNullOrEmpty(vaultUri) ||
             string.IsNullOrEmpty(roleId) ||
             string.IsNullOrEmpty(secretId))
@@ -81,8 +89,10 @@ public static class DependencyInjection
 
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();
+
         var connectionString = vaultSecretProvider.GetSecretAsync(dataBase).Result ?? "";
         var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(mailPassword).Result ?? "";
+        var menu_url = vaultSecretProvider.GetSecretAsync(menuServiceUri).Result ?? "";
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
@@ -129,6 +139,10 @@ public static class DependencyInjection
 
         services.AddRefitClient<IN8NChatBotService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(N8Nuri));
+
+
+        services.AddRefitClient<IMenuService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(menu_url));
 
 
         return services;

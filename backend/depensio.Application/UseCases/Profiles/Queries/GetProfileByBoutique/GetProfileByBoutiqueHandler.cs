@@ -24,7 +24,7 @@ public class GetProfileByBoutiqueHandler(
                 p.Name,
                 p.IsActive,
                 p.ProfileMenus.Select(pm => new ProfileMenuDTO(
-                    pm.MenuId.Value,
+                    pm.ReferenceMenu,
                     pm.IsActive,
                     pm.Menu != null ? pm.Menu.Name : string.Empty
                 )).ToList()

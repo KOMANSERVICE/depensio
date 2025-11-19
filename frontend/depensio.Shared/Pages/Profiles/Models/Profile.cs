@@ -2,6 +2,7 @@
 
 public record ProfileMenu{
     public Guid MenuId { get; set; } = Guid.Empty;
+    public string Reference { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public string Name { get; set; } = string.Empty;
 }
@@ -18,7 +19,7 @@ public record AssigneProfile{
 }
 
 public record Menu(
-    Guid Id,
+    string Reference,
     string Name
 );
 
@@ -26,6 +27,7 @@ public record GetMenuByBoutiqueResponse(IEnumerable<Menu> Menus);
 public record GetProfileByBoutiqueResponse(IEnumerable<Profile> Profiles);
 public record MenuUser(
     Guid Id,
+    string Reference,
     string Name,
     string UrlFront,
     string Icon
