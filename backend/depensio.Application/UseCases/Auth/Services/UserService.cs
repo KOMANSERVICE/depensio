@@ -1,4 +1,6 @@
 ﻿using depensio.Application.Interfaces;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace depensio.Application.UseCases.Auth.Services;
 
@@ -18,7 +20,8 @@ public class UserService(
     public async Task GenerateEmailConfirmationTokenAsync(ApplicationUser user)
     {
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        var encodedToken = System.Web.HttpUtility.UrlEncode(token);
+        var tokenBytes = Encoding.UTF8.GetBytes(token);
+        var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
         var values = new Dictionary<string, string>
             {
                 { "email", user.Email },

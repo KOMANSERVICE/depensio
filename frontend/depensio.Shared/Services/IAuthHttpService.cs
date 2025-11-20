@@ -17,5 +17,8 @@ public interface IAuthHttpService
     Task<BaseResponse<ForgotPasswordResponse>>  ForgotPasswordAsync(ForgotPasswordRequest request);
     [Post("/resetpassword")]
     Task<BaseResponse<ResetPasswordResponse>> ResetPasswordAsync(ResetPasswordRequest request);
-    
+
+    [Post("/auth/sendverifymail")]
+    Task<BaseResponse<SendVerifyMailResponse>> SendVerifyMailAsync(SendVerifyMailRequest request);
+
 }

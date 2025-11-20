@@ -3,9 +3,11 @@
 @using Refit
 @layout NoContentLayout
 @inject IAuthHttpService _auth
+@inject ToastService ToastService
 
 <PageTitle>Depensio - Vérification email</PageTitle>
 
+<ToastContainer />
 <section class="bg-gradient-to-r from-primary-700/10 to-primary-700/5 min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-white rounded-lg shadow-lg overflow-hidden">
         <!-- Header -->
@@ -43,7 +45,7 @@
                         </div>
 
                         <div class="text-center mt-6">
-                            <button type="button"  class="bg-primary-700 text-white px-6 py-2 rounded-md font-medium inline-block transition duration-300">Renvoyer l'email</button>
+                            <button type="button" @onclick="ResendMail" class="bg-primary-700 text-white px-6 py-2 rounded-md font-medium inline-block transition duration-300">Renvoyer l'email</button>
                         </div>
                     </div>
 
@@ -95,11 +97,32 @@
 
     private string message = "";
 
+    private async Task ResendMail()
+    {
+        isLoad = true;
+        try
+        {
+            var resendMail = new SendVerifyMailRequest(userId!);
+            var isResend = await _auth.SendVerifyMailAsync(resendMail);
+
+        }
+        catch (ApiException e)
+        {
+
+        }
+        finally
+        {
+            ShowSuccess();
+            message = "Mail envoyé";
+            isLoad = false;
+        }
+    }
+
     private async Task VerifMail()
     {
         try
         {
-            verifyMail = new VerifyMailDTO(userId!, Code!.Replace(" ", "+"));
+            verifyMail = new VerifyMailDTO(userId!, Code!);
             var isVerify = await _auth.VerifyMail(new Models.VerifyMailRequest(verifyMail));
             if (isVerify.Result)
             {
@@ -115,5 +138,10 @@
         {
             isLoad = false;
         }
+    }
+
+    private void ShowSuccess()
+    {
+        ToastService.ShowToast("Succès", "Mail envoyé", "success");
     }
 }
