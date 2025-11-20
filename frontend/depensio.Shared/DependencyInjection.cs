@@ -1,8 +1,8 @@
 ﻿using depensio.Shared.Components.Toast;
 using depensio.Shared.Services;
+using IDR.Library.Blazor;
 using IDR.Library.Blazor.Auths;
 using IDR.Library.Blazor.Auths.Handlers;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
@@ -15,11 +15,13 @@ public static class DependencyInjection
     {
         var uri = configuration["ApiSettings:Uri"]!;
 
-        services.AddAuthServices(configuration, (options) =>
+        services.AddBlazorLibrairyServices(configuration, (options) =>
         {
             options.Uri = uri;
             options.Logout = "/logout";
+            options.PageTitle = "DEPENSIO - ";
         });
+
 
         services.AddScoped<ToastService>();
 

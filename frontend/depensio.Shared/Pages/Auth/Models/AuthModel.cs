@@ -71,3 +71,5 @@ public record ResetPasswordDTO
 
 public record ResetPasswordRequest(ResetPasswordDTO ResetPassword);
 public record ResetPasswordResponse(bool Result);
+public record SendVerifyMailRequest(string UserId);
+public record SendVerifyMailResponse(bool Result);
