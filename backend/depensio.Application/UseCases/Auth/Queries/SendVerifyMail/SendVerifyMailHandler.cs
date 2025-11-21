@@ -13,6 +13,7 @@ public class SendVerifyMailHandler(
         var user = await _userManager.FindByIdAsync(request.UserId);
         if(user == null)
         {
+            user = await _userManager.FindByEmailAsync(request.UserId) ??
             throw new BadRequestException("Vérification fail.");
         }
 
