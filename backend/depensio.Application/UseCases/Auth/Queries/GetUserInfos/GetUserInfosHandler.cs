@@ -18,13 +18,16 @@ public class GetUserInfosHandler(
             throw new NotFoundException($"User with id {userId} not found");
         }
 
+        var firstName = _encryptionService.Decrypt(user.FirstName) ;
+        var lastName = _encryptionService.Decrypt(user.LastName);
+        var tel = _encryptionService.Decrypt(user.PhoneNumber ?? "");
 
 
         return new GetUserInfosResult( new UserInfosDTO
         {
-            FirstName = _encryptionService.Decrypt(user.FirstName),
-            LastName = _encryptionService.Decrypt(user.LastName),
-            Tel = _encryptionService.Decrypt(user.PhoneNumber ?? ""),
+            FirstName = firstName,
+            LastName = lastName,
+            Tel = tel,
             Email = user.Email ?? "",
         }
         );

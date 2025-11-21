@@ -31,6 +31,8 @@ public static class DependencyInjection
         var fromMailName = configuration["MailConfig:FromMailName"] ?? "Depensio";
         var host = configuration["MailConfig:Host"]!;
         var ports = configuration["MailConfig:Ports"]!;
+        var pathMountPoint = configuration["Vault:PathMountPoint"]!;
+        var mountPoint = configuration["Vault:MountPoint"]!;
 
         var N8Nuri = configuration["N8N:Uri"] ?? "";
 
@@ -77,13 +79,24 @@ public static class DependencyInjection
             throw new InvalidOperationException("Vault configuration is not provided in configuration");
         }
 
+        if (string.IsNullOrEmpty(pathMountPoint))
+        {
+            throw new InvalidOperationException("Vault path mount point is not provided in configuration");
+        }
+
+        if (string.IsNullOrEmpty(mountPoint))
+        {
+            throw new InvalidOperationException("Vault mount point is not provided in configuration");
+        }
+
 
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
-                configuration: configuration,
                 vaultUri: vaultUri,
                 roleId: roleId,
-                secretId: secretId
+                secretId: secretId,
+                pathMountPoint: pathMountPoint,
+                mountPoint: mountPoint
             )
         );
 
@@ -131,7 +144,6 @@ public static class DependencyInjection
 
         services.AddGenericRepositories<DepensioDbContext>();
 
-        services.AddInterceptors();
         services.AddSecurities();
         services.AddContextMiddleware();
 
