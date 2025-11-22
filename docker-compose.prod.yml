@@ -8,7 +8,7 @@
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5436:5432"
+      - "127.0.0.1:5436:5432"
     volumes:
       - pgdata_depensio:/var/lib/postgresql/data 
     healthcheck:
@@ -49,7 +49,7 @@
       - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
       - JWT__Secret=${JWT_SECRET_WEB}
     ports:
-      - "9001:8080"
+      - "127.0.0.1:9001:8080"
     depends_on:
       depensio.api:
         condition: service_started
@@ -90,7 +90,7 @@
       - Allow__Origins=${CORS_ALLOWED_ORIGINS}
       - Service__Menu=${SERVICE_MENU_URI}
     ports:
-      - "9101:8080"
+      - "127.0.0.1:9101:8080"
     env_file:
       - ./.env
     networks:

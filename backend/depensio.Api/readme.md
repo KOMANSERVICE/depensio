@@ -41,7 +41,7 @@ vault kv get -format=json secret/depensio
 # ✅ Pour aller plus loin : supprimer aussi les images
 docker compose down --volumes --rmi all --remove-orphans
 
-docker exec -it depensioVault /bin/sh
+docker exec -it secretvault /bin/sh
 cat /etc/environment | grep Vault__
 printenv | grep Vault__
 export VAULT_ADDR="http://127.0.0.1:8200"
@@ -216,6 +216,8 @@ ls -l /etc/nginx/sites-enabled/
 sudo apt install ufw -y
 
 # Autoriser SSH
+sudo ufw reset
+sudo ufw default deny incoming
 sudo ufw allow OpenSSH
 
 # Autoriser port 80 (HTTP), 443 (HTTPS), 3000 (si Next.js en dev)
@@ -226,6 +228,8 @@ sudo ufw allow 22/tcp
 
 # Activer le pare-feu
 sudo ufw enable
+sudo ufw status verbose
+sudo ss -tulpn | grep LISTEN
 # DesActiver le pare-feu
 sudo ufw disable
 # Vérifier les règles
@@ -520,3 +524,23 @@ makefile
 https://gl.developpez.com/tutoriel/outil/makefile/
 
 https://apexcharts.github.io/Blazor-ApexCharts/
+
+
+▶️ Installation rapide (Ubuntu)
+sudo apt update && sudo apt upgrade -y
+sudo apt install git -y
+git clone https://github.com/mailcow/mailcow-dockerized
+cd mailcow-dockerized
+./generate_config.sh
+
+
+On te demande ton nom de domaine → ex: mail.tondomaine.com
+
+Puis :
+cat ghcr_token.txt | docker login ghcr.io -u dlte --password-stdin
+docker compose pull
+docker compose up -d
+
+🧱 6️⃣ Vérification intrusion / Malware
+sudo apt install -y lynis
+sudo lynis audit system
