@@ -236,7 +236,7 @@ sudo ufw disable
 sudo ufw status
 
 # Supprimer un dossier 
-sudo rm -rf depensio
+sudo rm -rf depensio_old
 sudo chown -R komanatse:komanatse /home/
 
 
