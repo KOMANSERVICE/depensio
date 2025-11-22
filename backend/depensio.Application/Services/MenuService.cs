@@ -16,7 +16,7 @@ public class MenuService(
 
     public async Task<List<MenuDTO>> GetMenuByBoutiqueAsync()
     {
-        var result = await menuServiceApi.GetAllActifMenuAsync("depensio");
+        var result = await menuServiceApi.GetAllActifMenuAsync();
         if (!result.Success)
         {
             throw new BadRequestException(result.Message);
@@ -40,7 +40,7 @@ public class MenuService(
         List<MenuUserDTO> menus;
 
 
-        var result = await menuServiceApi.GetAllActifMenuAsync("depensio");
+        var result = await menuServiceApi.GetAllActifMenuAsync();
         if (!result.Success)
         {
             throw new BadRequestException(result.Message);
@@ -119,9 +119,9 @@ public class MenuService(
             && b.OwnerId == userId
             && b.UsersBoutiques.Any(ub => ub.UserId == userId));
 
-        MenuUserDTO menu;
+        MenuUserDTO? menu;
 
-        var result = await menuServiceApi.GetAllActifMenuAsync("depensio");
+        var result = await menuServiceApi.GetAllActifMenuAsync();
         if (!result.Success)
         {
             throw new BadRequestException(result.Message);
@@ -132,20 +132,6 @@ public class MenuService(
 
         if (isOwner)
         {
-            //TODO: A revoir, reccuperer les menus du plan
-            // Propriétaire : tous les menus
-            //menu = await _dbContext.Menus
-            //    .Where(m => !string.IsNullOrEmpty(m.Name) && currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase))
-            //    .OrderBy(m => m.Order)
-            //    .Select(m => new MenuUserDTO
-            //    {
-            //        Id = m.Id.Value,
-            //        Name = m.Name,
-            //        UrlFront = m.UrlFront,
-            //        Icon = m.Icon
-            //    })
-            //    .FirstOrDefaultAsync() ?? new MenuUserDTO();
-
             menu = resultMenus
                 .Where(m => !string.IsNullOrEmpty(m.Name) && currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault() ?? new MenuUserDTO();
@@ -162,15 +148,27 @@ public class MenuService(
                 .ToListAsync();
 
             menu = resultMenus
-            .Where(m => profileMenuIds.Contains(m.Reference) && currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase))
+            .Where(m => profileMenuIds.Contains(m.Reference) && 
+            currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase))
             .Select(m => new MenuUserDTO
             {
                 Id = m.Id,
                 Name = m.Name,
                 UrlFront = m.UrlFront,
-                Icon = m.Icon
+                Icon = m.Icon   
             })
             .FirstOrDefault();
+
+            //menu = (from m in resultMenus
+            //        join id in profileMenuIds on m.Reference equals id
+            //        where currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase)
+            //        select new MenuUserDTO
+            //        {
+            //            Id = m.Id,
+            //            Name = m.Name,
+            //            UrlFront = m.UrlFront,
+            //            Icon = m.Icon
+            //        }).FirstOrDefault();
 
             // Utilisateur classique : menus du profil
             if (menu == null)

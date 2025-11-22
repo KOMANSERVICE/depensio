@@ -37,6 +37,7 @@ public static class DependencyInjection
         var N8Nuri = configuration["N8N:Uri"] ?? "";
 
         var menuServiceUri = configuration["Service:Menu"]!;
+        var localDomain = configuration["LOCALDOMAIN"] ?? "depensio.com";
 
         if (string.IsNullOrEmpty(host))
         {
@@ -132,6 +133,7 @@ public static class DependencyInjection
             options.Ports = int.Parse(ports);
             options.IsBodyHtml = true;
             options.EnableSsl = true;
+            options.LocalDomain = localDomain;
         });
 
         services.AddScoped<IDepensioDbContext, DepensioDbContext>();

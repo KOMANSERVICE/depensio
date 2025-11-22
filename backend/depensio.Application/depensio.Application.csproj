@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="UseCases\Menus\Commands\**" />
+    <EmbeddedResource Remove="UseCases\Menus\Commands\**" />
+    <None Remove="UseCases\Menus\Commands\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Templates\AccountCreated.html" />
   </ItemGroup>
 
@@ -27,7 +33,7 @@
 
   <ItemGroup>
     <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
-    <PackageReference Include="IDR.SendMail" Version="2.4.0" />
+    <PackageReference Include="IDR.SendMail" Version="2.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
   </ItemGroup>
 
@@ -38,7 +44,6 @@
 
   <ItemGroup>
     <Folder Include="UseCases\Dashboards\Queries\" />
-    <Folder Include="UseCases\Menus\Commands\" />
   </ItemGroup>
 
 </Project>

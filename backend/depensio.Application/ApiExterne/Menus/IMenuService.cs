@@ -9,5 +9,5 @@ public interface IMenuService
 {
 
     [Get("/menu/{appAdminReference}/actif")]
-    Task<BaseResponse<GetAllActifMenuResponse>> GetAllActifMenuAsync(string appAdminReference);
+    Task<BaseResponse<GetAllActifMenuResponse>> GetAllActifMenuAsync(string appAdminReference = "depensio");
 }
