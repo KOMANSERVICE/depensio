@@ -1,6 +1,6 @@
 ﻿global using Carter;
 global using Mapster;
-global using MediatR;
+global using IDR.Library.BuildingBlocks.CQRS;
 global using FluentValidation;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.Tokens;

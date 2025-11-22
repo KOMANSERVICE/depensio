@@ -1,5 +1,4 @@
 ﻿using depensio.Application.UseCases.Auth.Commands.CreateUser;
-
 namespace depensio.Api.Endpoints.Auths;
 
 public record CreateUserRequest(SignUpBoutiqueDTO Signup);
