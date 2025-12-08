@@ -1,10 +1,6 @@
 ﻿using depensio.Application.Helpers;
 using depensio.Application.Models;
 using depensio.Application.UseCases.Products.DTOs;
-using depensio.Domain.Constants;
-using depensio.Domain.Models;
-using depensio.Domain.ValueObjects;
-using MediatR;
 using System.Text.Json;
 
 namespace depensio.Application.UseCases.Products.Queries.GetProductByBoutiqueWithStockSetting;

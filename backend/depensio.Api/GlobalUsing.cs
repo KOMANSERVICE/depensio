@@ -1,6 +1,5 @@
 ﻿global using Carter;
 global using Mapster;
-global using MediatR;
 global using FluentValidation;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.Tokens;
@@ -13,3 +12,4 @@ global using Microsoft.AspNetCore.Authentication;
 global using IDR.Library.BuildingBlocks.Security.Interfaces;
 global using IDR.Library.BuildingBlocks.Responses;
 global using IDR.Library.Shared.Responses;
+global using IDR.Library.BuildingBlocks.CQRS;

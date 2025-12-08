@@ -1,7 +1,6 @@
 ﻿using depensio.Application.ApiExterne.Menus;
 using depensio.Application.Interfaces;
 using depensio.Application.UseCases.Menus.DTOs;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 
