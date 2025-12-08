@@ -166,8 +166,8 @@ function Invoke-ClaudeInProject {
         
         Write-Host "[CLAUDE] Exécution: $TaskDescription..." -ForegroundColor Cyan
         
-        # Exécuter Claude
-        $result = claude --model $env:CLAUDE_MODEL --print-markdown < $PromptFile 2>&1
+        # Exécuter Claude (PowerShell n'accepte pas <, utiliser Get-Content | )
+        $result = Get-Content $PromptFile -Raw | claude --model $env:CLAUDE_MODEL --print-markdown 2>&1
         
         # Vérifier si limite atteinte
         if ($result -match "rate limit|limit reached|too many requests|429") {
@@ -346,7 +346,7 @@ function Invoke-AnalysisAgent {
     @"
 Tu es l'agent d'analyse pour Depensio.
 
-Analyse l'issue #$IssueNumber: "$Title"
+Analyse l'issue #${IssueNumber} - "$Title"
 
 1. Lis la documentation IDR.Library (agent-docs)
 2. Analyse le code existant pour comprendre l'architecture
@@ -379,7 +379,7 @@ function Invoke-CoderAgent {
     @"
 Tu es l'agent codeur pour Depensio.
 
-Implémente l'issue #$IssueNumber: "$Title"
+Implémente l'issue #${IssueNumber} - "$Title"
 
 Workflow:
 1. Lis la documentation IDR.Library (agent-docs)
@@ -417,7 +417,7 @@ function Invoke-DebugAgent {
     @"
 Tu es l'agent de debug pour Depensio.
 
-Analyse en profondeur l'issue #$IssueNumber: "$Title"
+Analyse en profondeur l'issue #${IssueNumber} - "$Title"
 
 1. Collecte les informations (logs, symptômes)
 2. Analyse statique du code suspect
@@ -452,7 +452,7 @@ function Invoke-ReviewAgent {
     @"
 Tu es l'agent de review pour Depensio.
 
-Finalise l'issue #$IssueNumber: "$Title"
+Finalise l'issue #${IssueNumber} - "$Title"
 
 1. Vérifie s'il y a une PR ouverte
 2. Si PR existe: review et merge
@@ -669,3 +669,4 @@ while ($true) {
     Write-Host "[$timestamp] [WAIT] Prochaine vérification dans ${PollingInterval}s..." -ForegroundColor DarkGray
     Start-Sleep -Seconds $PollingInterval
 }
+
