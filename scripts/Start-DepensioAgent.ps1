@@ -440,20 +440,46 @@ IMPORTANT:
 # ============================================
 
 function Update-IDRPackages {
-    Write-Host "[PACKAGES] Mise a jour automatique des packages IDR..." -ForegroundColor Cyan
+    Write-Host "[PACKAGES] Verification des mises a jour IDR..." -ForegroundColor Cyan
     
     $originalLocation = Get-Location
     Set-Location $ProjectPath
     
     try {
-        Get-ChildItem -Path "." -Filter "*.csproj" -Recurse | ForEach-Object {
-            dotnet add $_.FullName package IDR.Library.BuildingBlocks --prerelease 2>$null
-            dotnet add $_.FullName package IDR.Library.Blazor --prerelease 2>$null
+        # IDR.Library.BuildingBlocks - UNIQUEMENT depensio.Domain
+        $domainProject = Get-ChildItem -Path "." -Filter "*.Domain.csproj" -Recurse | Select-Object -First 1
+        if ($domainProject) {
+            $content = Get-Content $domainProject.FullName -Raw
+            if ($content -match "IDR\.Library\.BuildingBlocks") {
+                Write-Host "[PACKAGES] Verification BuildingBlocks dans $($domainProject.Name)..." -ForegroundColor DarkGray
+                dotnet add $domainProject.FullName package IDR.Library.BuildingBlocks --prerelease 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "[OK] BuildingBlocks verifie/mis a jour" -ForegroundColor Green
+                }
+            }
+            else {
+                Write-Host "[SKIP] BuildingBlocks non present dans Domain - pas d'installation" -ForegroundColor DarkGray
+            }
         }
-        Write-Host "[OK] Packages IDR mis a jour" -ForegroundColor Green
+        
+        # IDR.Library.Blazor - UNIQUEMENT depensio.Shared
+        $sharedProject = Get-ChildItem -Path "." -Filter "*.Shared.csproj" -Recurse | Select-Object -First 1
+        if ($sharedProject) {
+            $content = Get-Content $sharedProject.FullName -Raw
+            if ($content -match "IDR\.Library\.Blazor") {
+                Write-Host "[PACKAGES] Verification Blazor dans $($sharedProject.Name)..." -ForegroundColor DarkGray
+                dotnet add $sharedProject.FullName package IDR.Library.Blazor --prerelease 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "[OK] Blazor verifie/mis a jour" -ForegroundColor Green
+                }
+            }
+            else {
+                Write-Host "[SKIP] Blazor non present dans Shared - pas d'installation" -ForegroundColor DarkGray
+            }
+        }
     }
     catch {
-        Write-Host "[WARN] Erreur mise a jour packages: $_" -ForegroundColor Yellow
+        Write-Host "[WARN] Erreur verification packages: $_" -ForegroundColor Yellow
     }
     finally {
         Set-Location $originalLocation
@@ -613,4 +639,3 @@ while ($true) {
     Write-Host "[$timestamp] [WAIT] Prochaine verification dans ${PollingInterval}s..." -ForegroundColor DarkGray
     Start-Sleep -Seconds $PollingInterval
 }
-
