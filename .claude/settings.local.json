@@ -8,7 +8,7 @@
       "Bash(dotnet tool run dotnet-ef migrations add:*)",
       "Bash(dotnet tool run dotnet-ef database update:*)",
       "Bash(find:*)",
-      "Bash(dir \"C:\\Workspace\\App\\Izi-com\\CASA\\frontend-backoffice\\src\\styles\" /s)",
+      "Bash(dir \"C:\\Workspace\\App\\depensio\\depensio\\frontend\\depensio.Shared\\wwwroot\\styles\" /s)",
       "Bash(dotnet tool restore:*)",
       "Bash(dir:*)"
     ],
