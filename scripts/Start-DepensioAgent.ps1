@@ -542,57 +542,77 @@ function Test-BranchExists {
 function Test-PRExists {
     param([int]$IssueNumber)
     
-    try {
-        $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number 2>&1
-        if (-not $prsJson -or $prsJson -match "^error:") {
-            return $false
-        }
-        $prs = $prsJson | ConvertFrom-Json
-        return ($prs.Count -gt 0)
-    }
-    catch {
-        return $false
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
+    $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number 2>$null
+    
+    $ErrorActionPreference = $oldErrorAction
+    
+    if (-not $prsJson) { return $false }
+    
+    $prs = $prsJson | ConvertFrom-Json
+    return ($prs.Count -gt 0)
+}
+
+function Get-PullRequestNumber {
+    param([int]$IssueNumber)
+    
+    $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number,headRefName 2>$null
+    
+    if (-not $prsJson) { return $null }
+    
+    $prs = $prsJson | ConvertFrom-Json
+    
+    if ($prs.Count -eq 0) { return $null }
+    
+    return @{
+        Number = $prs[0].number
+        Branch = $prs[0].headRefName
     }
 }
 
-function Merge-PullRequest {
+function Approve-AndMerge-PullRequest {
     param([int]$IssueNumber)
     
-    Write-Host "[MERGE] Recherche PR pour #$IssueNumber..." -ForegroundColor Cyan
+    Write-Host "[PR] Traitement PR pour #$IssueNumber..." -ForegroundColor Cyan
     
     $oldErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     
     # Trouver la PR
-    $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number,headRefName,state 2>$null
+    $pr = Get-PullRequestNumber -IssueNumber $IssueNumber
     
-    if (-not $prsJson) {
+    if (-not $pr) {
         Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
         $ErrorActionPreference = $oldErrorAction
         return $false
     }
     
-    $prs = $prsJson | ConvertFrom-Json
+    $prNumber = $pr.Number
+    $branchName = $pr.Branch
     
-    if ($prs.Count -eq 0) {
-        Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
-        $ErrorActionPreference = $oldErrorAction
-        return $false
+    Write-Host "[PR] PR #$prNumber trouvee (branche: $branchName)" -ForegroundColor DarkGray
+    
+    # Etape 1: Approuver la PR
+    Write-Host "[PR] Approbation PR #$prNumber..." -ForegroundColor Cyan
+    gh pr review $prNumber --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --approve --body "Approuve par l'agent Depensio" 2>$null
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[WARN] Approbation echouee (peut-etre deja approuvee)" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "[OK] PR #$prNumber approuvee" -ForegroundColor Green
     }
     
-    $pr = $prs[0]
-    $prNumber = $pr.number
-    $branchName = $pr.headRefName
-    
-    Write-Host "[MERGE] Merge PR #$prNumber (branche: $branchName)..." -ForegroundColor Cyan
-    
-    # Merger la PR
+    # Etape 2: Merger la PR
+    Write-Host "[PR] Merge PR #$prNumber..." -ForegroundColor Cyan
     gh pr merge $prNumber --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --squash --delete-branch 2>$null
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "[OK] PR #$prNumber mergee" -ForegroundColor Green
+        Write-Host "[OK] PR #$prNumber mergee et branche supprimee" -ForegroundColor Green
         
-        # Nettoyer
+        # Nettoyer localement
         $originalLocation = Get-Location
         Set-Location $ProjectPath
         
@@ -610,6 +630,13 @@ function Merge-PullRequest {
         $ErrorActionPreference = $oldErrorAction
         return $false
     }
+}
+
+function Merge-PullRequest {
+    param([int]$IssueNumber)
+    
+    # Utiliser la nouvelle fonction
+    return Approve-AndMerge-PullRequest -IssueNumber $IssueNumber
 }
 
 # ============================================
@@ -685,18 +712,21 @@ La branche a deja ete creee. Tu es deja dessus.
 ### Ta mission:
 1. Implemente cette issue selon les instructions de l'agent coder.md
 2. La branche '$BranchName' est deja creee et active
-3. Suis le workflow complet: implementation -> tests -> commit -> PR -> merge
-4. Commandes a utiliser:
-   - git add . && git commit -m "feat: $Title (#$IssueNumber)"
-   - git push -u origin $BranchName
-   - gh pr create --title "$Title" --body "Closes #$IssueNumber" --base main
-   - gh pr merge --squash --delete-branch
+3. Suis le workflow: implementation -> tests -> commit -> push -> PR
+
+### Commandes a executer dans cet ordre:
+1. Implemente le code
+2. git add .
+3. git commit -m "feat: $Title (#$IssueNumber)"
+4. git push -u origin $BranchName
+5. gh pr create --title "$Title" --body "Closes #$IssueNumber" --base main
 
 IMPORTANT:
 - Utilise UNIQUEMENT IDR.Library.BuildingBlocks dans Domain
 - Utilise UNIQUEMENT IDR.Library.Blazor dans Shared
 - NE FERME PAS l'issue
-- La branche sera supprimee automatiquement par --delete-branch
+- NE MERGE PAS la PR (le script s'en charge)
+- Cree la PR et arrete-toi la
 "@
     
     $result = Invoke-ClaudeWithAgent `
@@ -879,32 +909,23 @@ while ($true) {
                 
                 # Verifier si une PR existe
                 if (Test-PRExists -IssueNumber $issue.IssueNumber) {
-                    # Merger la PR
-                    $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
+                    # Approuver et merger la PR
+                    Write-Host "[$timestamp]   [PR] Approbation et merge..." -ForegroundColor Cyan
+                    $merged = Approve-AndMerge-PullRequest -IssueNumber $issue.IssueNumber
                     
                     if ($merged) {
                         Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
-                        Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) mergee et prete a tester" -ForegroundColor Green
+                        Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) -> A Tester" -ForegroundColor Green
                     }
                     else {
-                        # Merge echoue -> laisser en Review, appeler ReviewAgent
-                        Write-Host "[$timestamp]   [WARN] Merge auto echoue - appel ReviewAgent" -ForegroundColor Yellow
-                        $success = Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
-                        
-                        if ($success) {
-                            # Reessayer le merge
-                            $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
-                            if ($merged) {
-                                Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
-                            }
-                        }
+                        Write-Host "[$timestamp]   [WARN] Merge echoue - reste en Review" -ForegroundColor Yellow
                     }
                 }
                 else {
                     # Pas de PR -> verifier si branche existe
                     if (Test-BranchExists -IssueNumber $issue.IssueNumber) {
-                        Write-Host "[$timestamp]   [INFO] Branche existe mais pas de PR - appel ReviewAgent" -ForegroundColor Yellow
-                        Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                        Write-Host "[$timestamp]   [INFO] Branche existe mais pas de PR - retour a In Progress" -ForegroundColor Yellow
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                     }
                     else {
                         Write-Host "[$timestamp]   [WARN] Pas de PR ni branche - retour a Todo" -ForegroundColor Yellow
@@ -929,37 +950,46 @@ while ($true) {
                 
                 # Verifier si une PR existe deja
                 if (Test-PRExists -IssueNumber $issue.IssueNumber) {
-                    Write-Host "[$timestamp]   [INFO] PR existe - deplacement vers Review" -ForegroundColor Cyan
-                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                    Write-Host "[$timestamp]   [PR] PR existe - approbation et merge..." -ForegroundColor Cyan
+                    $merged = Approve-AndMerge-PullRequest -IssueNumber $issue.IssueNumber
+                    
+                    if ($merged) {
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                        Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee -> A Tester" -ForegroundColor Green
+                    }
+                    else {
+                        Write-Host "[$timestamp]   [WARN] Merge echoue - reste en In Progress" -ForegroundColor Yellow
+                    }
                 }
                 else {
-                    # Recuperer ou creer la branche
+                    # Pas de PR - lancer le CoderAgent
+                    Write-Host "[$timestamp]   [CODE] Lancement du developpement..." -ForegroundColor Cyan
+                    
                     $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
                     if ($branchName) {
                         $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
                         
                         if ($success -and (Test-CanProceed)) {
-                            # Verifier si Claude a cree une PR
+                            # Attendre un peu puis verifier si PR creee
+                            Start-Sleep -Seconds 5
+                            
                             if (Test-PRExists -IssueNumber $issue.IssueNumber) {
-                                # PR existe -> merger
-                                Write-Host "[$timestamp]   [MERGE] Merge de la PR..." -ForegroundColor Cyan
-                                $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
+                                Write-Host "[$timestamp]   [PR] PR creee - approbation et merge..." -ForegroundColor Cyan
+                                $merged = Approve-AndMerge-PullRequest -IssueNumber $issue.IssueNumber
                                 
                                 if ($merged) {
                                     Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
-                                    Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee" -ForegroundColor Green
-                                }
-                                else {
-                                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
-                                    Write-Host "[$timestamp]   [WARN] Merge echoue - en attente review" -ForegroundColor Yellow
+                                    Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee -> A Tester" -ForegroundColor Green
                                 }
                             }
                             else {
-                                Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
-                                Write-Host "[$timestamp]   [INFO] Pas de PR - en attente review" -ForegroundColor Yellow
+                                Write-Host "[$timestamp]   [WARN] Pas de PR creee - reste en In Progress" -ForegroundColor Yellow
                             }
                         }
+                    }
+                    else {
+                        Write-Host "[$timestamp]   [ERREUR] Impossible de creer la branche" -ForegroundColor Red
                     }
                 }
             }
@@ -1025,62 +1055,71 @@ while ($true) {
             }
         }
         
-        # PRIORITE 5: TODO
+        # PRIORITE 5: TODO - Nouvelles taches a developper
         if (-not $AnalysisOnly -and (Test-CanProceed)) {
             Write-Host "[$timestamp] [PRIORITE 5] Verification 'Todo'..." -ForegroundColor Green
             
             $todoIssues = @(Get-IssuesInColumn -ColumnName $Columns.Todo)
             
             if ($todoIssues.Count -gt 0) {
-                # Prendre la premiere issue dans Todo
                 $issue = $todoIssues[0]
                 
-                # Verifier si deja en cours (branche ou PR existe)
+                # Verifier si deja en cours
                 if (Test-BranchExists -IssueNumber $issue.IssueNumber) {
-                    Write-Host "[$timestamp]   [SKIP] #$($issue.IssueNumber) - branche existe deja" -ForegroundColor Yellow
+                    Write-Host "[$timestamp]   [INFO] #$($issue.IssueNumber) - branche existe, deplacement vers In Progress" -ForegroundColor Yellow
+                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                 }
                 elseif (Test-PRExists -IssueNumber $issue.IssueNumber) {
-                    Write-Host "[$timestamp]   [SKIP] #$($issue.IssueNumber) - PR existe deja" -ForegroundColor Yellow
+                    Write-Host "[$timestamp]   [INFO] #$($issue.IssueNumber) - PR existe, approbation et merge..." -ForegroundColor Cyan
+                    $merged = Approve-AndMerge-PullRequest -IssueNumber $issue.IssueNumber
+                    if ($merged) {
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                        Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee -> A Tester" -ForegroundColor Green
+                    }
                 }
                 else {
+                    # Nouvelle tache - demarrer le developpement
                     Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                     
+                    # 1. Creer la branche
                     $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
                     if ($branchName) {
-                        $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
+                        # 2. Deplacer vers In Progress
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                         
-                        if ($moved) {
-                            $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                        # 3. Lancer le CoderAgent
+                        Write-Host "[$timestamp]   [CODE] Lancement du developpement..." -ForegroundColor Cyan
+                        $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                        
+                        if ($success -and (Test-CanProceed)) {
+                            # 4. Attendre et verifier si PR creee
+                            Start-Sleep -Seconds 5
                             
-                            if ($success -and (Test-CanProceed)) {
-                                # Verifier si Claude a cree une PR
-                                if (Test-PRExists -IssueNumber $issue.IssueNumber) {
-                                    # PR existe -> merger et nettoyer
-                                    Write-Host "[$timestamp]   [MERGE] Merge de la PR..." -ForegroundColor Cyan
-                                    $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
-                                    
-                                    if ($merged) {
-                                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
-                                        Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee" -ForegroundColor Green
-                                    }
-                                    else {
-                                        # Merge echoue -> laisser en Review pour intervention humaine
-                                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
-                                        Write-Host "[$timestamp]   [WARN] Merge echoue - en attente review" -ForegroundColor Yellow
-                                    }
+                            if (Test-PRExists -IssueNumber $issue.IssueNumber) {
+                                # 5. Approuver et merger
+                                Write-Host "[$timestamp]   [PR] PR creee - approbation et merge..." -ForegroundColor Cyan
+                                $merged = Approve-AndMerge-PullRequest -IssueNumber $issue.IssueNumber
+                                
+                                if ($merged) {
+                                    # 6. Deplacer vers A Tester
+                                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                                    Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee -> A Tester" -ForegroundColor Green
                                 }
                                 else {
-                                    # Pas de PR -> deplacer vers Review
-                                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
-                                    Write-Host "[$timestamp]   [INFO] Pas de PR - en attente review" -ForegroundColor Yellow
+                                    Write-Host "[$timestamp]   [WARN] Merge echoue - reste en In Progress" -ForegroundColor Yellow
                                 }
                             }
-                            elseif ($script:ClaudeLimitReached) {
-                                # Limite atteinte -> laisser en In Progress, la branche reste
-                                Write-Host "[$timestamp]   [LIMIT] Limite atteinte - reste en In Progress" -ForegroundColor Yellow
+                            else {
+                                Write-Host "[$timestamp]   [WARN] Pas de PR creee - reste en In Progress" -ForegroundColor Yellow
                             }
                         }
+                        elseif ($script:ClaudeLimitReached) {
+                            Write-Host "[$timestamp]   [LIMIT] Limite atteinte - reste en In Progress" -ForegroundColor Yellow
+                        }
+                    }
+                    else {
+                        Write-Host "[$timestamp]   [ERREUR] Impossible de creer la branche" -ForegroundColor Red
                     }
                 }
             }
