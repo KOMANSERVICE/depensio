@@ -217,42 +217,70 @@ $TaskPrompt
     $success = $false
     $output = ""
     
-    try {
-        Set-Location $ProjectPath
-        Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
-        
-        $promptContent = Get-Content $promptFile -Raw
-        $result = $promptContent | claude --model $env:CLAUDE_MODEL 2>&1
-        $output = $result -join "`n"
-        
-        $script:LastClaudeOutput = $output
-        
-        if ($result -match "rate limit|limit reached|too many requests|429") {
-            $script:ClaudeLimitReached = $true
-            Write-Host "[LIMIT] Limite Claude detectee" -ForegroundColor Red
-            return @{ Success = $false; Output = $output }
-        }
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] $TaskDescription termine" -ForegroundColor Green
-            $success = $true
-            
-            # Ajouter automatiquement un commentaire si IssueNumber est fourni
-            if ($IssueNumber -gt 0 -and $output.Length -gt 0) {
-                Add-IssueComment -IssueNumber $IssueNumber -Comment $output
-            }
-        }
-        else {
-            Write-Host "[ERREUR] $TaskDescription echoue (code: $LASTEXITCODE)" -ForegroundColor Red
-        }
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
+    Set-Location $ProjectPath
+    Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
+    Write-Host "[CLAUDE] Dossier: $ProjectPath" -ForegroundColor DarkGray
+    Write-Host "[CLAUDE] Agent: $AgentFile" -ForegroundColor DarkGray
+    
+    # Appeler Claude avec le bon format
+    # Option 1: Utiliser -p pour passer le prompt directement
+    $promptContent = Get-Content $promptFile -Raw
+    
+    # Claude CLI attend: claude -p "prompt" --print ou cat file | claude --print
+    # Essayer plusieurs methodes
+    
+    # Methode: utiliser --print pour mode non-interactif
+    Write-Host "[CLAUDE] Lancement de claude..." -ForegroundColor DarkGray
+    $result = claude --print -p $promptFile 2>&1
+    
+    if ($LASTEXITCODE -ne 0) {
+        # Essayer avec cat/pipe
+        Write-Host "[CLAUDE] Retry avec pipe..." -ForegroundColor DarkGray
+        $result = Get-Content $promptFile -Raw | claude --print 2>&1
     }
-    catch {
-        Write-Host "[ERREUR] Exception: $_" -ForegroundColor Red
+    
+    $output = $result -join "`n"
+    $script:LastClaudeOutput = $output
+    
+    # Afficher un extrait de la sortie pour debug
+    if ($output.Length -gt 200) {
+        Write-Host "[CLAUDE] Output (extrait): $($output.Substring(0, 200))..." -ForegroundColor DarkGray
     }
-    finally {
+    elseif ($output.Length -gt 0) {
+        Write-Host "[CLAUDE] Output: $output" -ForegroundColor DarkGray
+    }
+    else {
+        Write-Host "[CLAUDE] Output: (vide)" -ForegroundColor Yellow
+    }
+    
+    if ($result -match "rate limit|limit reached|too many requests|429") {
+        $script:ClaudeLimitReached = $true
+        Write-Host "[LIMIT] Limite Claude detectee" -ForegroundColor Red
+        $ErrorActionPreference = $oldErrorAction
         Set-Location $originalLocation
         Remove-Item $promptFile -ErrorAction SilentlyContinue
+        return @{ Success = $false; Output = $output }
     }
+    
+    if ($LASTEXITCODE -eq 0 -and $output.Length -gt 0) {
+        Write-Host "[OK] $TaskDescription termine" -ForegroundColor Green
+        $success = $true
+        
+        # Ajouter automatiquement un commentaire si IssueNumber est fourni
+        if ($IssueNumber -gt 0 -and $output.Length -gt 0) {
+            Add-IssueComment -IssueNumber $IssueNumber -Comment $output
+        }
+    }
+    else {
+        Write-Host "[ERREUR] $TaskDescription echoue (code: $LASTEXITCODE, output length: $($output.Length))" -ForegroundColor Red
+    }
+    
+    $ErrorActionPreference = $oldErrorAction
+    Set-Location $originalLocation
+    Remove-Item $promptFile -ErrorAction SilentlyContinue
     
     return @{ Success = $success; Output = $output }
 }
