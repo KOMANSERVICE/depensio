@@ -5,7 +5,7 @@ global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.Tokens;
 global using depensio.Application.UserCases.Auth.DTOs;
 global using depensio.Application.DTOs;
-global using Microsoft.OpenApi.Models;
+global using Microsoft.OpenApi;
 global using System.Text;
 global using Microsoft.AspNetCore.OpenApi;
 global using Microsoft.AspNetCore.Authentication;

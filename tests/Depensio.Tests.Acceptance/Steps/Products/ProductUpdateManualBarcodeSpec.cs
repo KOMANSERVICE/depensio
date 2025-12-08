@@ -112,7 +112,6 @@ public sealed class ProductUpdateManualBarcodeSpec : Feature
             UsersBoutiques = new List<UsersBoutique> { userBoutique },
             Products = new List<Product> { product },
             Profiles = new List<Profile>(),
-            StockLocations = new List<StockLocation>(),
             BoutiqueSettings = new List<BoutiqueSetting>(),
             Sales = new List<Sale>(),
             Subscriptions = new List<Subscription>(),

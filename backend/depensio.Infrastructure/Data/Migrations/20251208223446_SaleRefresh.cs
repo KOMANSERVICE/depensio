@@ -1,3 +1,4 @@
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -5,17 +6,17 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace depensio.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSaleCancellation : Migration
+    public partial class SaleRefresh : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Status",
+            migrationBuilder.AddColumn<string>(
+                name: "CancellationReason",
                 table: "Sales",
-                type: "integer",
-                nullable: false,
-                defaultValue: 1);
+                type: "character varying(500)",
+                maxLength: 500,
+                nullable: true);
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "CancelledAt",
@@ -23,19 +24,19 @@ namespace depensio.Infrastructure.Data.Migrations
                 type: "timestamp with time zone",
                 nullable: true);
 
-            migrationBuilder.AddColumn<string>(
-                name: "CancellationReason",
+            migrationBuilder.AddColumn<int>(
+                name: "Status",
                 table: "Sales",
-                type: "character varying(500)",
-                maxLength: 500,
-                nullable: true);
+                type: "integer",
+                nullable: false,
+                defaultValue: 1);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Status",
+                name: "CancellationReason",
                 table: "Sales");
 
             migrationBuilder.DropColumn(
@@ -43,7 +44,7 @@ namespace depensio.Infrastructure.Data.Migrations
                 table: "Sales");
 
             migrationBuilder.DropColumn(
-                name: "CancellationReason",
+                name: "Status",
                 table: "Sales");
         }
     }

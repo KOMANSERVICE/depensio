@@ -123,25 +123,25 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
         if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
         {
             // Add the security scheme at the document level
-            var requirements = new Dictionary<string, OpenApiSecurityScheme>
+            var securityScheme = new OpenApiSecurityScheme
             {
-                ["Bearer"] = new OpenApiSecurityScheme
-                {
-                    Description = "Authorization oauth2",
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey
-                }
+                Description = "Authorization oauth2",
+                In = ParameterLocation.Header,
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey
             };
+
             document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = requirements;
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+            document.Components.SecuritySchemes["Bearer"] = securityScheme;
 
             // Apply it as a requirement for all operations
             foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
             {
+                operation.Value.Security ??= [];
                 operation.Value.Security.Add(new OpenApiSecurityRequirement
                 {
-                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme } }] = Array.Empty<string>()
+                    [new OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
                 });
             }
         }

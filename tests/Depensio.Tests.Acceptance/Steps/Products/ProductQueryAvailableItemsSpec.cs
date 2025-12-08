@@ -95,7 +95,6 @@ public sealed class ProductQueryAvailableItemsSpec : Feature
             UsersBoutiques = new List<UsersBoutique> { userBoutique },
             Products = new List<Product> { product },
             Profiles = new List<Profile>(),
-            StockLocations = new List<StockLocation>(),
             BoutiqueSettings = new List<BoutiqueSetting>(),
             Subscriptions = new List<Subscription>(),
             Sales = new List<Sale>(),

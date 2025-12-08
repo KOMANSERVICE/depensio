@@ -70,7 +70,7 @@ $env:CLAUDE_MODEL = $Model
 $Columns = @{
     Analyse = "Analyse"
     Todo = "Todo"
-    AnalyseBlock = "AnalyseBlock"
+    AnalyseBlock = "Analyse Block"  # Avec espace comme dans GitHub Project
     Debug = "Debug"
     InProgress = "In Progress"
     Review = "In Review"
@@ -118,9 +118,25 @@ function Compare-ColumnName {
         [string]$Expected
     )
     if (-not $Actual -or -not $Expected) { return $false }
-    $normalizedActual = ($Actual -replace '\s+', '').Trim().ToLower()
-    $normalizedExpected = ($Expected -replace '\s+', '').Trim().ToLower()
+    
+    # Normaliser: supprimer espaces, tirets, underscores, mettre en minuscules
+    $normalizedActual = ($Actual -replace '[\s\-_]+', '').Trim().ToLower()
+    $normalizedExpected = ($Expected -replace '[\s\-_]+', '').Trim().ToLower()
+    
+    # Aussi normaliser les accents courants
+    $normalizedActual = $normalizedActual -replace '[éèêë]', 'e' -replace '[àâä]', 'a' -replace '[ùûü]', 'u' -replace '[îï]', 'i' -replace '[ôö]', 'o'
+    $normalizedExpected = $normalizedExpected -replace '[éèêë]', 'e' -replace '[àâä]', 'a' -replace '[ùûü]', 'u' -replace '[îï]', 'i' -replace '[ôö]', 'o'
+    
     return $normalizedActual -eq $normalizedExpected
+}
+
+# Fonction helper pour normaliser un nom de colonne (pour debug)
+function Get-NormalizedColumnName {
+    param([string]$Name)
+    if (-not $Name) { return "" }
+    $normalized = ($Name -replace '[\s\-_]+', '').Trim().ToLower()
+    $normalized = $normalized -replace '[éèêë]', 'e' -replace '[àâä]', 'a' -replace '[ùûü]', 'u' -replace '[îï]', 'i' -replace '[ôö]', 'o'
+    return $normalized
 }
 
 # ============================================
@@ -224,12 +240,14 @@ $TaskPrompt
     Set-Location $ProjectPath
     Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
     
-    # Appeler Claude en passant le contenu via pipe avec permissions
-    Write-Host "[CLAUDE] Lancement de claude..." -ForegroundColor DarkGray
+    # Appeler Claude avec toutes les permissions
+    Write-Host "[CLAUDE] Lancement de claude (mode autonome)..." -ForegroundColor DarkGray
     
-    # Utiliser --dangerously-skip-permissions pour mode non-interactif
-    # Ou --allowedTools pour autoriser les outils specifiques
-    $result = Get-Content $promptFile -Raw | claude --dangerously-skip-permissions 2>&1
+    # Flags pour mode autonome complet:
+    # --dangerously-skip-permissions : bypass toutes les permissions
+    # --yes : auto-accepter les prompts
+    # --no-input : pas d'input interactif
+    $result = Get-Content $promptFile -Raw | claude --dangerously-skip-permissions --yes 2>&1
     
     $output = $result -join "`n"
     $script:LastClaudeOutput = $output
@@ -402,7 +420,11 @@ function Move-IssueToColumn {
         
         if (-not $targetOption) {
             Write-Host "[ERREUR] Colonne '$TargetColumn' non trouvee" -ForegroundColor Red
-            Write-Host "[DEBUG] Colonnes disponibles: $($statusField.options.name -join ', ')" -ForegroundColor DarkGray
+            Write-Host "[DEBUG] Recherche: '$(Get-NormalizedColumnName $TargetColumn)'" -ForegroundColor DarkGray
+            Write-Host "[DEBUG] Colonnes disponibles:" -ForegroundColor DarkGray
+            foreach ($opt in $statusField.options) {
+                Write-Host "[DEBUG]   - '$($opt.name)' -> '$(Get-NormalizedColumnName $opt.name)'" -ForegroundColor DarkGray
+            }
             return $false
         }
         
@@ -696,11 +718,27 @@ IMPORTANT - A la fin de ton analyse, indique clairement:
         -TaskDescription "Analyse #$IssueNumber" `
         -IssueNumber $IssueNumber
     
-    # Detecter si l'issue est bloquee
+    # Detecter si l'issue est bloquee (plusieurs patterns possibles)
     $isBlocked = $false
-    if ($result.Output -match "\[STATUT:\s*BLOQUE\]|\[STATUT:\s*BLOCKED\]") {
+    $outputLower = $result.Output.ToLower()
+    
+    # Patterns de blocage
+    if ($result.Output -match "\[STATUT:\s*BLOQUE\]|\[STATUT:\s*BLOCKED\]|\[STATUT:\s*BLOQU") {
         $isBlocked = $true
     }
+    elseif ($outputLower -match "statut.*bloque|status.*block|manque.*information|information.*manquante|pas.*clair|need.*more|missing.*info|incomplete|incomplet") {
+        $isBlocked = $true
+    }
+    elseif ($outputLower -match "impossible.*analyser|cannot.*analyze|bloquant|blocking|clarification.*requise|clarification.*needed") {
+        $isBlocked = $true
+    }
+    
+    # Si VALIDE est explicitement mentionne, ce n'est PAS bloque
+    if ($result.Output -match "\[STATUT:\s*VALIDE\]|\[STATUT:\s*VALID\]") {
+        $isBlocked = $false
+    }
+    
+    Write-Host "[ANALYSE] IsBlocked = $isBlocked" -ForegroundColor DarkGray
     
     return @{ Success = $result.Success; IsBlocked = $isBlocked }
 }
@@ -727,24 +765,76 @@ $issueBody
 ### Branche de travail: $BranchName
 La branche a deja ete creee. Tu es deja dessus.
 
+### CONTEXTE: Projet .NET
+Ce projet utilise .NET. Utilise UNIQUEMENT les commandes .NET pour travailler.
+
 ### Ta mission:
 1. Implemente cette issue selon les instructions de l'agent coder.md
 2. La branche '$BranchName' est deja creee et active
-3. Suis le workflow: implementation -> tests -> commit -> push -> PR
+3. Suis le workflow STRICT ci-dessous
 
-### Commandes a executer dans cet ordre:
-1. Implemente le code
-2. git add .
-3. git commit -m "feat: $Title (#$IssueNumber)"
-4. git push -u origin $BranchName
-5. gh pr create --title "$Title" --body "Closes #$IssueNumber" --base main
+### WORKFLOW OBLIGATOIRE (dans cet ordre exact):
 
-IMPORTANT:
+1. **IMPLEMENTATION**
+   - Implemente le code necessaire
+   - Respecte l'architecture existante du projet .NET
+
+2. **MIGRATION ENTITY FRAMEWORK (si ajout/modification de tables ou champs)**
+   - Si tu ajoutes ou modifies des entites, tables, ou champs dans le DbContext:
+   - Execute UNIQUEMENT cette commande:
+     ```
+     dotnet ef migrations add NomDeLaMigration --project backend/depensio.Infrastructure --startup-project backend/depensio.Api --output-dir Data/Migrations
+     ```
+   - Remplace "NomDeLaMigration" par un nom descriptif (ex: AddStorageTable, AddProductFields)
+   - **NE PAS executer dotnet ef database update** (c'est gere automatiquement au deploiement)
+
+3. **VERIFICATION BUILD - OBLIGATOIRE AVANT TOUT COMMIT**
+   - Execute: dotnet build
+   - Si le build ECHOUE:
+     * Analyse les erreurs de compilation
+     * Corrige TOUTES les erreurs
+     * Re-execute: dotnet build
+     * Repete jusqu'a ce que le build passe a 100%
+   - NE PASSE PAS a l'etape suivante tant que le build echoue
+
+4. **TESTS (si applicable)**
+   - Execute: dotnet test
+   - Si des tests echouent, corrige-les
+
+5. **COMMIT ET PUSH (seulement si build OK)**
+   - git add .
+   - git commit -m "feat: $Title (#$IssueNumber)"
+   - git push -u origin $BranchName
+
+6. **CREATION PR (seulement si push OK)**
+   - gh pr create --title "$Title" --body "Closes #$IssueNumber" --base main
+
+### COMMANDES .NET A UTILISER:
+- dotnet build          : Compiler le projet
+- dotnet test           : Executer les tests
+- dotnet restore        : Restaurer les packages NuGet (si besoin)
+- dotnet clean          : Nettoyer le build (si problemes de cache)
+- dotnet ef migrations add ... : Creer une migration EF (voir etape 2)
+
+### COMMANDES INTERDITES:
+- dotnet ef database update (gere au deploiement)
+- npm, yarn, node (ce n'est pas un projet Node.js)
+
+### REGLES STRICTES:
+- **NE JAMAIS commit si dotnet build echoue**
+- **NE JAMAIS creer de PR si le code ne compile pas**
+- **NE JAMAIS dire "termine" ou "fini" s'il reste des erreurs**
+- **NE JAMAIS executer dotnet ef database update**
+- Si tu ne peux pas corriger une erreur, indique [STATUT: ERREUR_BUILD] et explique le probleme
 - Utilise UNIQUEMENT IDR.Library.BuildingBlocks dans Domain
 - Utilise UNIQUEMENT IDR.Library.Blazor dans Shared
 - NE FERME PAS l'issue
 - NE MERGE PAS la PR (le script s'en charge)
-- Cree la PR et arrete-toi la
+
+### A LA FIN, indique clairement:
+- [STATUT: PR_CREEE] si la PR a ete creee avec succes (build OK)
+- [STATUT: ERREUR_BUILD] si le build echoue et tu n'as pas pu corriger
+- [STATUT: ERREUR_PUSH] si le push a echoue
 "@
     
     $result = Invoke-ClaudeWithAgent `
@@ -753,7 +843,14 @@ IMPORTANT:
         -TaskDescription "Developpement #$IssueNumber" `
         -IssueNumber $IssueNumber
     
-    return $result.Success
+    # Verifier si le coder a signale une erreur
+    $hasError = $false
+    if ($result.Output -match "\[STATUT:\s*ERREUR") {
+        $hasError = $true
+        Write-Host "[CODER] Erreur detectee dans le developpement" -ForegroundColor Red
+    }
+    
+    return ($result.Success -and -not $hasError)
 }
 
 function Invoke-DebugAgent {
@@ -1005,6 +1102,9 @@ while ($true) {
                                 Write-Host "[$timestamp]   [WARN] Pas de PR creee - reste en In Progress" -ForegroundColor Yellow
                             }
                         }
+                        elseif (-not $success) {
+                            Write-Host "[$timestamp]   [ERREUR] Developpement echoue (erreur build?) - reste en In Progress" -ForegroundColor Red
+                        }
                     }
                     else {
                         Write-Host "[$timestamp]   [ERREUR] Impossible de creer la branche" -ForegroundColor Red
@@ -1059,12 +1159,21 @@ while ($true) {
                 
                 if ($analysisResult.Success -and (Test-CanProceed)) {
                     if ($analysisResult.IsBlocked) {
-                        Write-Host "[$timestamp]   [BLOCK] Issue #$($issue.IssueNumber) bloquee - informations manquantes" -ForegroundColor Yellow
-                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.AnalyseBlock
+                        Write-Host "[$timestamp]   [BLOCK] Issue #$($issue.IssueNumber) bloquee - deplacement vers 'Analyse Block'" -ForegroundColor Yellow
+                        $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.AnalyseBlock
+                        if ($moved) {
+                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) -> Analyse Block" -ForegroundColor Green
+                        }
+                        else {
+                            Write-Host "[$timestamp]   [ERREUR] Echec deplacement vers Analyse Block" -ForegroundColor Red
+                        }
                     }
                     else {
-                        Write-Host "[$timestamp]   [VALID] Issue #$($issue.IssueNumber) valide" -ForegroundColor Green
-                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                        Write-Host "[$timestamp]   [VALID] Issue #$($issue.IssueNumber) valide - deplacement vers 'Todo'" -ForegroundColor Green
+                        $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                        if ($moved) {
+                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) -> Todo" -ForegroundColor Green
+                        }
                     }
                 }
             }
@@ -1131,6 +1240,9 @@ while ($true) {
                             else {
                                 Write-Host "[$timestamp]   [WARN] Pas de PR creee - reste en In Progress" -ForegroundColor Yellow
                             }
+                        }
+                        elseif (-not $success) {
+                            Write-Host "[$timestamp]   [ERREUR] Developpement echoue (erreur build?) - reste en In Progress" -ForegroundColor Red
                         }
                         elseif ($script:ClaudeLimitReached) {
                             Write-Host "[$timestamp]   [LIMIT] Limite atteinte - reste en In Progress" -ForegroundColor Yellow

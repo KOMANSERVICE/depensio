@@ -88,7 +88,6 @@ public sealed class ProductCreateBarcodeUnauthorizedSpec : Feature
             },
             Products = new List<Product> { product },
             Profiles = new List<Profile>(),
-            StockLocations = new List<StockLocation>(),
             BoutiqueSettings = new List<BoutiqueSetting>(),
             Subscriptions = new List<Subscription>(),
             Sales = new List<Sale>(),

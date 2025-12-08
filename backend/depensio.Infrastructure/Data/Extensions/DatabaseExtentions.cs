@@ -12,8 +12,6 @@ public static class DatabaseExtentions
 
         var context = scope.ServiceProvider.GetRequiredService<DepensioDbContext>();
 
-        context.Database.MigrateAsync().GetAwaiter().GetResult();
-
-        DataSeeder.Seed(context);
+        await context.Database.MigrateAsync();
     }
 }
