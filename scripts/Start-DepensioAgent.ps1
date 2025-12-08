@@ -143,7 +143,7 @@ function Invoke-ClaudeInProject {
         Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
         
         $promptContent = Get-Content $PromptFile -Raw
-        $result = $promptContent | claude --model $env:CLAUDE_MODEL --print-markdown 2>&1
+        $result = $promptContent | claude --model $env:CLAUDE_MODEL 2>&1
         
         if ($result -match "rate limit|limit reached|too many requests|429") {
             $script:ClaudeLimitReached = $true
@@ -639,3 +639,4 @@ while ($true) {
     Write-Host "[$timestamp] [WAIT] Prochaine verification dans ${PollingInterval}s..." -ForegroundColor DarkGray
     Start-Sleep -Seconds $PollingInterval
 }
+
