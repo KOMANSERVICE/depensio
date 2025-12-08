@@ -89,11 +89,8 @@
       - Vault__SecretId=${VAULT_SECRET_ID}
       - Allow__Origins=${CORS_ALLOWED_ORIGINS}
       - Service__Menu=${SERVICE_MENU_URI}
-<<<<<<< HEAD
       - Service__Magasin=${SERVICE_MAGASIN_URI}
-=======
       - LOCALDOMAIN=${LOCALDOMAIN}
->>>>>>> b4b1fa7fa3c0e6e7fc4972951fe97d4c14e45ec4
     ports:
       - "127.0.0.1:9101:8080"
     env_file:
