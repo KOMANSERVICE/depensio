@@ -17,7 +17,7 @@ param(
     [int]$ProjectNumber_package = 4,
     
     # Modes de fonctionnement
-  [switch]$AnalysisOnly,
+    [switch]$AnalysisOnly,
     [switch]$CoderOnly,
     [ValidateSet("claude-opus-4-5-20251101", "claude-sonnet-4-5-20250514", "claude-sonnet-4-20250514")]
     [string]$Model = "claude-opus-4-5-20251101",
@@ -217,16 +217,36 @@ function Move-IssueToColumn {
     Write-Host "[MOVE] #$IssueNumber vers '$TargetColumn'..." -ForegroundColor Cyan
     
     try {
-        # Recuperer l'ID du projet
-        $projectId = gh project list --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json | Where-Object { $_.number -eq [int]$env:PROJECT_NUMBER } | Select-Object -ExpandProperty id
+        $projectNumber = [int]$env:PROJECT_NUMBER
+        $owner = $env:GITHUB_OWNER
         
-        if (-not $projectId) {
-            Write-Host "[ERREUR] Projet #$env:PROJECT_NUMBER non trouve" -ForegroundColor Red
+        # Recuperer le projet directement via gh project view
+        $projectJson = gh project view $projectNumber --owner $owner --format json 2>&1
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[ERREUR] Impossible de recuperer le projet: $projectJson" -ForegroundColor Red
             return $false
         }
         
+        $project = $projectJson | ConvertFrom-Json
+        $projectId = $project.id
+        
+        if (-not $projectId) {
+            Write-Host "[ERREUR] ID du projet non trouve" -ForegroundColor Red
+            return $false
+        }
+        
+        Write-Host "[DEBUG] Projet ID: $projectId" -ForegroundColor DarkGray
+        
         # Recuperer les items du projet
-        $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
+        $itemsJson = gh project item-list $projectNumber --owner $owner --format json 2>&1
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[ERREUR] Impossible de recuperer les items: $itemsJson" -ForegroundColor Red
+            return $false
+        }
+        
+        $items = $itemsJson | ConvertFrom-Json
         
         if (-not $items -or -not $items.items) {
             Write-Host "[ERREUR] Aucun item dans le projet" -ForegroundColor Red
@@ -242,19 +262,25 @@ function Move-IssueToColumn {
         }
         
         $itemId = $item.id
-        if (-not $itemId) {
-            Write-Host "[ERREUR] ID de l'item non trouve" -ForegroundColor Red
+        Write-Host "[DEBUG] Item ID: $itemId" -ForegroundColor DarkGray
+        
+        # Recuperer les champs du projet
+        $fieldsJson = gh project field-list $projectNumber --owner $owner --format json 2>&1
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[ERREUR] Impossible de recuperer les champs: $fieldsJson" -ForegroundColor Red
             return $false
         }
         
-        # Recuperer les champs du projet
-        $fields = gh project field-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
+        $fields = $fieldsJson | ConvertFrom-Json
         $statusField = $fields.fields | Where-Object { $_.name -eq "Status" } | Select-Object -First 1
         
         if (-not $statusField) {
             Write-Host "[ERREUR] Champ 'Status' non trouve" -ForegroundColor Red
             return $false
         }
+        
+        Write-Host "[DEBUG] Status Field ID: $($statusField.id)" -ForegroundColor DarkGray
         
         # Trouver l'option de colonne cible (CASE-INSENSITIVE)
         $targetOption = $statusField.options | Where-Object { 
@@ -266,6 +292,8 @@ function Move-IssueToColumn {
             Write-Host "[DEBUG] Colonnes disponibles: $($statusField.options.name -join ', ')" -ForegroundColor DarkGray
             return $false
         }
+        
+        Write-Host "[DEBUG] Target Option ID: $($targetOption.id)" -ForegroundColor DarkGray
         
         # Deplacer l'item
         $result = gh project item-edit --project-id $projectId --id $itemId --field-id $statusField.id --single-select-option-id $targetOption.id 2>&1
