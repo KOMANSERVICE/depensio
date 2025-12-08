@@ -31,27 +31,27 @@
     [Parameter]
     public EventCallback OnEdit { get; set; }
 
-    private string GetTypeLabel(StockLocationType type) => type switch
+    private string GetTypeLabel(int type) => type switch
     {
-        StockLocationType.Sale => "Vente",
-        StockLocationType.Store => "Entrepôt",
-        StockLocationType.Site => "Chantier",
+        1 => "Vente",
+        2 => "Entrepôt",
+        3 => "Chantier",
         _ => "Inconnu"
     };
 
-    private string GetTypeIcon(StockLocationType type) => type switch
+    private string GetTypeIcon(int type) => type switch
     {
-        StockLocationType.Sale => "fa-store",
-        StockLocationType.Store => "fa-warehouse",
-        StockLocationType.Site => "fa-hard-hat",
+        1 => "fa-store",
+        2 => "fa-warehouse",
+        3 => "fa-hard-hat",
         _ => "fa-building"
     };
 
-    private string GetTypeBadgeClass(StockLocationType type) => type switch
+    private string GetTypeBadgeClass(int type) => type switch
     {
-        StockLocationType.Sale => "bg-green-100 text-green-800",
-        StockLocationType.Store => "bg-blue-100 text-blue-800",
-        StockLocationType.Site => "bg-orange-100 text-orange-800",
+        1 => "bg-green-100 text-green-800",
+        2 => "bg-blue-100 text-blue-800",
+        3 => "bg-orange-100 text-orange-800",
         _ => "bg-gray-100 text-gray-800"
     };
 }

@@ -1,28 +1,40 @@
 using depensio.Application.ApiExterne.Magasins;
 using depensio.Infrastructure.Filters;
+using Microsoft.Extensions.Logging;
+using Refit;
 
 namespace depensio.Api.Endpoints.StockLocations;
 
-public record CreateStockLocationRequest(StockLocationCreateDTO StockLocation);
 public record CreateStockLocationResponse(Guid Id);
 
 public class CreateStockLocation : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/stocklocation/{boutiqueId}", async (Guid boutiqueId, CreateStockLocationRequest request, IMagasinService magasinService) =>
+        app.MapPost("/stocklocation/{boutiqueId}", async (Guid boutiqueId, CreateStockLocationRequest request, IMagasinService magasinService, ILogger<CreateStockLocation> logger) =>
         {
-            var result = await magasinService.CreateMagasinAsync(boutiqueId, request.StockLocation);
-
-            if (!result.Success)
+            try
             {
-                return Results.BadRequest(result);
+                var result = await magasinService.CreateMagasinAsync(boutiqueId, request);
+
+                if (!result.Success)
+                {
+                    return Results.BadRequest(result);
+                }
+
+                var response = new CreateStockLocationResponse(result.Data!.Id);
+                var baseResponse = ResponseFactory.Success(response, "StockLocation créée avec succès", StatusCodes.Status201Created);
+
+                return Results.Created($"/stocklocation/{boutiqueId}", baseResponse);
             }
-
-            var response = new CreateStockLocationResponse(result.Data!.Id);
-            var baseResponse = ResponseFactory.Success(response, "StockLocation créée avec succès", StatusCodes.Status201Created);
-
-            return Results.Created($"/stocklocation/{boutiqueId}", baseResponse);
+            catch (ApiException ex)
+            {
+                logger.LogError(ex, "Erreur lors de l'appel au microservice Magasin: {StatusCode} - {Content}", ex.StatusCode, ex.Content);
+                return Results.Problem(
+                    detail: ex.Content ?? "Erreur interne du service Magasin",
+                    statusCode: (int)ex.StatusCode,
+                    title: "Erreur du microservice Magasin");
+            }
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("CreateStockLocation")

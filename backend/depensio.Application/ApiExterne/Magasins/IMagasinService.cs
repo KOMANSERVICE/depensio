@@ -9,16 +9,19 @@ public interface IMagasinService
     Task<BaseResponse<GetMagasinsResponse>> GetMagasinsByBoutiqueAsync(Guid boutiqueId);
 
     [Post("/magasin/{boutiqueId}")]
-    Task<BaseResponse<CreateMagasinResponse>> CreateMagasinAsync(Guid boutiqueId, [Body] StockLocationCreateDTO stockLocation);
+    Task<BaseResponse<CreateMagasinResponse>> CreateMagasinAsync(Guid BoutiqueId, [Body] CreateStockLocationRequest request);
 }
 
+public record CreateStockLocationRequest(StockLocationCreateDTO StockLocation);
 public record GetMagasinsResponse(List<StockLocationDTO> StockLocations);
 public record CreateMagasinResponse(Guid Id);
 
-public record StockLocationDTO : StockLocationUpdateDTO
+public record StockLocationDTO
 {
     public Guid Id { get; init; }
-    public StockLocationType Type { get; init; } = StockLocationType.Sale;
+    public string Name { get; init; } = string.Empty;
+    public string Address { get; init; } = string.Empty;
+    public int Type { get; init; } = 1;
 }
 
 public record StockLocationUpdateDTO
@@ -29,14 +32,8 @@ public record StockLocationUpdateDTO
 
 public record StockLocationCreateDTO
 {
+    public Guid Id { get; init; } = Guid.Empty;
     public string Name { get; init; } = string.Empty;
     public string Address { get; init; } = string.Empty;
-    public StockLocationType Type { get; init; } = StockLocationType.Sale;
-}
-
-public enum StockLocationType
-{
-    Sale = 1,
-    Store = 2,
-    Site = 3
+    public int Type { get; init; } = 1;
 }

@@ -18,7 +18,7 @@ public record StockLocationDTO
     [Required(ErrorMessage = "L'adresse est requise")]
     public string Address { get; set; } = string.Empty;
 
-    public StockLocationType Type { get; set; } = StockLocationType.Sale;
+    public int Type { get; set; } = 1;
 }
 
 public record StockLocationUpdateDTO
@@ -32,18 +32,13 @@ public record StockLocationUpdateDTO
 
 public record StockLocationCreateDTO
 {
+    public Guid Id { get; set; } = Guid.Empty;
+
     [Required(ErrorMessage = "Le nom est requis")]
     public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "L'adresse est requise")]
     public string Address { get; set; } = string.Empty;
 
-    public StockLocationType Type { get; set; } = StockLocationType.Sale;
-}
-
-public enum StockLocationType
-{
-    Sale = 1,
-    Store = 2,
-    Site = 3
+    public int Type { get; set; } = 1;
 }
