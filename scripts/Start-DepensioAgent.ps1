@@ -210,7 +210,8 @@ $agentInstructions
 $TaskPrompt
 "@
     
-    $promptFile = Join-Path $env:TEMP "claude-prompt-$(Get-Date -Format 'yyyyMMddHHmmss').md"
+    # Utiliser le dossier du projet au lieu de TEMP
+    $promptFile = Join-Path $ProjectPath ".claude-prompt-temp.md"
     $fullPrompt | Out-File $promptFile -Encoding utf8
     
     $originalLocation = Get-Location
@@ -222,28 +223,18 @@ $TaskPrompt
     
     Set-Location $ProjectPath
     Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
-    Write-Host "[CLAUDE] Dossier: $ProjectPath" -ForegroundColor DarkGray
-    Write-Host "[CLAUDE] Agent: $AgentFile" -ForegroundColor DarkGray
     
-    # Appeler Claude avec le bon format
-    # Option 1: Utiliser -p pour passer le prompt directement
-    $promptContent = Get-Content $promptFile -Raw
-    
-    # Claude CLI attend: claude -p "prompt" --print ou cat file | claude --print
-    # Essayer plusieurs methodes
-    
-    # Methode: utiliser --print pour mode non-interactif
+    # Appeler Claude en passant le contenu via pipe (pas le chemin du fichier)
     Write-Host "[CLAUDE] Lancement de claude..." -ForegroundColor DarkGray
-    $result = claude --print -p $promptFile 2>&1
     
-    if ($LASTEXITCODE -ne 0) {
-        # Essayer avec cat/pipe
-        Write-Host "[CLAUDE] Retry avec pipe..." -ForegroundColor DarkGray
-        $result = Get-Content $promptFile -Raw | claude --print 2>&1
-    }
+    # Methode: pipe le contenu directement a claude
+    $result = Get-Content $promptFile -Raw | claude 2>&1
     
     $output = $result -join "`n"
     $script:LastClaudeOutput = $output
+    
+    # Nettoyer le fichier temporaire
+    Remove-Item $promptFile -ErrorAction SilentlyContinue
     
     # Afficher un extrait de la sortie pour debug
     if ($output.Length -gt 200) {
@@ -261,7 +252,6 @@ $TaskPrompt
         Write-Host "[LIMIT] Limite Claude detectee" -ForegroundColor Red
         $ErrorActionPreference = $oldErrorAction
         Set-Location $originalLocation
-        Remove-Item $promptFile -ErrorAction SilentlyContinue
         return @{ Success = $false; Output = $output }
     }
     
@@ -280,7 +270,6 @@ $TaskPrompt
     
     $ErrorActionPreference = $oldErrorAction
     Set-Location $originalLocation
-    Remove-Item $promptFile -ErrorAction SilentlyContinue
     
     return @{ Success = $success; Output = $output }
 }
