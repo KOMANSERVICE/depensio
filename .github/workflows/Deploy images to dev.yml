@@ -127,6 +127,7 @@ jobs:
             SERVICE_MENU_URI=${{ secrets.SERVICE_MENU_URI }}
             DOCKER_TAG=$TAG
             LOCALDOMAIN={{vars.LOCALDOMAIN}}
+            SERVICE_MAGASIN_URI=${{ secrets.SERVICE_MAGASIN_URI }}
             EOF
 
             chmod 644 $ENV_PATH
