@@ -13,4 +13,6 @@ public interface ISaleService
     Task<BaseResponse<GetSaleByBoutiqueResponse>> GetSaleByBoutiqueAsync(Guid boutiqueId);
     [Get("/sale/{boutiqueId}/summary")]
     Task<BaseResponse<GetSaleSummaryByBoutiqueResponse>> GetSaleSummaryByBoutiqueAsync(Guid boutiqueId);
+    [Post("/sale/cancel")]
+    Task<BaseResponse<CancelSaleResponse>> CancelSaleAsync(CancelSaleRequest request);
 }
