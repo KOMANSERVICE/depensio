@@ -17,7 +17,7 @@ param(
     [int]$ProjectNumber_package = 4,
     
     # Modes de fonctionnement
-   [switch]$AnalysisOnly,
+  [switch]$AnalysisOnly,
     [switch]$CoderOnly,
     [ValidateSet("claude-opus-4-5-20251101", "claude-sonnet-4-5-20250514", "claude-sonnet-4-20250514")]
     [string]$Model = "claude-opus-4-5-20251101",
@@ -217,41 +217,72 @@ function Move-IssueToColumn {
     Write-Host "[MOVE] #$IssueNumber vers '$TargetColumn'..." -ForegroundColor Cyan
     
     try {
-        $projects = gh project list --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
-        $project = $projects | Where-Object { $_.number -eq $env:PROJECT_NUMBER }
+        # Recuperer l'ID du projet
+        $projectId = gh project list --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json | Where-Object { $_.number -eq [int]$env:PROJECT_NUMBER } | Select-Object -ExpandProperty id
         
-        $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
-        $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber }
-        
-        if (-not $item) {
-            Write-Host "[ERREUR] Issue #$IssueNumber non trouvee" -ForegroundColor Red
+        if (-not $projectId) {
+            Write-Host "[ERREUR] Projet #$env:PROJECT_NUMBER non trouve" -ForegroundColor Red
             return $false
         }
         
-        $fields = gh project field-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
-        $statusField = $fields.fields | Where-Object { $_.name -eq "Status" }
+        # Recuperer les items du projet
+        $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
         
+        if (-not $items -or -not $items.items) {
+            Write-Host "[ERREUR] Aucun item dans le projet" -ForegroundColor Red
+            return $false
+        }
+        
+        # Trouver l'item correspondant a l'issue
+        $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber } | Select-Object -First 1
+        
+        if (-not $item) {
+            Write-Host "[ERREUR] Issue #$IssueNumber non trouvee dans le projet" -ForegroundColor Red
+            return $false
+        }
+        
+        $itemId = $item.id
+        if (-not $itemId) {
+            Write-Host "[ERREUR] ID de l'item non trouve" -ForegroundColor Red
+            return $false
+        }
+        
+        # Recuperer les champs du projet
+        $fields = gh project field-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
+        $statusField = $fields.fields | Where-Object { $_.name -eq "Status" } | Select-Object -First 1
+        
+        if (-not $statusField) {
+            Write-Host "[ERREUR] Champ 'Status' non trouve" -ForegroundColor Red
+            return $false
+        }
+        
+        # Trouver l'option de colonne cible (CASE-INSENSITIVE)
         $targetOption = $statusField.options | Where-Object { 
             Compare-ColumnName -Actual $_.name -Expected $TargetColumn
-        }
+        } | Select-Object -First 1
         
         if (-not $targetOption) {
             Write-Host "[ERREUR] Colonne '$TargetColumn' non trouvee" -ForegroundColor Red
+            Write-Host "[DEBUG] Colonnes disponibles: $($statusField.options.name -join ', ')" -ForegroundColor DarkGray
             return $false
         }
         
-        gh project item-edit --project-id $project.id --id $item.id --field-id $statusField.id --single-select-option-id $targetOption.id
+        # Deplacer l'item
+        $result = gh project item-edit --project-id $projectId --id $itemId --field-id $statusField.id --single-select-option-id $targetOption.id 2>&1
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "[OK] #$IssueNumber vers '$($targetOption.name)'" -ForegroundColor Green
             return $true
         }
+        else {
+            Write-Host "[ERREUR] Echec deplacement: $result" -ForegroundColor Red
+            return $false
+        }
     }
     catch {
         Write-Host "[ERREUR] Exception: $_" -ForegroundColor Red
+        return $false
     }
-    
-    return $false
 }
 
 function Get-CurrentIssueColumn {
@@ -663,4 +694,3 @@ while ($true) {
     Write-Host "[$timestamp] [WAIT] Prochaine verification dans ${PollingInterval}s..." -ForegroundColor DarkGray
     Start-Sleep -Seconds $PollingInterval
 }
-
