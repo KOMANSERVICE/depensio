@@ -224,11 +224,12 @@ $TaskPrompt
     Set-Location $ProjectPath
     Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
     
-    # Appeler Claude en passant le contenu via pipe (pas le chemin du fichier)
+    # Appeler Claude en passant le contenu via pipe avec permissions
     Write-Host "[CLAUDE] Lancement de claude..." -ForegroundColor DarkGray
     
-    # Methode: pipe le contenu directement a claude
-    $result = Get-Content $promptFile -Raw | claude 2>&1
+    # Utiliser --dangerously-skip-permissions pour mode non-interactif
+    # Ou --allowedTools pour autoriser les outils specifiques
+    $result = Get-Content $promptFile -Raw | claude --dangerously-skip-permissions 2>&1
     
     $output = $result -join "`n"
     $script:LastClaudeOutput = $output
