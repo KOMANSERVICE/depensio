@@ -265,7 +265,13 @@ function Get-IssuesInColumn {
     param([string]$ColumnName)
     
     try {
-        $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json 2>$null | ConvertFrom-Json
+        $itemsJson = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json 2>&1
+        
+        if (-not $itemsJson -or $itemsJson -match "^error:") {
+            return @()
+        }
+        
+        $items = $itemsJson | ConvertFrom-Json
         
         if (-not $items -or -not $items.items) {
             return @()
@@ -403,7 +409,11 @@ function Get-CurrentIssueColumn {
     param([int]$IssueNumber)
     
     try {
-        $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json 2>$null | ConvertFrom-Json
+        $itemsJson = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json 2>&1
+        if (-not $itemsJson -or $itemsJson -match "^error:") {
+            return $null
+        }
+        $items = $itemsJson | ConvertFrom-Json
         $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber } | Select-Object -First 1
         if ($item) {
             return $item.status
@@ -433,32 +443,59 @@ function New-FeatureBranch {
         $safeName = $safeName.Substring(0, [Math]::Min(30, $safeName.Length)).ToLower()
         $branchName = "feature/$IssueNumber-$safeName"
         
+        # Verifier la branche actuelle
+        $currentBranch = (git branch --show-current 2>&1) -join ""
+        
+        # Verifier s'il y a des changements non commites
         $status = git status --porcelain 2>&1
-        if ($status) {
-            Write-Host "[GIT] Sauvegarde des changements en cours (stash)..." -ForegroundColor Yellow
-            git stash push -m "WIP before issue #$IssueNumber" 2>&1 | Out-Null
+        if ($status -and $status -notmatch "^fatal:") {
+            Write-Host "[GIT] Changements detectes - commit WIP..." -ForegroundColor Yellow
+            git add -A *>&1 | Out-Null
+            git commit -m "WIP: avant issue #$IssueNumber" *>&1 | Out-Null
+            
+            # Pull sur la branche actuelle
+            Write-Host "[GIT] Pull $currentBranch..." -ForegroundColor DarkGray
+            git pull origin $currentBranch *>&1 | Out-Null
+            
+            # Push les changements
+            Write-Host "[GIT] Push des changements WIP..." -ForegroundColor DarkGray
+            git push origin $currentBranch *>&1 | Out-Null
         }
         
-        Write-Host "[GIT] Checkout main et pull..." -ForegroundColor DarkGray
-        git checkout main 2>&1 | Out-Null
-        git pull origin main 2>&1 | Out-Null
+        # Checkout main seulement si on n'y est pas deja
+        if ($currentBranch -ne "main") {
+            Write-Host "[GIT] Checkout main..." -ForegroundColor DarkGray
+            git checkout main *>&1 | Out-Null
+            git pull origin main *>&1 | Out-Null
+        }
+        else {
+            # Deja sur main, juste pull
+            Write-Host "[GIT] Pull main..." -ForegroundColor DarkGray
+            git pull origin main *>&1 | Out-Null
+        }
         
+        # Verifier si la branche existe deja (locale ou remote)
         $existingBranch = git branch --list $branchName 2>&1
-        if ($existingBranch) {
+        $existingRemote = git branch -r --list "origin/$branchName" 2>&1
+        
+        if ($existingBranch -or $existingRemote) {
             Write-Host "[GIT] Branche '$branchName' existe deja - checkout" -ForegroundColor Yellow
-            git checkout $branchName 2>&1 | Out-Null
+            git checkout $branchName *>&1 | Out-Null
+            git pull origin $branchName *>&1 | Out-Null
         }
         else {
             Write-Host "[GIT] Creation branche '$branchName'..." -ForegroundColor DarkGray
-            git checkout -b $branchName 2>&1 | Out-Null
+            git checkout -b $branchName *>&1 | Out-Null
         }
         
-        if ($LASTEXITCODE -eq 0) {
+        # Verifier qu'on est bien sur la bonne branche
+        $finalBranch = (git branch --show-current 2>&1) -join ""
+        if ($finalBranch -eq $branchName) {
             Write-Host "[OK] Branche '$branchName' prete" -ForegroundColor Green
             return $branchName
         }
         else {
-            Write-Host "[ERREUR] Echec creation branche" -ForegroundColor Red
+            Write-Host "[ERREUR] Branche actuelle: $finalBranch (attendu: $branchName)" -ForegroundColor Red
             return $null
         }
     }
@@ -471,55 +508,107 @@ function New-FeatureBranch {
     }
 }
 
-function Remove-FeatureBranch {
-    param([string]$BranchName)
+# ============================================
+# FONCTIONS POUR VERIFIER SI ISSUE DEJA TRAITEE
+# ============================================
+
+function Test-IssueAlreadyDone {
+    param([int]$IssueNumber)
     
-    if (-not $BranchName) { return }
-    
-    Write-Host "[GIT] Suppression de la branche '$BranchName'..." -ForegroundColor Cyan
+    # Verifier si l'issue est dans Done
+    $doneIssues = @(Get-IssuesInColumn -ColumnName $Columns.Done)
+    return ($doneIssues | Where-Object { $_.IssueNumber -eq $IssueNumber }) -ne $null
+}
+
+function Test-BranchExists {
+    param([int]$IssueNumber)
     
     $originalLocation = Get-Location
     Set-Location $ProjectPath
     
     try {
-        git checkout main 2>&1 | Out-Null
-        git branch -D $BranchName 2>&1 | Out-Null
-        git push origin --delete $BranchName 2>&1 | Out-Null
-        git fetch --prune 2>&1 | Out-Null
-        
-        Write-Host "[OK] Branche '$BranchName' supprimee" -ForegroundColor Green
+        # Verifier branches locales et remote
+        $branches = git branch -a 2>&1 | Select-String "feature/$IssueNumber-"
+        return $null -ne $branches
     }
     catch {
-        Write-Host "[WARN] Erreur suppression branche: $_" -ForegroundColor Yellow
+        return $false
     }
     finally {
         Set-Location $originalLocation
     }
 }
 
-# ============================================
-# GESTION DES ISSUES TRAITEES
-# ============================================
-
-$architectureDir = Join-Path $ProjectPath ".architecture"
-if (-not (Test-Path $architectureDir)) {
-    New-Item -ItemType Directory -Path $architectureDir -Force | Out-Null
-}
-
-$processedAnalysisFile = Join-Path $architectureDir "processed-analysis.txt"
-$processedCoderFile = Join-Path $architectureDir "processed-coder.txt"
-
-function Get-ProcessedIssues {
-    param([string]$FilePath)
-    if (Test-Path $FilePath) {
-        return @(Get-Content $FilePath | Where-Object { $_ -match '^\d+$' } | ForEach-Object { [int]$_ })
+function Test-PRExists {
+    param([int]$IssueNumber)
+    
+    try {
+        $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number 2>&1
+        if (-not $prsJson -or $prsJson -match "^error:") {
+            return $false
+        }
+        $prs = $prsJson | ConvertFrom-Json
+        return ($prs.Count -gt 0)
     }
-    return @()
+    catch {
+        return $false
+    }
 }
 
-function Add-ProcessedIssue {
-    param([string]$FilePath, [int]$IssueNumber)
-    $IssueNumber | Out-File -Append -FilePath $FilePath -Encoding utf8
+function Merge-PullRequest {
+    param([int]$IssueNumber)
+    
+    Write-Host "[MERGE] Recherche PR pour #$IssueNumber..." -ForegroundColor Cyan
+    
+    try {
+        # Trouver la PR associee a l'issue
+        $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number,headRefName,state 2>&1
+        if (-not $prsJson -or $prsJson -match "^error:") {
+            Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
+            return $false
+        }
+        
+        $prs = $prsJson | ConvertFrom-Json
+        
+        if ($prs.Count -eq 0) {
+            Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
+            return $false
+        }
+        
+        $pr = $prs[0]
+        $prNumber = $pr.number
+        $branchName = $pr.headRefName
+        
+        Write-Host "[MERGE] Merge PR #$prNumber (branche: $branchName)..." -ForegroundColor Cyan
+        
+        # Merger la PR avec squash et suppression de branche
+        $result = gh pr merge $prNumber --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --squash --delete-branch 2>&1
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] PR #$prNumber mergee et branche supprimee" -ForegroundColor Green
+            
+            # Nettoyer la branche locale si elle existe
+            $originalLocation = Get-Location
+            Set-Location $ProjectPath
+            
+            git checkout main *>&1 | Out-Null
+            git pull origin main *>&1 | Out-Null
+            git branch -D $branchName *>&1 | Out-Null
+            git fetch --prune *>&1 | Out-Null
+            
+            Set-Location $originalLocation
+            
+            return $true
+        }
+        else {
+            Write-Host "[ERREUR] Echec merge: $result" -ForegroundColor Red
+            return $false
+        }
+    }
+    catch {
+        Write-Host "[ERREUR] Exception merge: $_" -ForegroundColor Red
+        return $false
+    }
 }
 
 # ============================================
@@ -711,7 +800,7 @@ function Update-IDRPackages {
             $content = Get-Content $domainProject.FullName -Raw
             if ($content -match "IDR\.Library\.BuildingBlocks") {
                 Write-Host "[PACKAGES] Verification BuildingBlocks dans $($domainProject.Name)..." -ForegroundColor DarkGray
-                dotnet add $domainProject.FullName package IDR.Library.BuildingBlocks --prerelease 2>$null
+                $result = dotnet add $domainProject.FullName package IDR.Library.BuildingBlocks --prerelease 2>&1
                 if ($LASTEXITCODE -eq 0) {
                     Write-Host "[OK] BuildingBlocks verifie/mis a jour" -ForegroundColor Green
                 }
@@ -724,7 +813,7 @@ function Update-IDRPackages {
             $content = Get-Content $sharedProject.FullName -Raw
             if ($content -match "IDR\.Library\.Blazor") {
                 Write-Host "[PACKAGES] Verification Blazor dans $($sharedProject.Name)..." -ForegroundColor DarkGray
-                dotnet add $sharedProject.FullName package IDR.Library.Blazor --prerelease 2>$null
+                $result = dotnet add $sharedProject.FullName package IDR.Library.Blazor --prerelease 2>&1
                 if ($LASTEXITCODE -eq 0) {
                     Write-Host "[OK] Blazor verifie/mis a jour" -ForegroundColor Green
                 }
@@ -777,7 +866,7 @@ while ($true) {
         Write-Host ""
         Write-Host "[$timestamp] ================================================" -ForegroundColor DarkGray
         
-        # PRIORITE 1: IN REVIEW
+        # PRIORITE 1: IN REVIEW - Merger les PR en attente
         if (-not $AnalysisOnly -and (Test-CanProceed)) {
             Write-Host "[$timestamp] [PRIORITE 1] Verification 'In Review'..." -ForegroundColor Magenta
             
@@ -786,10 +875,40 @@ while ($true) {
             if ($reviewIssues.Count -gt 0) {
                 $issue = $reviewIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                $success = Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                 
-                if ($success) {
-                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                # Verifier si une PR existe
+                if (Test-PRExists -IssueNumber $issue.IssueNumber) {
+                    # Merger la PR
+                    $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
+                    
+                    if ($merged) {
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                        Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) mergee et prete a tester" -ForegroundColor Green
+                    }
+                    else {
+                        # Merge echoue -> laisser en Review, appeler ReviewAgent
+                        Write-Host "[$timestamp]   [WARN] Merge auto echoue - appel ReviewAgent" -ForegroundColor Yellow
+                        $success = Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                        
+                        if ($success) {
+                            # Reessayer le merge
+                            $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
+                            if ($merged) {
+                                Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                            }
+                        }
+                    }
+                }
+                else {
+                    # Pas de PR -> verifier si branche existe
+                    if (Test-BranchExists -IssueNumber $issue.IssueNumber) {
+                        Write-Host "[$timestamp]   [INFO] Branche existe mais pas de PR - appel ReviewAgent" -ForegroundColor Yellow
+                        Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                    }
+                    else {
+                        Write-Host "[$timestamp]   [WARN] Pas de PR ni branche - retour a Todo" -ForegroundColor Yellow
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                    }
                 }
             }
             else {
@@ -797,7 +916,7 @@ while ($true) {
             }
         }
         
-        # PRIORITE 2: IN PROGRESS
+        # PRIORITE 2: IN PROGRESS - Continuer le developpement en cours
         if (-not $AnalysisOnly -and (Test-CanProceed)) {
             Write-Host "[$timestamp] [PRIORITE 2] Verification 'In Progress'..." -ForegroundColor Yellow
             
@@ -807,14 +926,39 @@ while ($true) {
                 $issue = $progressIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 
-                $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
-                
-                if ($branchName) {
-                    $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                # Verifier si une PR existe deja
+                if (Test-PRExists -IssueNumber $issue.IssueNumber) {
+                    Write-Host "[$timestamp]   [INFO] PR existe - deplacement vers Review" -ForegroundColor Cyan
+                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                }
+                else {
+                    # Recuperer ou creer la branche
+                    $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
-                    if ($success) {
-                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
-                        Remove-FeatureBranch -BranchName $branchName
+                    if ($branchName) {
+                        $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                        
+                        if ($success -and (Test-CanProceed)) {
+                            # Verifier si Claude a cree une PR
+                            if (Test-PRExists -IssueNumber $issue.IssueNumber) {
+                                # PR existe -> merger
+                                Write-Host "[$timestamp]   [MERGE] Merge de la PR..." -ForegroundColor Cyan
+                                $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
+                                
+                                if ($merged) {
+                                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                                    Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee" -ForegroundColor Green
+                                }
+                                else {
+                                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                                    Write-Host "[$timestamp]   [WARN] Merge echoue - en attente review" -ForegroundColor Yellow
+                                }
+                            }
+                            else {
+                                Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                                Write-Host "[$timestamp]   [INFO] Pas de PR - en attente review" -ForegroundColor Yellow
+                            }
+                        }
                     }
                 }
             }
@@ -854,29 +998,24 @@ while ($true) {
             Write-Host "[$timestamp] [PRIORITE 4] Verification 'Analyse'..." -ForegroundColor Blue
             
             $analysisIssues = @(Get-IssuesInColumn -ColumnName $Columns.Analyse)
-            $processedAnalysis = @(Get-ProcessedIssues -FilePath $processedAnalysisFile)
-            $newAnalysisIssues = @($analysisIssues | Where-Object { $_.IssueNumber -notin $processedAnalysis })
             
-            if ($newAnalysisIssues.Count -gt 0) {
-                foreach ($issue in $newAnalysisIssues) {
-                    if (-not (Test-CanProceed)) { break }
-                    
-                    Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                    $analysisResult = Invoke-AnalysisAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
-                    
-                    if ($analysisResult.Success -and (Test-CanProceed)) {
-                        if ($analysisResult.IsBlocked) {
-                            Write-Host "[$timestamp]   [BLOCK] Issue #$($issue.IssueNumber) bloquee - informations manquantes" -ForegroundColor Yellow
-                            $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.AnalyseBlock
-                        }
-                        else {
-                            Write-Host "[$timestamp]   [VALID] Issue #$($issue.IssueNumber) valide" -ForegroundColor Green
-                            $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
-                        }
-                        
-                        if ($moved) {
-                            Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
-                        }
+            if ($analysisIssues.Count -gt 0) {
+                # Prendre la premiere issue dans Analyse (pas besoin de filtrer, si elle est la c'est qu'elle n'est pas traitee)
+                $issue = $analysisIssues[0]
+                
+                if (-not (Test-CanProceed)) { continue }
+                
+                Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
+                $analysisResult = Invoke-AnalysisAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                
+                if ($analysisResult.Success -and (Test-CanProceed)) {
+                    if ($analysisResult.IsBlocked) {
+                        Write-Host "[$timestamp]   [BLOCK] Issue #$($issue.IssueNumber) bloquee - informations manquantes" -ForegroundColor Yellow
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.AnalyseBlock
+                    }
+                    else {
+                        Write-Host "[$timestamp]   [VALID] Issue #$($issue.IssueNumber) valide" -ForegroundColor Green
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
                     }
                 }
             }
@@ -890,31 +1029,56 @@ while ($true) {
             Write-Host "[$timestamp] [PRIORITE 5] Verification 'Todo'..." -ForegroundColor Green
             
             $todoIssues = @(Get-IssuesInColumn -ColumnName $Columns.Todo)
-            $processedCoder = @(Get-ProcessedIssues -FilePath $processedCoderFile)
-            $newTodoIssues = @($todoIssues | Where-Object { $_.IssueNumber -notin $processedCoder })
             
-            if ($newTodoIssues.Count -gt 0) {
-                $issue = $newTodoIssues[0]
-                Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
+            if ($todoIssues.Count -gt 0) {
+                # Prendre la premiere issue dans Todo
+                $issue = $todoIssues[0]
                 
-                $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
-                
-                if ($branchName) {
-                    $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
+                # Verifier si deja en cours (branche ou PR existe)
+                if (Test-BranchExists -IssueNumber $issue.IssueNumber) {
+                    Write-Host "[$timestamp]   [SKIP] #$($issue.IssueNumber) - branche existe deja" -ForegroundColor Yellow
+                }
+                elseif (Test-PRExists -IssueNumber $issue.IssueNumber) {
+                    Write-Host "[$timestamp]   [SKIP] #$($issue.IssueNumber) - PR existe deja" -ForegroundColor Yellow
+                }
+                else {
+                    Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                     
-                    if ($moved) {
-                        $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                    $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
+                    
+                    if ($branchName) {
+                        $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                         
-                        if ($success -and (Test-CanProceed)) {
-                            $movedToReview = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
-                            if ($movedToReview) {
-                                Add-ProcessedIssue -FilePath $processedCoderFile -IssueNumber $issue.IssueNumber
-                                Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) developpee" -ForegroundColor Green
-                                Remove-FeatureBranch -BranchName $branchName
+                        if ($moved) {
+                            $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                            
+                            if ($success -and (Test-CanProceed)) {
+                                # Verifier si Claude a cree une PR
+                                if (Test-PRExists -IssueNumber $issue.IssueNumber) {
+                                    # PR existe -> merger et nettoyer
+                                    Write-Host "[$timestamp]   [MERGE] Merge de la PR..." -ForegroundColor Cyan
+                                    $merged = Merge-PullRequest -IssueNumber $issue.IssueNumber
+                                    
+                                    if ($merged) {
+                                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                                        Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee" -ForegroundColor Green
+                                    }
+                                    else {
+                                        # Merge echoue -> laisser en Review pour intervention humaine
+                                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                                        Write-Host "[$timestamp]   [WARN] Merge echoue - en attente review" -ForegroundColor Yellow
+                                    }
+                                }
+                                else {
+                                    # Pas de PR -> deplacer vers Review
+                                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                                    Write-Host "[$timestamp]   [INFO] Pas de PR - en attente review" -ForegroundColor Yellow
+                                }
                             }
-                        }
-                        elseif ($script:ClaudeLimitReached) {
-                            Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                            elseif ($script:ClaudeLimitReached) {
+                                # Limite atteinte -> laisser en In Progress, la branche reste
+                                Write-Host "[$timestamp]   [LIMIT] Limite atteinte - reste en In Progress" -ForegroundColor Yellow
+                            }
                         }
                     }
                 }
