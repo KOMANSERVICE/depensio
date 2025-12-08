@@ -35,20 +35,22 @@ $ProjectPath = Resolve-Path $ProjectPath -ErrorAction Stop
 Write-Host "[CONFIG] Repertoire du projet: $ProjectPath" -ForegroundColor Cyan
 
 $claudeDir = Join-Path $ProjectPath ".claude"
-if (-not (Test-Path $claudeDir)) {
-    Write-Host "[ERREUR] Le repertoire .claude n'existe pas dans $ProjectPath" -ForegroundColor Red
+$agentsDir = Join-Path $claudeDir "agents"
+
+if (-not (Test-Path $agentsDir)) {
+    Write-Host "[ERREUR] Le repertoire .claude/agents n'existe pas dans $ProjectPath" -ForegroundColor Red
     exit 1
 }
 
 # Verifier les fichiers agents
 $agentFiles = @{
-    Orchestrator = Join-Path $claudeDir "orchestrator.md"
-    Coder = Join-Path $claudeDir "coder.md"
-    Debug = Join-Path $claudeDir "debug-agent.md"
-    BackendAnalyzer = Join-Path $claudeDir "backend-analyzer.md"
-    FrontendAnalyzer = Join-Path $claudeDir "frontend-analyzer.md"
-    GithubManager = Join-Path $claudeDir "github-manager.md"
-    GherkinGenerator = Join-Path $claudeDir "gherkin-generator.md"
+    Orchestrator = Join-Path $agentsDir "orchestrator.md"
+    Coder = Join-Path $agentsDir "coder.md"
+    Debug = Join-Path $agentsDir "debug-agent.md"
+    BackendAnalyzer = Join-Path $agentsDir "backend-analyzer.md"
+    FrontendAnalyzer = Join-Path $agentsDir "frontend-analyzer.md"
+    GithubManager = Join-Path $agentsDir "github-manager.md"
+    GherkinGenerator = Join-Path $agentsDir "gherkin-generator.md"
 }
 
 foreach ($agent in $agentFiles.GetEnumerator()) {
@@ -751,7 +753,7 @@ Write-Host "  Repo: $Repo" -ForegroundColor White
 Write-Host "  Project: #$ProjectNumber" -ForegroundColor White
 Write-Host "  Modele: $Model" -ForegroundColor White
 Write-Host "  Intervalle: ${PollingInterval}s" -ForegroundColor White
-Write-Host "  Agents: $claudeDir" -ForegroundColor White
+Write-Host "  Agents: $agentsDir" -ForegroundColor White
 Write-Host ""
 
 Update-IDRPackages
@@ -929,4 +931,3 @@ while ($true) {
     Write-Host "[$timestamp] [WAIT] Prochaine verification dans ${PollingInterval}s..." -ForegroundColor DarkGray
     Start-Sleep -Seconds $PollingInterval
 }
-
