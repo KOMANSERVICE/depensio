@@ -34,9 +34,27 @@ $ErrorActionPreference = "Stop"
 $ProjectPath = Resolve-Path $ProjectPath -ErrorAction Stop
 Write-Host "[CONFIG] Repertoire du projet: $ProjectPath" -ForegroundColor Cyan
 
-if (-not (Test-Path (Join-Path $ProjectPath ".claude"))) {
+$claudeDir = Join-Path $ProjectPath ".claude"
+if (-not (Test-Path $claudeDir)) {
     Write-Host "[ERREUR] Le repertoire .claude n'existe pas dans $ProjectPath" -ForegroundColor Red
     exit 1
+}
+
+# Verifier les fichiers agents
+$agentFiles = @{
+    Orchestrator = Join-Path $claudeDir "orchestrator.md"
+    Coder = Join-Path $claudeDir "coder.md"
+    Debug = Join-Path $claudeDir "debug-agent.md"
+    BackendAnalyzer = Join-Path $claudeDir "backend-analyzer.md"
+    FrontendAnalyzer = Join-Path $claudeDir "frontend-analyzer.md"
+    GithubManager = Join-Path $claudeDir "github-manager.md"
+    GherkinGenerator = Join-Path $claudeDir "gherkin-generator.md"
+}
+
+foreach ($agent in $agentFiles.GetEnumerator()) {
+    if (-not (Test-Path $agent.Value)) {
+        Write-Host "[WARN] Fichier agent manquant: $($agent.Key) -> $($agent.Value)" -ForegroundColor Yellow
+    }
 }
 
 $env:GITHUB_OWNER = $Owner
@@ -88,23 +106,6 @@ function Test-CanProceed {
     return $true
 }
 
-function Stop-OnCriticalError {
-    param(
-        [string]$ErrorMessage,
-        [string]$Component = "Systeme"
-    )
-    $script:CriticalErrorOccurred = $true
-    $script:CriticalErrorMessage = $ErrorMessage
-    Write-Host ""
-    Write-Host "================================================================" -ForegroundColor Red
-    Write-Host "                    ERREUR CRITIQUE - ARRET                     " -ForegroundColor Red
-    Write-Host "================================================================" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "  Composant: $Component" -ForegroundColor Red
-    Write-Host "  Erreur: $ErrorMessage" -ForegroundColor Red
-    Write-Host ""
-}
-
 # ============================================
 # FONCTION DE COMPARAISON DE COLONNES
 # ============================================
@@ -121,6 +122,19 @@ function Compare-ColumnName {
 }
 
 # ============================================
+# FONCTION POUR CHARGER UN AGENT
+# ============================================
+
+function Get-AgentInstructions {
+    param([string]$AgentPath)
+    
+    if (Test-Path $AgentPath) {
+        return Get-Content $AgentPath -Raw
+    }
+    return ""
+}
+
+# ============================================
 # FONCTION POUR AJOUTER UN COMMENTAIRE
 # ============================================
 
@@ -131,14 +145,12 @@ function Add-IssueComment {
     )
     
     if (-not $Comment -or $Comment.Trim().Length -eq 0) {
-        Write-Host "[COMMENT] Pas de commentaire a ajouter pour #$IssueNumber" -ForegroundColor DarkGray
         return $false
     }
     
     Write-Host "[COMMENT] Ajout commentaire sur #$IssueNumber..." -ForegroundColor Cyan
     
     try {
-        # Utiliser un fichier temporaire pour eviter les problemes d'echappement
         $tempFile = Join-Path $env:TEMP "comment-$IssueNumber-$(Get-Date -Format 'yyyyMMddHHmmss').md"
         $Comment | Out-File -FilePath $tempFile -Encoding utf8
         
@@ -162,22 +174,42 @@ function Add-IssueComment {
 }
 
 # ============================================
-# FONCTION POUR EXECUTER CLAUDE
+# FONCTION POUR EXECUTER CLAUDE AVEC AGENT
 # ============================================
 
-function Invoke-ClaudeInProject {
+function Invoke-ClaudeWithAgent {
     param(
         [Parameter(Mandatory)]
-        [string]$PromptFile,
+        [string]$AgentFile,
+        [Parameter(Mandatory)]
+        [string]$TaskPrompt,
         [string]$TaskDescription = "Tache",
         [int]$IssueNumber = 0
     )
     
     if (-not (Test-CanProceed)) {
         Write-Host "[SKIP] $TaskDescription - limite atteinte" -ForegroundColor Yellow
-        Remove-Item $PromptFile -ErrorAction SilentlyContinue
         return @{ Success = $false; Output = "" }
     }
+    
+    # Charger les instructions de l'agent
+    $agentInstructions = Get-AgentInstructions -AgentPath $AgentFile
+    
+    if (-not $agentInstructions) {
+        Write-Host "[WARN] Instructions agent non trouvees: $AgentFile" -ForegroundColor Yellow
+    }
+    
+    # Construire le prompt complet
+    $fullPrompt = @"
+$agentInstructions
+
+---
+# TACHE ACTUELLE
+$TaskPrompt
+"@
+    
+    $promptFile = Join-Path $env:TEMP "claude-prompt-$(Get-Date -Format 'yyyyMMddHHmmss').md"
+    $fullPrompt | Out-File $promptFile -Encoding utf8
     
     $originalLocation = Get-Location
     $success = $false
@@ -187,11 +219,10 @@ function Invoke-ClaudeInProject {
         Set-Location $ProjectPath
         Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
         
-        $promptContent = Get-Content $PromptFile -Raw
+        $promptContent = Get-Content $promptFile -Raw
         $result = $promptContent | claude --model $env:CLAUDE_MODEL 2>&1
         $output = $result -join "`n"
         
-        # Stocker la sortie pour debug
         $script:LastClaudeOutput = $output
         
         if ($result -match "rate limit|limit reached|too many requests|429") {
@@ -218,7 +249,7 @@ function Invoke-ClaudeInProject {
     }
     finally {
         Set-Location $originalLocation
-        Remove-Item $PromptFile -ErrorAction SilentlyContinue
+        Remove-Item $promptFile -ErrorAction SilentlyContinue
     }
     
     return @{ Success = $success; Output = $output }
@@ -257,6 +288,18 @@ function Get-IssuesInColumn {
     }
 }
 
+function Get-IssueDetails {
+    param([int]$IssueNumber)
+    
+    try {
+        $issue = gh issue view $IssueNumber --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --json title,body,labels,comments 2>&1 | ConvertFrom-Json
+        return $issue
+    }
+    catch {
+        return $null
+    }
+}
+
 function Move-IssueToColumn {
     param(
         [int]$IssueNumber,
@@ -274,7 +317,6 @@ function Move-IssueToColumn {
         $projectNumber = [int]$env:PROJECT_NUMBER
         $owner = $env:GITHUB_OWNER
         
-        # Recuperer le projet directement via gh project view
         $projectJson = gh project view $projectNumber --owner $owner --format json 2>&1
         
         if ($LASTEXITCODE -ne 0) {
@@ -290,7 +332,6 @@ function Move-IssueToColumn {
             return $false
         }
         
-        # Recuperer les items du projet
         $itemsJson = gh project item-list $projectNumber --owner $owner --format json 2>&1
         
         if ($LASTEXITCODE -ne 0) {
@@ -305,7 +346,6 @@ function Move-IssueToColumn {
             return $false
         }
         
-        # Trouver l'item correspondant a l'issue
         $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber } | Select-Object -First 1
         
         if (-not $item) {
@@ -315,7 +355,6 @@ function Move-IssueToColumn {
         
         $itemId = $item.id
         
-        # Recuperer les champs du projet
         $fieldsJson = gh project field-list $projectNumber --owner $owner --format json 2>&1
         
         if ($LASTEXITCODE -ne 0) {
@@ -331,7 +370,6 @@ function Move-IssueToColumn {
             return $false
         }
         
-        # Trouver l'option de colonne cible (CASE-INSENSITIVE)
         $targetOption = $statusField.options | Where-Object { 
             Compare-ColumnName -Actual $_.name -Expected $TargetColumn
         } | Select-Object -First 1
@@ -342,7 +380,6 @@ function Move-IssueToColumn {
             return $false
         }
         
-        # Deplacer l'item
         $result = gh project item-edit --project-id $projectId --id $itemId --field-id $statusField.id --single-select-option-id $targetOption.id 2>&1
         
         if ($LASTEXITCODE -eq 0) {
@@ -375,6 +412,90 @@ function Get-CurrentIssueColumn {
 }
 
 # ============================================
+# GESTION DES BRANCHES GIT
+# ============================================
+
+function New-FeatureBranch {
+    param(
+        [int]$IssueNumber,
+        [string]$Title
+    )
+    
+    Write-Host "[GIT] Creation de la branche pour #$IssueNumber..." -ForegroundColor Cyan
+    
+    $originalLocation = Get-Location
+    Set-Location $ProjectPath
+    
+    try {
+        $safeName = $Title -replace '[^a-zA-Z0-9]', '-' -replace '-+', '-' -replace '^-|-$', ''
+        $safeName = $safeName.Substring(0, [Math]::Min(30, $safeName.Length)).ToLower()
+        $branchName = "feature/$IssueNumber-$safeName"
+        
+        $status = git status --porcelain 2>&1
+        if ($status) {
+            Write-Host "[GIT] Sauvegarde des changements en cours (stash)..." -ForegroundColor Yellow
+            git stash push -m "WIP before issue #$IssueNumber" 2>&1 | Out-Null
+        }
+        
+        Write-Host "[GIT] Checkout main et pull..." -ForegroundColor DarkGray
+        git checkout main 2>&1 | Out-Null
+        git pull origin main 2>&1 | Out-Null
+        
+        $existingBranch = git branch --list $branchName 2>&1
+        if ($existingBranch) {
+            Write-Host "[GIT] Branche '$branchName' existe deja - checkout" -ForegroundColor Yellow
+            git checkout $branchName 2>&1 | Out-Null
+        }
+        else {
+            Write-Host "[GIT] Creation branche '$branchName'..." -ForegroundColor DarkGray
+            git checkout -b $branchName 2>&1 | Out-Null
+        }
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] Branche '$branchName' prete" -ForegroundColor Green
+            return $branchName
+        }
+        else {
+            Write-Host "[ERREUR] Echec creation branche" -ForegroundColor Red
+            return $null
+        }
+    }
+    catch {
+        Write-Host "[ERREUR] Exception Git: $_" -ForegroundColor Red
+        return $null
+    }
+    finally {
+        Set-Location $originalLocation
+    }
+}
+
+function Remove-FeatureBranch {
+    param([string]$BranchName)
+    
+    if (-not $BranchName) { return }
+    
+    Write-Host "[GIT] Suppression de la branche '$BranchName'..." -ForegroundColor Cyan
+    
+    $originalLocation = Get-Location
+    Set-Location $ProjectPath
+    
+    try {
+        git checkout main 2>&1 | Out-Null
+        git branch -D $BranchName 2>&1 | Out-Null
+        git push origin --delete $BranchName 2>&1 | Out-Null
+        git fetch --prune 2>&1 | Out-Null
+        
+        Write-Host "[OK] Branche '$BranchName' supprimee" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "[WARN] Erreur suppression branche: $_" -ForegroundColor Yellow
+    }
+    finally {
+        Set-Location $originalLocation
+    }
+}
+
+# ============================================
 # GESTION DES ISSUES TRAITEES
 # ============================================
 
@@ -400,7 +521,7 @@ function Add-ProcessedIssue {
 }
 
 # ============================================
-# AGENTS
+# AGENTS UTILISANT LES FICHIERS .MD
 # ============================================
 
 function Invoke-AnalysisAgent {
@@ -411,37 +532,37 @@ function Invoke-AnalysisAgent {
     
     if (-not (Test-CanProceed)) { return @{ Success = $false; IsBlocked = $false } }
     
-    $promptFile = Join-Path $env:TEMP "analysis-prompt-$IssueNumber.md"
+    # Charger les details de l'issue
+    $issueDetails = Get-IssueDetails -IssueNumber $IssueNumber
+    $issueBody = if ($issueDetails) { $issueDetails.body } else { "" }
     
-    $promptContent = @"
-Tu es l'agent d'analyse pour Depensio.
+    $taskPrompt = @"
+## Issue a analyser: #$IssueNumber - $Title
 
-Analyse l'issue #$IssueNumber - "$Title"
+### Description de l'issue:
+$issueBody
 
-1. Lis la documentation IDR.Library (agent-docs)
-2. Analyse le code existant pour comprendre l'architecture
-3. Verifie si l'issue est claire et complete
-4. Genere les scenarios Gherkin
+### Ta mission:
+1. Analyse cette issue selon les instructions de l'agent
+2. Verifie si elle est claire et complete
+3. Genere les scenarios Gherkin
+4. Formate ta reponse selon le format de l'agent
 
-Format User Story: En tant que... Je veux... Afin de...
-
-IMPORTANT - A la fin de ton analyse, tu DOIS indiquer clairement:
-- Si l'issue est VALIDE et prete pour le developpement, termine par: [STATUT: VALIDE]
-- Si l'issue est BLOQUEE (manque d'informations, contradictions, ambiguites), termine par: [STATUT: BLOQUE]
-  Et explique ce qui manque ou ce qui doit etre clarifie.
-
-Le script ajoutera automatiquement ton analyse comme commentaire sur l'issue.
+IMPORTANT - A la fin de ton analyse, indique clairement:
+- [STATUT: VALIDE] si l'issue est prete pour le developpement
+- [STATUT: BLOQUE] si des informations manquent (et explique ce qui manque)
 "@
     
-    $promptContent | Out-File $promptFile -Encoding utf8
-    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Analyse #$IssueNumber" -IssueNumber $IssueNumber
+    $result = Invoke-ClaudeWithAgent `
+        -AgentFile $agentFiles.BackendAnalyzer `
+        -TaskPrompt $taskPrompt `
+        -TaskDescription "Analyse #$IssueNumber" `
+        -IssueNumber $IssueNumber
     
     # Detecter si l'issue est bloquee
     $isBlocked = $false
-    if ($result.Output -match "\[STATUT:\s*BLOQUE\]|\[STATUT:\s*BLOCKED\]|BLOQUE|BLOCKED|manque|missing|clarification|ambigu") {
-        if ($result.Output -notmatch "\[STATUT:\s*VALIDE\]|\[STATUT:\s*VALID\]") {
-            $isBlocked = $true
-        }
+    if ($result.Output -match "\[STATUT:\s*BLOQUE\]|\[STATUT:\s*BLOCKED\]") {
+        $isBlocked = $true
     }
     
     return @{ Success = $result.Success; IsBlocked = $isBlocked }
@@ -450,40 +571,48 @@ Le script ajoutera automatiquement ton analyse comme commentaire sur l'issue.
 function Invoke-CoderAgent {
     param(
         [int]$IssueNumber,
-        [string]$Title
+        [string]$Title,
+        [string]$BranchName
     )
     
     if (-not (Test-CanProceed)) { return $false }
     
-    $promptFile = Join-Path $env:TEMP "coder-prompt-$IssueNumber.md"
+    # Charger les details de l'issue
+    $issueDetails = Get-IssueDetails -IssueNumber $IssueNumber
+    $issueBody = if ($issueDetails) { $issueDetails.body } else { "" }
     
-    $promptContent = @"
-Tu es l'agent codeur pour Depensio.
+    $taskPrompt = @"
+## Issue a implementer: #$IssueNumber - $Title
 
-Implemente l'issue #$IssueNumber - "$Title"
+### Description de l'issue:
+$issueBody
 
-Workflow:
-1. Lis la documentation IDR.Library (agent-docs)
-2. Cree une branche depuis main: git checkout main && git pull && git checkout -b feature/$IssueNumber-xxx
-3. Implemente le code
-4. Fais une analyse debug approfondie
-5. Execute les tests: dotnet test
-6. Commit et push
-7. Cree la PR
-8. Merge la PR
-9. **SUPPRIME LA BRANCHE** (local + remote)
+### Branche de travail: $BranchName
+La branche a deja ete creee. Tu es deja dessus.
+
+### Ta mission:
+1. Implemente cette issue selon les instructions de l'agent coder.md
+2. La branche '$BranchName' est deja creee et active
+3. Suis le workflow complet: implementation -> tests -> commit -> PR -> merge
+4. Commandes a utiliser:
+   - git add . && git commit -m "feat: $Title (#$IssueNumber)"
+   - git push -u origin $BranchName
+   - gh pr create --title "$Title" --body "Closes #$IssueNumber" --base main
+   - gh pr merge --squash --delete-branch
 
 IMPORTANT:
-- Utiliser ICommand, IQuery, AbstractValidator de IDR.Library.BuildingBlocks
-- Utiliser les composants Idr* de IDR.Library.Blazor
-- NE JAMAIS fermer l'issue
-- TOUJOURS supprimer la branche apres merge
-
-Retourne un resume de ce que tu as fait. Le script ajoutera automatiquement ton resume comme commentaire sur l'issue.
+- Utilise UNIQUEMENT IDR.Library.BuildingBlocks dans Domain
+- Utilise UNIQUEMENT IDR.Library.Blazor dans Shared
+- NE FERME PAS l'issue
+- La branche sera supprimee automatiquement par --delete-branch
 "@
     
-    $promptContent | Out-File $promptFile -Encoding utf8
-    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Developpement #$IssueNumber" -IssueNumber $IssueNumber
+    $result = Invoke-ClaudeWithAgent `
+        -AgentFile $agentFiles.Coder `
+        -TaskPrompt $taskPrompt `
+        -TaskDescription "Developpement #$IssueNumber" `
+        -IssueNumber $IssueNumber
+    
     return $result.Success
 }
 
@@ -495,31 +624,31 @@ function Invoke-DebugAgent {
     
     if (-not (Test-CanProceed)) { return @{ Success = $false; BugFound = $false } }
     
-    $promptFile = Join-Path $env:TEMP "debug-prompt-$IssueNumber.md"
+    $issueDetails = Get-IssueDetails -IssueNumber $IssueNumber
+    $issueBody = if ($issueDetails) { $issueDetails.body } else { "" }
     
-    $promptContent = @"
-Tu es l'agent de debug pour Depensio.
+    $taskPrompt = @"
+## Bug a analyser: #$IssueNumber - $Title
 
-Analyse en profondeur l'issue #$IssueNumber - "$Title"
+### Description du bug:
+$issueBody
 
-1. Collecte les informations (logs, symptomes)
-2. Analyse statique du code suspect
-3. Recherche les patterns de bugs connus
-4. Trace le flux de donnees
-5. Analyse les dependances
+### Ta mission:
+1. Analyse ce bug en profondeur selon les instructions de debug-agent.md
+2. Utilise toutes les techniques d'analyse: statique, flux de donnees, patterns
+3. Documente ton analyse
 
-IMPORTANT - A la fin de ton analyse, tu DOIS indiquer clairement:
-- Si tu as TROUVE le bug et propose une solution, termine par: [STATUT: BUG_TROUVE]
-- Si tu n'as PAS TROUVE le bug, termine par: [STATUT: BUG_NON_TROUVE]
-  Et liste les hypotheses que tu as eliminees.
-
-Le script ajoutera automatiquement ton analyse comme commentaire sur l'issue.
+IMPORTANT - A la fin de ton analyse, indique clairement:
+- [STATUT: BUG_TROUVE] si tu as identifie le bug et propose une solution
+- [STATUT: BUG_NON_TROUVE] si tu n'as pas trouve le bug (liste les hypotheses eliminees)
 "@
     
-    $promptContent | Out-File $promptFile -Encoding utf8
-    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Debug #$IssueNumber" -IssueNumber $IssueNumber
+    $result = Invoke-ClaudeWithAgent `
+        -AgentFile $agentFiles.Debug `
+        -TaskPrompt $taskPrompt `
+        -TaskDescription "Debug #$IssueNumber" `
+        -IssueNumber $IssueNumber
     
-    # Detecter si le bug a ete trouve
     $bugFound = $false
     if ($result.Output -match "\[STATUT:\s*BUG_TROUVE\]|\[STATUT:\s*BUG_FOUND\]") {
         $bugFound = $true
@@ -536,26 +665,30 @@ function Invoke-ReviewAgent {
     
     if (-not (Test-CanProceed)) { return $false }
     
-    $promptFile = Join-Path $env:TEMP "review-prompt-$IssueNumber.md"
-    
-    $promptContent = @"
-Tu es l'agent de review pour Depensio.
+    $taskPrompt = @"
+## Issue a finaliser: #$IssueNumber - $Title
 
-Finalise l'issue #$IssueNumber - "$Title"
+### Ta mission:
+1. Verifie s'il y a une PR ouverte pour cette issue
+2. Si PR existe: review le code et merge
+3. Apres merge: verifie que la branche est supprimee
 
-1. Verifie s'il y a une PR ouverte
-2. Si PR existe: review et merge
-3. Apres merge: **SUPPRIME LA BRANCHE**
+Commandes utiles:
+- gh pr list --search "$IssueNumber"
+- gh pr view <pr-number>
+- gh pr merge <pr-number> --squash --delete-branch
 
 IMPORTANT:
-- NE JAMAIS fermer l'issue
-- TOUJOURS supprimer la branche
-
-Retourne un resume de ce que tu as fait. Le script ajoutera automatiquement ton resume comme commentaire sur l'issue.
+- NE FERME PAS l'issue (le testeur le fera)
+- Assure-toi que la branche est supprimee
 "@
     
-    $promptContent | Out-File $promptFile -Encoding utf8
-    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Review #$IssueNumber" -IssueNumber $IssueNumber
+    $result = Invoke-ClaudeWithAgent `
+        -AgentFile $agentFiles.GithubManager `
+        -TaskPrompt $taskPrompt `
+        -TaskDescription "Review #$IssueNumber" `
+        -IssueNumber $IssueNumber
+    
     return $result.Success
 }
 
@@ -581,9 +714,6 @@ function Update-IDRPackages {
                     Write-Host "[OK] BuildingBlocks verifie/mis a jour" -ForegroundColor Green
                 }
             }
-            else {
-                Write-Host "[SKIP] BuildingBlocks non present dans Domain - pas d'installation" -ForegroundColor DarkGray
-            }
         }
         
         # IDR.Library.Blazor - UNIQUEMENT depensio.Shared
@@ -596,9 +726,6 @@ function Update-IDRPackages {
                 if ($LASTEXITCODE -eq 0) {
                     Write-Host "[OK] Blazor verifie/mis a jour" -ForegroundColor Green
                 }
-            }
-            else {
-                Write-Host "[SKIP] Blazor non present dans Shared - pas d'installation" -ForegroundColor DarkGray
             }
         }
     }
@@ -624,6 +751,7 @@ Write-Host "  Repo: $Repo" -ForegroundColor White
 Write-Host "  Project: #$ProjectNumber" -ForegroundColor White
 Write-Host "  Modele: $Model" -ForegroundColor White
 Write-Host "  Intervalle: ${PollingInterval}s" -ForegroundColor White
+Write-Host "  Agents: $claudeDir" -ForegroundColor White
 Write-Host ""
 
 Update-IDRPackages
@@ -659,7 +787,6 @@ while ($true) {
                 $success = Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                 
                 if ($success) {
-                    # Deplacer vers A Tester apres review
                     Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
                 }
             }
@@ -677,11 +804,16 @@ while ($true) {
             if ($progressIssues.Count -gt 0) {
                 $issue = $progressIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                 
-                if ($success) {
-                    # Deplacer vers In Review apres dev
-                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
+                
+                if ($branchName) {
+                    $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                    
+                    if ($success) {
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                        Remove-FeatureBranch -BranchName $branchName
+                    }
                 }
             }
             else {
@@ -702,12 +834,10 @@ while ($true) {
                 
                 if ($debugResult.Success -and (Test-CanProceed)) {
                     if ($debugResult.BugFound) {
-                        # Bug trouve -> deplacer vers In Progress pour correction
                         Write-Host "[$timestamp]   [BUG] Bug trouve - deplacement vers 'In Progress'" -ForegroundColor Yellow
                         Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                     }
                     else {
-                        # Bug non trouve -> laisser en Debug pour review humaine
                         Write-Host "[$timestamp]   [INFO] Bug non trouve - reste en 'Debug' pour review humaine" -ForegroundColor Cyan
                     }
                 }
@@ -734,19 +864,16 @@ while ($true) {
                     
                     if ($analysisResult.Success -and (Test-CanProceed)) {
                         if ($analysisResult.IsBlocked) {
-                            # Issue bloquee -> deplacer vers AnalyseBlock
                             Write-Host "[$timestamp]   [BLOCK] Issue #$($issue.IssueNumber) bloquee - informations manquantes" -ForegroundColor Yellow
                             $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.AnalyseBlock
                         }
                         else {
-                            # Issue valide -> deplacer vers Todo
                             Write-Host "[$timestamp]   [VALID] Issue #$($issue.IssueNumber) valide" -ForegroundColor Green
                             $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
                         }
                         
                         if ($moved) {
                             Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
-                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) traitee et deplacee" -ForegroundColor Green
                         }
                     }
                 }
@@ -768,23 +895,25 @@ while ($true) {
                 $issue = $newTodoIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 
-                # Deplacer vers In Progress AVANT le dev
-                $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
+                $branchName = New-FeatureBranch -IssueNumber $issue.IssueNumber -Title $issue.Title
                 
-                if ($moved) {
-                    $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                if ($branchName) {
+                    $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                     
-                    if ($success -and (Test-CanProceed)) {
-                        # Deplacer vers In Review apres dev reussi
-                        $movedToReview = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
-                        if ($movedToReview) {
-                            Add-ProcessedIssue -FilePath $processedCoderFile -IssueNumber $issue.IssueNumber
-                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) developpee" -ForegroundColor Green
+                    if ($moved) {
+                        $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title -BranchName $branchName
+                        
+                        if ($success -and (Test-CanProceed)) {
+                            $movedToReview = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                            if ($movedToReview) {
+                                Add-ProcessedIssue -FilePath $processedCoderFile -IssueNumber $issue.IssueNumber
+                                Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) developpee" -ForegroundColor Green
+                                Remove-FeatureBranch -BranchName $branchName
+                            }
                         }
-                    }
-                    elseif ($script:ClaudeLimitReached) {
-                        # Limite atteinte -> remettre dans Todo
-                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                        elseif ($script:ClaudeLimitReached) {
+                            Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                        }
                     }
                 }
             }
