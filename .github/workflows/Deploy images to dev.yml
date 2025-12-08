@@ -126,6 +126,7 @@ jobs:
             JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
             SERVICE_MENU_URI=${{ secrets.SERVICE_MENU_URI }}
             DOCKER_TAG=$TAG
+            LOCALDOMAIN={{vars.LOCALDOMAIN}}
             EOF
 
             chmod 644 $ENV_PATH
