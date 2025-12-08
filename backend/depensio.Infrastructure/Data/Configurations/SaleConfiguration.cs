@@ -1,4 +1,6 @@
-﻿namespace depensio.Infrastructure.Data.Configurations;
+﻿using depensio.Domain.Enums;
+
+namespace depensio.Infrastructure.Data.Configurations;
 
 public class SaleConfiguration : IEntityTypeConfiguration<Sale>
 {
@@ -13,7 +15,6 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             )
             .ValueGeneratedOnAdd();
 
-        // 🎯 Conversion propre pour BoutiqueId
         builder.Property(e => e.BoutiqueId)
             .HasConversion(
                 boutiqueId => boutiqueId.Value,
@@ -21,7 +22,14 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             )
             .IsRequired();
 
-        // ✅ Config explicite de la relation
+        builder.Property(e => e.Status)
+            .HasConversion<int>()
+            .HasDefaultValue(SaleStatus.Validated)
+            .IsRequired();
+
+        builder.Property(e => e.CancellationReason)
+            .HasMaxLength(500);
+
         builder.HasOne(e => e.Boutique)
             .WithMany(b => b.Sales)
             .HasForeignKey(e => e.BoutiqueId)

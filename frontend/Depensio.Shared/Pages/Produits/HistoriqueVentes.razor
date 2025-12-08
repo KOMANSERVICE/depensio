@@ -1,0 +1,301 @@
+@page "/ventes/{boutiqueId:guid}"
+@inject ISaleService _saleService
+@inject IProductService _productService
+@inherits FlowbitePage
+@layout MainLayout
+@inject ToastService ToastService
+
+<PageTitle>Depensio - Historique des ventes</PageTitle>
+
+<LoadingComponent IsLoad="@isLoad" />
+<ToastContainer />
+
+<div class="container mx-auto p-4">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold text-primary-700 mb-4 md:mb-0">
+                <i class="fas fa-history mr-2"></i> Historique des ventes
+            </h1>
+            <div class="flex gap-2">
+                <select @bind="filterStatus" @bind:after="ApplyFilter" class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700">
+                    <option value="all">Toutes les ventes</option>
+                    <option value="validated">Validees uniquement</option>
+                    <option value="cancelled">Annulees uniquement</option>
+                </select>
+            </div>
+        </div>
+
+        @if (filteredSales.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 text-sm border-b">
+                            <th class="text-left py-3 px-4">Date</th>
+                            <th class="text-left py-3 px-4">Articles</th>
+                            <th class="text-right py-3 px-4">Total</th>
+                            <th class="text-center py-3 px-4">Statut</th>
+                            <th class="text-center py-3 px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sale in filteredSales)
+                        {
+                            <tr class="border-b hover:bg-gray-50 @(sale.IsCancelled ? "bg-red-50" : "")">
+                                <td class="py-3 px-4">
+                                    @sale.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex flex-col">
+                                        @foreach (var item in sale.Items.Take(3))
+                                        {
+                                            <span class="text-sm text-gray-600">
+                                                @(GetProductName(item.ProductId)) x @item.Quantity
+                                            </span>
+                                        }
+                                        @if (sale.Items.Count > 3)
+                                        {
+                                            <span class="text-xs text-gray-400">+ @(sale.Items.Count - 3) autre(s)...</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-right font-semibold">
+                                    @sale.TotalPrice.ToString("N0") FCFA
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    @if (sale.IsCancelled)
+                                    {
+                                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                            <i class="fas fa-times-circle mr-1"></i> Annulee
+                                        </span>
+                                        @if (!string.IsNullOrEmpty(sale.CancellationReason))
+                                        {
+                                            <p class="text-xs text-gray-500 mt-1">@sale.CancellationReason</p>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                            <i class="fas fa-check-circle mr-1"></i> Validee
+                                        </span>
+                                    }
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    @if (!sale.IsCancelled)
+                                    {
+                                        <button type="button"
+                                                @onclick="() => ShowCancelModal(sale)"
+                                                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">
+                                            <i class="fas fa-ban mr-1"></i> Annuler
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400 text-sm">
+                                            Annulee le @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <i class="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 text-lg">Aucune vente trouvee</p>
+            </div>
+        }
+    </div>
+</div>
+
+@if (showCancelModal && selectedSale != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
+            <h3 class="text-xl font-semibold text-red-600 mb-4">
+                <i class="fas fa-exclamation-triangle mr-2"></i> Annuler la vente
+            </h3>
+            <p class="text-gray-600 mb-4">
+                Etes-vous sur de vouloir annuler cette vente de <strong>@selectedSale.TotalPrice.ToString("N0") FCFA</strong> ?
+            </p>
+            <p class="text-sm text-gray-500 mb-4">
+                Cette action va restaurer le stock des produits concernes.
+            </p>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Raison de l'annulation (optionnel):</label>
+                <textarea @bind="cancellationReason"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Ex: Erreur de saisie, retour client..."
+                          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-700"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="button"
+                        @onclick="CloseCancelModal"
+                        class="flex-grow bg-gray-200 text-gray-800 p-2 rounded hover:bg-gray-300 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Retour
+                </button>
+                <button type="button"
+                        @onclick="ConfirmCancel"
+                        disabled="@isCancelling"
+                        class="flex-grow bg-red-500 text-white p-2 rounded hover:bg-red-600 transition disabled:opacity-50">
+                    @if (isCancelling)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-ban mr-1"></i>
+                    }
+                    Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    private List<Sale> sales = new();
+    private List<Sale> filteredSales = new();
+    private List<Product> products = new();
+    private bool isLoad = false;
+    private string filterStatus = "all";
+
+    private bool showCancelModal = false;
+    private Sale? selectedSale = null;
+    private string cancellationReason = "";
+    private bool isCancelling = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoad = true;
+        try
+        {
+            var salesResult = await _saleService.GetSaleByBoutiqueAsync(BoutiqueId);
+            if (salesResult.Success)
+            {
+                sales = salesResult.Data.Sales.OrderByDescending(s => s.Date).ToList();
+            }
+
+            var productsResult = await _productService.GetProductsByUserAsync(BoutiqueId);
+            if (productsResult.Success)
+            {
+                products = productsResult.Data.Products.ToList();
+            }
+
+            ApplyFilter();
+        }
+        catch (Exception)
+        {
+            ShowError("Erreur lors du chargement des ventes");
+        }
+        finally
+        {
+            isLoad = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        filteredSales = filterStatus switch
+        {
+            "validated" => sales.Where(s => !s.IsCancelled).ToList(),
+            "cancelled" => sales.Where(s => s.IsCancelled).ToList(),
+            _ => sales.ToList()
+        };
+    }
+
+    private string GetProductName(Guid productId)
+    {
+        return products.FirstOrDefault(p => p.Id == productId)?.Name ?? "Produit inconnu";
+    }
+
+    private void ShowCancelModal(Sale sale)
+    {
+        selectedSale = sale;
+        cancellationReason = "";
+        showCancelModal = true;
+    }
+
+    private void CloseCancelModal()
+    {
+        showCancelModal = false;
+        selectedSale = null;
+        cancellationReason = "";
+    }
+
+    private async Task ConfirmCancel()
+    {
+        if (selectedSale == null) return;
+
+        isCancelling = true;
+        try
+        {
+            var request = new CancelSaleRequest(
+                selectedSale.Id,
+                string.IsNullOrWhiteSpace(cancellationReason) ? null : cancellationReason.Trim()
+            );
+
+            var result = await _saleService.CancelSaleAsync(request);
+            if (result.Success && result.Data.Success)
+            {
+                ShowSuccess("Vente annulee avec succes");
+                CloseCancelModal();
+                await LoadData();
+            }
+            else
+            {
+                ShowError("Erreur lors de l'annulation de la vente");
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    ShowError(errorResult.Detail);
+                }
+                else
+                {
+                    ShowError("Une erreur est survenue");
+                }
+            }
+            catch
+            {
+                ShowError("Une erreur est survenue");
+            }
+        }
+        finally
+        {
+            isCancelling = false;
+        }
+    }
+
+    private void ShowSuccess(string message)
+    {
+        ToastService.ShowToast("Succes", message, "success");
+    }
+
+    private void ShowError(string message)
+    {
+        ToastService.ShowToast("Erreur", message, "error");
+    }
+}
