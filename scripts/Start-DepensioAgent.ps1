@@ -66,6 +66,7 @@ $script:ClaudeLimitReached = $false
 $script:GitHubLimitReached = $false
 $script:CriticalErrorOccurred = $false
 $script:CriticalErrorMessage = ""
+$script:LastClaudeOutput = ""
 
 # ============================================
 # FONCTIONS DE VERIFICATION DES LIMITES
@@ -113,9 +114,51 @@ function Compare-ColumnName {
         [string]$Actual,
         [string]$Expected
     )
+    if (-not $Actual -or -not $Expected) { return $false }
     $normalizedActual = ($Actual -replace '\s+', '').Trim().ToLower()
     $normalizedExpected = ($Expected -replace '\s+', '').Trim().ToLower()
     return $normalizedActual -eq $normalizedExpected
+}
+
+# ============================================
+# FONCTION POUR AJOUTER UN COMMENTAIRE
+# ============================================
+
+function Add-IssueComment {
+    param(
+        [int]$IssueNumber,
+        [string]$Comment
+    )
+    
+    if (-not $Comment -or $Comment.Trim().Length -eq 0) {
+        Write-Host "[COMMENT] Pas de commentaire a ajouter pour #$IssueNumber" -ForegroundColor DarkGray
+        return $false
+    }
+    
+    Write-Host "[COMMENT] Ajout commentaire sur #$IssueNumber..." -ForegroundColor Cyan
+    
+    try {
+        # Utiliser un fichier temporaire pour eviter les problemes d'echappement
+        $tempFile = Join-Path $env:TEMP "comment-$IssueNumber-$(Get-Date -Format 'yyyyMMddHHmmss').md"
+        $Comment | Out-File -FilePath $tempFile -Encoding utf8
+        
+        $result = gh issue comment $IssueNumber --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --body-file $tempFile 2>&1
+        
+        Remove-Item $tempFile -ErrorAction SilentlyContinue
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] Commentaire ajoute sur #$IssueNumber" -ForegroundColor Green
+            return $true
+        }
+        else {
+            Write-Host "[ERREUR] Echec ajout commentaire: $result" -ForegroundColor Red
+            return $false
+        }
+    }
+    catch {
+        Write-Host "[ERREUR] Exception commentaire: $_" -ForegroundColor Red
+        return $false
+    }
 }
 
 # ============================================
@@ -126,17 +169,19 @@ function Invoke-ClaudeInProject {
     param(
         [Parameter(Mandatory)]
         [string]$PromptFile,
-        [string]$TaskDescription = "Tache"
+        [string]$TaskDescription = "Tache",
+        [int]$IssueNumber = 0
     )
     
     if (-not (Test-CanProceed)) {
         Write-Host "[SKIP] $TaskDescription - limite atteinte" -ForegroundColor Yellow
         Remove-Item $PromptFile -ErrorAction SilentlyContinue
-        return $false
+        return @{ Success = $false; Output = "" }
     }
     
     $originalLocation = Get-Location
     $success = $false
+    $output = ""
     
     try {
         Set-Location $ProjectPath
@@ -144,16 +189,25 @@ function Invoke-ClaudeInProject {
         
         $promptContent = Get-Content $PromptFile -Raw
         $result = $promptContent | claude --model $env:CLAUDE_MODEL 2>&1
+        $output = $result -join "`n"
+        
+        # Stocker la sortie pour debug
+        $script:LastClaudeOutput = $output
         
         if ($result -match "rate limit|limit reached|too many requests|429") {
             $script:ClaudeLimitReached = $true
             Write-Host "[LIMIT] Limite Claude detectee" -ForegroundColor Red
-            return $false
+            return @{ Success = $false; Output = $output }
         }
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "[OK] $TaskDescription termine" -ForegroundColor Green
             $success = $true
+            
+            # Ajouter automatiquement un commentaire si IssueNumber est fourni
+            if ($IssueNumber -gt 0 -and $output.Length -gt 0) {
+                Add-IssueComment -IssueNumber $IssueNumber -Comment $output
+            }
         }
         else {
             Write-Host "[ERREUR] $TaskDescription echoue (code: $LASTEXITCODE)" -ForegroundColor Red
@@ -167,7 +221,7 @@ function Invoke-ClaudeInProject {
         Remove-Item $PromptFile -ErrorAction SilentlyContinue
     }
     
-    return $success
+    return @{ Success = $success; Output = $output }
 }
 
 # ============================================
@@ -236,8 +290,6 @@ function Move-IssueToColumn {
             return $false
         }
         
-        Write-Host "[DEBUG] Projet ID: $projectId" -ForegroundColor DarkGray
-        
         # Recuperer les items du projet
         $itemsJson = gh project item-list $projectNumber --owner $owner --format json 2>&1
         
@@ -262,7 +314,6 @@ function Move-IssueToColumn {
         }
         
         $itemId = $item.id
-        Write-Host "[DEBUG] Item ID: $itemId" -ForegroundColor DarkGray
         
         # Recuperer les champs du projet
         $fieldsJson = gh project field-list $projectNumber --owner $owner --format json 2>&1
@@ -280,8 +331,6 @@ function Move-IssueToColumn {
             return $false
         }
         
-        Write-Host "[DEBUG] Status Field ID: $($statusField.id)" -ForegroundColor DarkGray
-        
         # Trouver l'option de colonne cible (CASE-INSENSITIVE)
         $targetOption = $statusField.options | Where-Object { 
             Compare-ColumnName -Actual $_.name -Expected $TargetColumn
@@ -292,8 +341,6 @@ function Move-IssueToColumn {
             Write-Host "[DEBUG] Colonnes disponibles: $($statusField.options.name -join ', ')" -ForegroundColor DarkGray
             return $false
         }
-        
-        Write-Host "[DEBUG] Target Option ID: $($targetOption.id)" -ForegroundColor DarkGray
         
         # Deplacer l'item
         $result = gh project item-edit --project-id $projectId --id $itemId --field-id $statusField.id --single-select-option-id $targetOption.id 2>&1
@@ -317,8 +364,8 @@ function Get-CurrentIssueColumn {
     param([int]$IssueNumber)
     
     try {
-        $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
-        $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber }
+        $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json 2>$null | ConvertFrom-Json
+        $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber } | Select-Object -First 1
         if ($item) {
             return $item.status
         }
@@ -362,7 +409,7 @@ function Invoke-AnalysisAgent {
         [string]$Title
     )
     
-    if (-not (Test-CanProceed)) { return $false }
+    if (-not (Test-CanProceed)) { return @{ Success = $false; IsBlocked = $false } }
     
     $promptFile = Join-Path $env:TEMP "analysis-prompt-$IssueNumber.md"
     
@@ -375,19 +422,29 @@ Analyse l'issue #$IssueNumber - "$Title"
 2. Analyse le code existant pour comprendre l'architecture
 3. Verifie si l'issue est claire et complete
 4. Genere les scenarios Gherkin
-5. Commente l'issue avec ton analyse
-6. **DEPLACE L'ISSUE** vers "Todo" si valide, "AnalyseBlock" si bloquee
 
 Format User Story: En tant que... Je veux... Afin de...
 
-IMPORTANT: 
-- Comparaison de colonnes CASE-INSENSITIVE
-- NE JAMAIS deplacer si limite atteinte
-- Toujours commenter l'issue
+IMPORTANT - A la fin de ton analyse, tu DOIS indiquer clairement:
+- Si l'issue est VALIDE et prete pour le developpement, termine par: [STATUT: VALIDE]
+- Si l'issue est BLOQUEE (manque d'informations, contradictions, ambiguites), termine par: [STATUT: BLOQUE]
+  Et explique ce qui manque ou ce qui doit etre clarifie.
+
+Le script ajoutera automatiquement ton analyse comme commentaire sur l'issue.
 "@
     
     $promptContent | Out-File $promptFile -Encoding utf8
-    return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Analyse #$IssueNumber"
+    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Analyse #$IssueNumber" -IssueNumber $IssueNumber
+    
+    # Detecter si l'issue est bloquee
+    $isBlocked = $false
+    if ($result.Output -match "\[STATUT:\s*BLOQUE\]|\[STATUT:\s*BLOCKED\]|BLOQUE|BLOCKED|manque|missing|clarification|ambigu") {
+        if ($result.Output -notmatch "\[STATUT:\s*VALIDE\]|\[STATUT:\s*VALID\]") {
+            $isBlocked = $true
+        }
+    }
+    
+    return @{ Success = $result.Success; IsBlocked = $isBlocked }
 }
 
 function Invoke-CoderAgent {
@@ -415,18 +472,19 @@ Workflow:
 7. Cree la PR
 8. Merge la PR
 9. **SUPPRIME LA BRANCHE** (local + remote)
-10. **DEPLACE L'ISSUE** vers "A Tester"
 
 IMPORTANT:
 - Utiliser ICommand, IQuery, AbstractValidator de IDR.Library.BuildingBlocks
 - Utiliser les composants Idr* de IDR.Library.Blazor
 - NE JAMAIS fermer l'issue
 - TOUJOURS supprimer la branche apres merge
-- NE JAMAIS deplacer si limite atteinte
+
+Retourne un resume de ce que tu as fait. Le script ajoutera automatiquement ton resume comme commentaire sur l'issue.
 "@
     
     $promptContent | Out-File $promptFile -Encoding utf8
-    return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Developpement #$IssueNumber"
+    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Developpement #$IssueNumber" -IssueNumber $IssueNumber
+    return $result.Success
 }
 
 function Invoke-DebugAgent {
@@ -435,7 +493,7 @@ function Invoke-DebugAgent {
         [string]$Title
     )
     
-    if (-not (Test-CanProceed)) { return $false }
+    if (-not (Test-CanProceed)) { return @{ Success = $false; BugFound = $false } }
     
     $promptFile = Join-Path $env:TEMP "debug-prompt-$IssueNumber.md"
     
@@ -450,19 +508,24 @@ Analyse en profondeur l'issue #$IssueNumber - "$Title"
 4. Trace le flux de donnees
 5. Analyse les dependances
 
-SI BUG TROUVE:
-- Documente le bug
-- Propose une solution
-- Deplace vers "In Progress"
+IMPORTANT - A la fin de ton analyse, tu DOIS indiquer clairement:
+- Si tu as TROUVE le bug et propose une solution, termine par: [STATUT: BUG_TROUVE]
+- Si tu n'as PAS TROUVE le bug, termine par: [STATUT: BUG_NON_TROUVE]
+  Et liste les hypotheses que tu as eliminees.
 
-SI BUG NON TROUVE:
-- Documente l'analyse
-- Liste les hypotheses eliminees
-- LAISSE en "Debug" pour review humaine
+Le script ajoutera automatiquement ton analyse comme commentaire sur l'issue.
 "@
     
     $promptContent | Out-File $promptFile -Encoding utf8
-    return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Debug #$IssueNumber"
+    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Debug #$IssueNumber" -IssueNumber $IssueNumber
+    
+    # Detecter si le bug a ete trouve
+    $bugFound = $false
+    if ($result.Output -match "\[STATUT:\s*BUG_TROUVE\]|\[STATUT:\s*BUG_FOUND\]") {
+        $bugFound = $true
+    }
+    
+    return @{ Success = $result.Success; BugFound = $bugFound }
 }
 
 function Invoke-ReviewAgent {
@@ -483,15 +546,17 @@ Finalise l'issue #$IssueNumber - "$Title"
 1. Verifie s'il y a une PR ouverte
 2. Si PR existe: review et merge
 3. Apres merge: **SUPPRIME LA BRANCHE**
-4. **DEPLACE L'ISSUE** vers "A Tester"
 
 IMPORTANT:
 - NE JAMAIS fermer l'issue
 - TOUJOURS supprimer la branche
+
+Retourne un resume de ce que tu as fait. Le script ajoutera automatiquement ton resume comme commentaire sur l'issue.
 "@
     
     $promptContent | Out-File $promptFile -Encoding utf8
-    return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Review #$IssueNumber"
+    $result = Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Review #$IssueNumber" -IssueNumber $IssueNumber
+    return $result.Success
 }
 
 # ============================================
@@ -592,6 +657,11 @@ while ($true) {
                 $issue = $reviewIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 $success = Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                
+                if ($success) {
+                    # Deplacer vers A Tester apres review
+                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.ATester
+                }
             }
             else {
                 Write-Host "[$timestamp]   Aucune PR en attente" -ForegroundColor DarkGray
@@ -608,6 +678,11 @@ while ($true) {
                 $issue = $progressIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                
+                if ($success) {
+                    # Deplacer vers In Review apres dev
+                    Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                }
             }
             else {
                 Write-Host "[$timestamp]   Aucun developpement en cours" -ForegroundColor DarkGray
@@ -623,7 +698,19 @@ while ($true) {
             if ($debugIssues.Count -gt 0) {
                 $issue = $debugIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                $success = Invoke-DebugAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                $debugResult = Invoke-DebugAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                
+                if ($debugResult.Success -and (Test-CanProceed)) {
+                    if ($debugResult.BugFound) {
+                        # Bug trouve -> deplacer vers In Progress pour correction
+                        Write-Host "[$timestamp]   [BUG] Bug trouve - deplacement vers 'In Progress'" -ForegroundColor Yellow
+                        Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
+                    }
+                    else {
+                        # Bug non trouve -> laisser en Debug pour review humaine
+                        Write-Host "[$timestamp]   [INFO] Bug non trouve - reste en 'Debug' pour review humaine" -ForegroundColor Cyan
+                    }
+                }
             }
             else {
                 Write-Host "[$timestamp]   Aucun bug a analyser" -ForegroundColor DarkGray
@@ -643,28 +730,25 @@ while ($true) {
                     if (-not (Test-CanProceed)) { break }
                     
                     Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                    $success = Invoke-AnalysisAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
+                    $analysisResult = Invoke-AnalysisAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
-                    if ($success -and (Test-CanProceed)) {
-                        # Verifier si l'issue a ete deplacee AVANT de la marquer comme traitee
-                        $currentColumn = Get-CurrentIssueColumn -IssueNumber $issue.IssueNumber
+                    if ($analysisResult.Success -and (Test-CanProceed)) {
+                        if ($analysisResult.IsBlocked) {
+                            # Issue bloquee -> deplacer vers AnalyseBlock
+                            Write-Host "[$timestamp]   [BLOCK] Issue #$($issue.IssueNumber) bloquee - informations manquantes" -ForegroundColor Yellow
+                            $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.AnalyseBlock
+                        }
+                        else {
+                            # Issue valide -> deplacer vers Todo
+                            Write-Host "[$timestamp]   [VALID] Issue #$($issue.IssueNumber) valide" -ForegroundColor Green
+                            $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                        }
                         
-                        if (-not (Compare-ColumnName -Actual $currentColumn -Expected $Columns.Analyse)) {
-                            # Issue deplacee avec succes -> marquer comme traitee
+                        if ($moved) {
                             Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
                             Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) traitee et deplacee" -ForegroundColor Green
                         }
-                        else {
-                            # Issue toujours dans Analyse -> forcer deplacement vers Todo
-                            Write-Host "[$timestamp]   [WARN] Issue non deplacee - forcage vers 'Todo'" -ForegroundColor Yellow
-                            $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
-                            if ($moved) {
-                                Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
-                            }
-                            # Si pas deplacee, ne PAS marquer comme traitee -> sera retraitee au prochain cycle
-                        }
                     }
-                    # Si $success est $false, ne PAS marquer comme traitee -> sera retraitee
                 }
             }
             else {
@@ -684,30 +768,24 @@ while ($true) {
                 $issue = $newTodoIssues[0]
                 Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 
+                # Deplacer vers In Progress AVANT le dev
                 $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                 
                 if ($moved) {
                     $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
                     if ($success -and (Test-CanProceed)) {
-                        # Verifier si l'issue a ete deplacee vers A Tester
-                        $currentColumn = Get-CurrentIssueColumn -IssueNumber $issue.IssueNumber
-                        
-                        if (Compare-ColumnName -Actual $currentColumn -Expected $Columns.ATester) {
-                            # Issue terminee -> marquer comme traitee
+                        # Deplacer vers In Review apres dev reussi
+                        $movedToReview = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Review
+                        if ($movedToReview) {
                             Add-ProcessedIssue -FilePath $processedCoderFile -IssueNumber $issue.IssueNumber
-                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee" -ForegroundColor Green
-                        }
-                        else {
-                            Write-Host "[$timestamp]   [INFO] Issue #$($issue.IssueNumber) en cours (colonne: $currentColumn)" -ForegroundColor Cyan
-                            # Ne PAS marquer comme traitee si pas terminee
+                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) developpee" -ForegroundColor Green
                         }
                     }
                     elseif ($script:ClaudeLimitReached) {
                         # Limite atteinte -> remettre dans Todo
                         Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
                     }
-                    # Si erreur, l'issue reste dans In Progress et sera reprise au prochain cycle
                 }
             }
             else {
@@ -722,3 +800,4 @@ while ($true) {
     Write-Host "[$timestamp] [WAIT] Prochaine verification dans ${PollingInterval}s..." -ForegroundColor DarkGray
     Start-Sleep -Seconds $PollingInterval
 }
+
