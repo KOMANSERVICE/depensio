@@ -17,14 +17,10 @@ param(
     [int]$ProjectNumber_package = 4,
     
     # Modes de fonctionnement
-    [switch]$AnalysisOnly,
+   [switch]$AnalysisOnly,
     [switch]$CoderOnly,
-    
-    # Choix du modèle Claude
     [ValidateSet("claude-opus-4-5-20251101", "claude-sonnet-4-5-20250514", "claude-sonnet-4-20250514")]
     [string]$Model = "claude-opus-4-5-20251101",
-    
-    # Options avancées
     [switch]$DryRun,
     [switch]$ShowDetails
 )
@@ -36,26 +32,21 @@ $ErrorActionPreference = "Stop"
 # ============================================
 
 $ProjectPath = Resolve-Path $ProjectPath -ErrorAction Stop
-Write-Host "[CONFIG] Répertoire du projet: $ProjectPath" -ForegroundColor Cyan
+Write-Host "[CONFIG] Repertoire du projet: $ProjectPath" -ForegroundColor Cyan
 
 if (-not (Test-Path (Join-Path $ProjectPath ".claude"))) {
-    Write-Host "[ERREUR] Le répertoire .claude n'existe pas dans $ProjectPath" -ForegroundColor Red
+    Write-Host "[ERREUR] Le repertoire .claude n'existe pas dans $ProjectPath" -ForegroundColor Red
     exit 1
 }
 
-# Variables projet principal
 $env:GITHUB_OWNER = $Owner
 $env:GITHUB_REPO = $Repo
 $env:PROJECT_NUMBER = $ProjectNumber
-
-# Variables repo packages IDR
 $env:GITHUB_OWNER_PACKAGE = $Owner_package
 $env:GITHUB_REPO_PACKAGE = $Repo_package
 $env:PROJECT_NUMBER_PACKAGE = $ProjectNumber_package
-
 $env:CLAUDE_MODEL = $Model
 
-# Colonnes du Project Board
 $Columns = @{
     Analyse = "Analyse"
     Todo = "Todo"
@@ -77,46 +68,36 @@ $script:CriticalErrorOccurred = $false
 $script:CriticalErrorMessage = ""
 
 # ============================================
-# FONCTIONS DE VÉRIFICATION DES LIMITES
+# FONCTIONS DE VERIFICATION DES LIMITES
 # ============================================
 
 function Test-CanProceed {
-    <#
-    .SYNOPSIS
-        Vérifie si les limites Claude ET GitHub permettent de continuer
-    #>
-    
     if ($script:ClaudeLimitReached) {
-        Write-Host "[LIMIT] ⛔ Limite Claude atteinte - ARRÊT" -ForegroundColor Red
+        Write-Host "[LIMIT] Limite Claude atteinte - ARRET" -ForegroundColor Red
         return $false
     }
-    
     if ($script:GitHubLimitReached) {
-        Write-Host "[LIMIT] ⛔ Limite GitHub atteinte - ARRÊT" -ForegroundColor Red
+        Write-Host "[LIMIT] Limite GitHub atteinte - ARRET" -ForegroundColor Red
         return $false
     }
-    
     if ($script:CriticalErrorOccurred) {
-        Write-Host "[CRITICAL] ⛔ Erreur critique - ARRÊT" -ForegroundColor Red
+        Write-Host "[CRITICAL] Erreur critique - ARRET" -ForegroundColor Red
         return $false
     }
-    
     return $true
 }
 
 function Stop-OnCriticalError {
     param(
         [string]$ErrorMessage,
-        [string]$Component = "Système"
+        [string]$Component = "Systeme"
     )
-    
     $script:CriticalErrorOccurred = $true
     $script:CriticalErrorMessage = $ErrorMessage
-    
     Write-Host ""
-    Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Red
-    Write-Host "║                    ERREUR CRITIQUE - ARRÊT                   ║" -ForegroundColor Red
-    Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host "================================================================" -ForegroundColor Red
+    Write-Host "                    ERREUR CRITIQUE - ARRET                     " -ForegroundColor Red
+    Write-Host "================================================================" -ForegroundColor Red
     Write-Host ""
     Write-Host "  Composant: $Component" -ForegroundColor Red
     Write-Host "  Erreur: $ErrorMessage" -ForegroundColor Red
@@ -132,26 +113,22 @@ function Compare-ColumnName {
         [string]$Actual,
         [string]$Expected
     )
-    
     $normalizedActual = ($Actual -replace '\s+', '').Trim().ToLower()
     $normalizedExpected = ($Expected -replace '\s+', '').Trim().ToLower()
-    
     return $normalizedActual -eq $normalizedExpected
 }
 
 # ============================================
-# FONCTION POUR EXÉCUTER CLAUDE
+# FONCTION POUR EXECUTER CLAUDE
 # ============================================
 
 function Invoke-ClaudeInProject {
     param(
         [Parameter(Mandatory)]
         [string]$PromptFile,
-        
-        [string]$TaskDescription = "Tâche"
+        [string]$TaskDescription = "Tache"
     )
     
-    # Vérifier les limites
     if (-not (Test-CanProceed)) {
         Write-Host "[SKIP] $TaskDescription - limite atteinte" -ForegroundColor Yellow
         Remove-Item $PromptFile -ErrorAction SilentlyContinue
@@ -163,25 +140,23 @@ function Invoke-ClaudeInProject {
     
     try {
         Set-Location $ProjectPath
+        Write-Host "[CLAUDE] Execution: $TaskDescription..." -ForegroundColor Cyan
         
-        Write-Host "[CLAUDE] Exécution: $TaskDescription..." -ForegroundColor Cyan
+        $promptContent = Get-Content $PromptFile -Raw
+        $result = $promptContent | claude --model $env:CLAUDE_MODEL --print-markdown 2>&1
         
-        # Exécuter Claude (PowerShell n'accepte pas <, utiliser Get-Content | )
-        $result = Get-Content $PromptFile -Raw | claude --model $env:CLAUDE_MODEL --print-markdown 2>&1
-        
-        # Vérifier si limite atteinte
         if ($result -match "rate limit|limit reached|too many requests|429") {
             $script:ClaudeLimitReached = $true
-            Write-Host "[LIMIT] Limite Claude détectée" -ForegroundColor Red
+            Write-Host "[LIMIT] Limite Claude detectee" -ForegroundColor Red
             return $false
         }
         
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] $TaskDescription terminé" -ForegroundColor Green
+            Write-Host "[OK] $TaskDescription termine" -ForegroundColor Green
             $success = $true
         }
         else {
-            Write-Host "[ERREUR] $TaskDescription échoué (code: $LASTEXITCODE)" -ForegroundColor Red
+            Write-Host "[ERREUR] $TaskDescription echoue (code: $LASTEXITCODE)" -ForegroundColor Red
         }
     }
     catch {
@@ -209,7 +184,6 @@ function Get-IssuesInColumn {
             return @()
         }
         
-        # Filtrer par colonne (CASE-INSENSITIVE)
         $filtered = $items.items | Where-Object { 
             Compare-ColumnName -Actual $_.status -Expected $ColumnName
         }
@@ -224,7 +198,7 @@ function Get-IssuesInColumn {
         })
     }
     catch {
-        Write-Host "[ERREUR] Impossible de récupérer les issues: $_" -ForegroundColor Red
+        Write-Host "[ERREUR] Impossible de recuperer les issues: $_" -ForegroundColor Red
         return @()
     }
 }
@@ -235,13 +209,12 @@ function Move-IssueToColumn {
         [string]$TargetColumn
     )
     
-    # VÉRIFIER LES LIMITES D'ABORD
     if (-not (Test-CanProceed)) {
-        Write-Host "[ABORT] Déplacement #$IssueNumber annulé - limite atteinte" -ForegroundColor Red
+        Write-Host "[ABORT] Deplacement #$IssueNumber annule - limite atteinte" -ForegroundColor Red
         return $false
     }
     
-    Write-Host "[MOVE] #$IssueNumber → '$TargetColumn'..." -ForegroundColor Cyan
+    Write-Host "[MOVE] #$IssueNumber vers '$TargetColumn'..." -ForegroundColor Cyan
     
     try {
         $projects = gh project list --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
@@ -251,31 +224,26 @@ function Move-IssueToColumn {
         $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber }
         
         if (-not $item) {
-            Write-Host "[ERREUR] Issue #$IssueNumber non trouvée" -ForegroundColor Red
+            Write-Host "[ERREUR] Issue #$IssueNumber non trouvee" -ForegroundColor Red
             return $false
         }
         
         $fields = gh project field-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
         $statusField = $fields.fields | Where-Object { $_.name -eq "Status" }
         
-        # Trouver la colonne (CASE-INSENSITIVE)
         $targetOption = $statusField.options | Where-Object { 
             Compare-ColumnName -Actual $_.name -Expected $TargetColumn
         }
         
         if (-not $targetOption) {
-            Write-Host "[ERREUR] Colonne '$TargetColumn' non trouvée" -ForegroundColor Red
+            Write-Host "[ERREUR] Colonne '$TargetColumn' non trouvee" -ForegroundColor Red
             return $false
         }
         
-        gh project item-edit `
-            --project-id $project.id `
-            --id $item.id `
-            --field-id $statusField.id `
-            --single-select-option-id $targetOption.id
+        gh project item-edit --project-id $project.id --id $item.id --field-id $statusField.id --single-select-option-id $targetOption.id
         
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] #$IssueNumber → '$($targetOption.name)'" -ForegroundColor Green
+            Write-Host "[OK] #$IssueNumber vers '$($targetOption.name)'" -ForegroundColor Green
             return $true
         }
     }
@@ -292,18 +260,16 @@ function Get-CurrentIssueColumn {
     try {
         $items = gh project item-list $env:PROJECT_NUMBER --owner $env:GITHUB_OWNER --format json | ConvertFrom-Json
         $item = $items.items | Where-Object { $_.content.number -eq $IssueNumber }
-        
         if ($item) {
             return $item.status
         }
     }
     catch { }
-    
     return $null
 }
 
 # ============================================
-# GESTION DES ISSUES TRAITÉES
+# GESTION DES ISSUES TRAITEES
 # ============================================
 
 $architectureDir = Join-Path $ProjectPath ".architecture"
@@ -316,7 +282,6 @@ $processedCoderFile = Join-Path $architectureDir "processed-coder.txt"
 
 function Get-ProcessedIssues {
     param([string]$FilePath)
-    
     if (Test-Path $FilePath) {
         return @(Get-Content $FilePath | Where-Object { $_ -match '^\d+$' } | ForEach-Object { [int]$_ })
     }
@@ -325,7 +290,6 @@ function Get-ProcessedIssues {
 
 function Add-ProcessedIssue {
     param([string]$FilePath, [int]$IssueNumber)
-    
     $IssueNumber | Out-File -Append -FilePath $FilePath -Encoding utf8
 }
 
@@ -343,26 +307,27 @@ function Invoke-AnalysisAgent {
     
     $promptFile = Join-Path $env:TEMP "analysis-prompt-$IssueNumber.md"
     
-    @"
+    $promptContent = @"
 Tu es l'agent d'analyse pour Depensio.
 
-Analyse l'issue #${IssueNumber} - "$Title"
+Analyse l'issue #$IssueNumber - "$Title"
 
 1. Lis la documentation IDR.Library (agent-docs)
 2. Analyse le code existant pour comprendre l'architecture
-3. Vérifie si l'issue est claire et complète
-4. Génère les scénarios Gherkin
+3. Verifie si l'issue est claire et complete
+4. Genere les scenarios Gherkin
 5. Commente l'issue avec ton analyse
-6. **DÉPLACE L'ISSUE** vers "Todo" si valide, "AnalyseBlock" si bloquée
+6. **DEPLACE L'ISSUE** vers "Todo" si valide, "AnalyseBlock" si bloquee
 
 Format User Story: En tant que... Je veux... Afin de...
 
 IMPORTANT: 
 - Comparaison de colonnes CASE-INSENSITIVE
-- NE JAMAIS déplacer si limite atteinte
+- NE JAMAIS deplacer si limite atteinte
 - Toujours commenter l'issue
-"@ | Out-File $promptFile -Encoding utf8
-
+"@
+    
+    $promptContent | Out-File $promptFile -Encoding utf8
     return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Analyse #$IssueNumber"
 }
 
@@ -376,32 +341,33 @@ function Invoke-CoderAgent {
     
     $promptFile = Join-Path $env:TEMP "coder-prompt-$IssueNumber.md"
     
-    @"
+    $promptContent = @"
 Tu es l'agent codeur pour Depensio.
 
-Implémente l'issue #${IssueNumber} - "$Title"
+Implemente l'issue #$IssueNumber - "$Title"
 
 Workflow:
 1. Lis la documentation IDR.Library (agent-docs)
-2. Crée une branche depuis main: git checkout main && git pull && git checkout -b feature/$IssueNumber-xxx
-3. Implémente le code
+2. Cree une branche depuis main: git checkout main && git pull && git checkout -b feature/$IssueNumber-xxx
+3. Implemente le code
 4. Fais une analyse debug approfondie
-5. Exécute les tests: dotnet test
+5. Execute les tests: dotnet test
 6. Commit et push
-7. Crée la PR
+7. Cree la PR
 8. Merge la PR
 9. **SUPPRIME LA BRANCHE** (local + remote)
-10. **DÉPLACE L'ISSUE** vers "A Tester"
+10. **DEPLACE L'ISSUE** vers "A Tester"
 
 IMPORTANT:
 - Utiliser ICommand, IQuery, AbstractValidator de IDR.Library.BuildingBlocks
 - Utiliser les composants Idr* de IDR.Library.Blazor
 - NE JAMAIS fermer l'issue
-- TOUJOURS supprimer la branche après merge
-- NE JAMAIS déplacer si limite atteinte
-"@ | Out-File $promptFile -Encoding utf8
-
-    return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Développement #$IssueNumber"
+- TOUJOURS supprimer la branche apres merge
+- NE JAMAIS deplacer si limite atteinte
+"@
+    
+    $promptContent | Out-File $promptFile -Encoding utf8
+    return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Developpement #$IssueNumber"
 }
 
 function Invoke-DebugAgent {
@@ -414,28 +380,29 @@ function Invoke-DebugAgent {
     
     $promptFile = Join-Path $env:TEMP "debug-prompt-$IssueNumber.md"
     
-    @"
+    $promptContent = @"
 Tu es l'agent de debug pour Depensio.
 
-Analyse en profondeur l'issue #${IssueNumber} - "$Title"
+Analyse en profondeur l'issue #$IssueNumber - "$Title"
 
-1. Collecte les informations (logs, symptômes)
+1. Collecte les informations (logs, symptomes)
 2. Analyse statique du code suspect
 3. Recherche les patterns de bugs connus
-4. Trace le flux de données
-5. Analyse les dépendances
+4. Trace le flux de donnees
+5. Analyse les dependances
 
-SI BUG TROUVÉ:
+SI BUG TROUVE:
 - Documente le bug
 - Propose une solution
-- Déplace vers "In Progress"
+- Deplace vers "In Progress"
 
-SI BUG NON TROUVÉ:
+SI BUG NON TROUVE:
 - Documente l'analyse
-- Liste les hypothèses éliminées
+- Liste les hypotheses eliminees
 - LAISSE en "Debug" pour review humaine
-"@ | Out-File $promptFile -Encoding utf8
-
+"@
+    
+    $promptContent | Out-File $promptFile -Encoding utf8
     return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Debug #$IssueNumber"
 }
 
@@ -449,30 +416,31 @@ function Invoke-ReviewAgent {
     
     $promptFile = Join-Path $env:TEMP "review-prompt-$IssueNumber.md"
     
-    @"
+    $promptContent = @"
 Tu es l'agent de review pour Depensio.
 
-Finalise l'issue #${IssueNumber} - "$Title"
+Finalise l'issue #$IssueNumber - "$Title"
 
-1. Vérifie s'il y a une PR ouverte
+1. Verifie s'il y a une PR ouverte
 2. Si PR existe: review et merge
-3. Après merge: **SUPPRIME LA BRANCHE**
-4. **DÉPLACE L'ISSUE** vers "A Tester"
+3. Apres merge: **SUPPRIME LA BRANCHE**
+4. **DEPLACE L'ISSUE** vers "A Tester"
 
 IMPORTANT:
 - NE JAMAIS fermer l'issue
 - TOUJOURS supprimer la branche
-"@ | Out-File $promptFile -Encoding utf8
-
+"@
+    
+    $promptContent | Out-File $promptFile -Encoding utf8
     return Invoke-ClaudeInProject -PromptFile $promptFile -TaskDescription "Review #$IssueNumber"
 }
 
 # ============================================
-# MISE À JOUR DES PACKAGES IDR
+# MISE A JOUR DES PACKAGES IDR
 # ============================================
 
 function Update-IDRPackages {
-    Write-Host "[PACKAGES] Mise à jour automatique des packages IDR..." -ForegroundColor Cyan
+    Write-Host "[PACKAGES] Mise a jour automatique des packages IDR..." -ForegroundColor Cyan
     
     $originalLocation = Get-Location
     Set-Location $ProjectPath
@@ -482,10 +450,10 @@ function Update-IDRPackages {
             dotnet add $_.FullName package IDR.Library.BuildingBlocks --prerelease 2>$null
             dotnet add $_.FullName package IDR.Library.Blazor --prerelease 2>$null
         }
-        Write-Host "[OK] Packages IDR mis à jour" -ForegroundColor Green
+        Write-Host "[OK] Packages IDR mis a jour" -ForegroundColor Green
     }
     catch {
-        Write-Host "[WARN] Erreur mise à jour packages: $_" -ForegroundColor Yellow
+        Write-Host "[WARN] Erreur mise a jour packages: $_" -ForegroundColor Yellow
     }
     finally {
         Set-Location $originalLocation
@@ -497,30 +465,27 @@ function Update-IDRPackages {
 # ============================================
 
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║              AGENT AUTONOME DEPENSIO                         ║" -ForegroundColor Cyan
-Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor Cyan
+Write-Host "              AGENT AUTONOME DEPENSIO                           " -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Owner: $Owner" -ForegroundColor White
 Write-Host "  Repo: $Repo" -ForegroundColor White
 Write-Host "  Project: #$ProjectNumber" -ForegroundColor White
-Write-Host "  Modèle: $Model" -ForegroundColor White
+Write-Host "  Modele: $Model" -ForegroundColor White
 Write-Host "  Intervalle: ${PollingInterval}s" -ForegroundColor White
 Write-Host ""
 
-# Mise à jour initiale des packages
 Update-IDRPackages
 
 while ($true) {
     $timestamp = Get-Date -Format "HH:mm:ss"
     
-    # Vérifier les erreurs critiques
     if ($script:CriticalErrorOccurred) {
-        Write-Host "[$timestamp] [STOP] Erreur critique - arrêt" -ForegroundColor Red
+        Write-Host "[$timestamp] [STOP] Erreur critique - arret" -ForegroundColor Red
         break
     }
     
-    # Reset de la limite Claude après un certain temps
     if ($script:ClaudeLimitReached) {
         Write-Host "[$timestamp] [LIMIT] En attente - limite Claude" -ForegroundColor Yellow
         Start-Sleep -Seconds $PollingInterval
@@ -530,74 +495,59 @@ while ($true) {
     
     try {
         Write-Host ""
-        Write-Host "[$timestamp] ═══════════════════════════════════════════" -ForegroundColor DarkGray
+        Write-Host "[$timestamp] ================================================" -ForegroundColor DarkGray
         
-        # ============================================
-        # PRIORITÉ 1: IN REVIEW (Terminer les PRs)
-        # ============================================
+        # PRIORITE 1: IN REVIEW
         if (-not $AnalysisOnly -and (Test-CanProceed)) {
-            Write-Host "[$timestamp] [PRIORITÉ 1] Vérification 'In Review'..." -ForegroundColor Magenta
+            Write-Host "[$timestamp] [PRIORITE 1] Verification 'In Review'..." -ForegroundColor Magenta
             
             $reviewIssues = @(Get-IssuesInColumn -ColumnName $Columns.Review)
             
             if ($reviewIssues.Count -gt 0) {
                 $issue = $reviewIssues[0]
-                Write-Host "[$timestamp]   → #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                
+                Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 $success = Invoke-ReviewAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
-                
-                if ($script:ClaudeLimitReached) {
-                    Write-Host "[$timestamp]   [LIMIT] Limite atteinte pendant review" -ForegroundColor Red
-                }
             }
             else {
                 Write-Host "[$timestamp]   Aucune PR en attente" -ForegroundColor DarkGray
             }
         }
         
-        # ============================================
-        # PRIORITÉ 2: IN PROGRESS (Terminer le dev)
-        # ============================================
+        # PRIORITE 2: IN PROGRESS
         if (-not $AnalysisOnly -and (Test-CanProceed)) {
-            Write-Host "[$timestamp] [PRIORITÉ 2] Vérification 'In Progress'..." -ForegroundColor Yellow
+            Write-Host "[$timestamp] [PRIORITE 2] Verification 'In Progress'..." -ForegroundColor Yellow
             
             $progressIssues = @(Get-IssuesInColumn -ColumnName $Columns.InProgress)
             
             if ($progressIssues.Count -gt 0) {
                 $issue = $progressIssues[0]
-                Write-Host "[$timestamp]   → #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                
+                Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
             }
             else {
-                Write-Host "[$timestamp]   Aucun développement en cours" -ForegroundColor DarkGray
+                Write-Host "[$timestamp]   Aucun developpement en cours" -ForegroundColor DarkGray
             }
         }
         
-        # ============================================
-        # PRIORITÉ 3: DEBUG (Analyse des bugs)
-        # ============================================
+        # PRIORITE 3: DEBUG
         if (-not $AnalysisOnly -and (Test-CanProceed)) {
-            Write-Host "[$timestamp] [PRIORITÉ 3] Vérification 'Debug'..." -ForegroundColor Red
+            Write-Host "[$timestamp] [PRIORITE 3] Verification 'Debug'..." -ForegroundColor Red
             
             $debugIssues = @(Get-IssuesInColumn -ColumnName $Columns.Debug)
             
             if ($debugIssues.Count -gt 0) {
                 $issue = $debugIssues[0]
-                Write-Host "[$timestamp]   → #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                
+                Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 $success = Invoke-DebugAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
             }
             else {
-                Write-Host "[$timestamp]   Aucun bug à analyser" -ForegroundColor DarkGray
+                Write-Host "[$timestamp]   Aucun bug a analyser" -ForegroundColor DarkGray
             }
         }
         
-        # ============================================
-        # PRIORITÉ 4: ANALYSE (Nouvelles issues)
-        # ============================================
+        # PRIORITE 4: ANALYSE
         if (-not $CoderOnly -and (Test-CanProceed)) {
-            Write-Host "[$timestamp] [PRIORITÉ 4] Vérification 'Analyse'..." -ForegroundColor Blue
+            Write-Host "[$timestamp] [PRIORITE 4] Verification 'Analyse'..." -ForegroundColor Blue
             
             $analysisIssues = @(Get-IssuesInColumn -ColumnName $Columns.Analyse)
             $processedAnalysis = @(Get-ProcessedIssues -FilePath $processedAnalysisFile)
@@ -607,17 +557,15 @@ while ($true) {
                 foreach ($issue in $newAnalysisIssues) {
                     if (-not (Test-CanProceed)) { break }
                     
-                    Write-Host "[$timestamp]   → #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
-                    
+                    Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                     $success = Invoke-AnalysisAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
                     if ($success -and (Test-CanProceed)) {
                         Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
                         
-                        # Vérifier le déplacement
                         $currentColumn = Get-CurrentIssueColumn -IssueNumber $issue.IssueNumber
                         if (Compare-ColumnName -Actual $currentColumn -Expected $Columns.Analyse) {
-                            Write-Host "[$timestamp]   [WARN] Issue non déplacée - forçage vers 'Todo'" -ForegroundColor Yellow
+                            Write-Host "[$timestamp]   [WARN] Issue non deplacee - forcage vers 'Todo'" -ForegroundColor Yellow
                             Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
                         }
                     }
@@ -628,11 +576,9 @@ while ($true) {
             }
         }
         
-        # ============================================
-        # PRIORITÉ 5: TODO (Nouveaux développements)
-        # ============================================
+        # PRIORITE 5: TODO
         if (-not $AnalysisOnly -and (Test-CanProceed)) {
-            Write-Host "[$timestamp] [PRIORITÉ 5] Vérification 'Todo'..." -ForegroundColor Green
+            Write-Host "[$timestamp] [PRIORITE 5] Verification 'Todo'..." -ForegroundColor Green
             
             $todoIssues = @(Get-IssuesInColumn -ColumnName $Columns.Todo)
             $processedCoder = @(Get-ProcessedIssues -FilePath $processedCoderFile)
@@ -640,9 +586,8 @@ while ($true) {
             
             if ($newTodoIssues.Count -gt 0) {
                 $issue = $newTodoIssues[0]
-                Write-Host "[$timestamp]   → #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
+                Write-Host "[$timestamp]   -> #$($issue.IssueNumber): $($issue.Title)" -ForegroundColor White
                 
-                # Déplacer vers In Progress AVANT
                 $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.InProgress
                 
                 if ($moved) {
@@ -652,13 +597,12 @@ while ($true) {
                         Add-ProcessedIssue -FilePath $processedCoderFile -IssueNumber $issue.IssueNumber
                     }
                     elseif ($script:ClaudeLimitReached) {
-                        # Remettre dans Todo si limite atteinte
                         Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
                     }
                 }
             }
             else {
-                Write-Host "[$timestamp]   Aucune nouvelle tâche" -ForegroundColor DarkGray
+                Write-Host "[$timestamp]   Aucune nouvelle tache" -ForegroundColor DarkGray
             }
         }
     }
@@ -666,7 +610,7 @@ while ($true) {
         Write-Host "[$timestamp] [ERREUR] Exception: $_" -ForegroundColor Red
     }
     
-    Write-Host "[$timestamp] [WAIT] Prochaine vérification dans ${PollingInterval}s..." -ForegroundColor DarkGray
+    Write-Host "[$timestamp] [WAIT] Prochaine verification dans ${PollingInterval}s..." -ForegroundColor DarkGray
     Start-Sleep -Seconds $PollingInterval
 }
 
