@@ -1,4 +1,5 @@
 ﻿using depensio.Application.UseCases.Sales.DTOs;
+using depensio.Domain.Enums;
 using depensio.Domain.ValueObjects;
 
 namespace depensio.Application.UseCases.Sales.Queries.GetSaleSummaryByBoutique;
@@ -18,7 +19,7 @@ public class GetSaleSummaryByBoutiqueHandler(
                  && b.UsersBoutiques.Any(ub => ub.UserId == userId))
      .Include(b => b.Sales)
          .ThenInclude(s => s.SaleItems)
-     .SelectMany(b => b.Sales.SelectMany(s => s.SaleItems))
+     .SelectMany(b => b.Sales.Where(s => s.Status != SaleStatus.Cancelled).SelectMany(s => s.SaleItems))
      .Join(dbContext.Products,
          saleItem => saleItem.ProductId,
          product => product.Id,

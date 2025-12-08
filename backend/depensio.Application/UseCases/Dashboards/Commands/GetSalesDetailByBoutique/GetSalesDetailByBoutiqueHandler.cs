@@ -1,4 +1,5 @@
 ﻿using depensio.Application.UseCases.Dashboard.DTOs;
+using depensio.Domain.Enums;
 
 namespace depensio.Application.UseCases.Dashboards.Commands.GetSalesDetailByBoutique;
 
@@ -18,7 +19,8 @@ public class GetSalesDetailByBoutiqueHandler(
                 && b.UsersBoutiques.Any(ub => ub.BoutiqueId == BoutiqueId.Of(boutiqueId) && ub.UserId == userId))
             .SelectMany(b => b.Products)
             .SelectMany(product => product.SaleItems
-                .Where(si => DateOnly.FromDateTime(si.Sale.Date) >= request.SaleRequest.StartDate
+                .Where(si => si.Sale.Status != SaleStatus.Cancelled
+                    && DateOnly.FromDateTime(si.Sale.Date) >= request.SaleRequest.StartDate
                     && DateOnly.FromDateTime(si.Sale.Date) <= request.SaleRequest.EndDate)
                 .Select(si => new SaleDashboardDTO
                 {
