@@ -824,6 +824,11 @@ video {
   clear: none;
 }
 
+.mx-0\.5 {
+  margin-left: 0.125rem;
+  margin-right: 0.125rem;
+}
+
 .mx-3 {
   margin-left: 0.75rem;
   margin-right: 0.75rem;
@@ -867,11 +872,6 @@ video {
 .my-8 {
   margin-top: 2rem;
   margin-bottom: 2rem;
-}
-
-.mx-0\.5 {
-  margin-left: 0.125rem;
-  margin-right: 0.125rem;
 }
 
 .-mb-px {
@@ -952,6 +952,10 @@ video {
 
 .ml-3 {
   margin-left: 0.75rem;
+}
+
+.ml-4 {
+  margin-left: 1rem;
 }
 
 .ml-6 {
@@ -1157,6 +1161,10 @@ video {
   height: 4rem;
 }
 
+.h-2 {
+  height: 0.5rem;
+}
+
 .h-20 {
   height: 5rem;
 }
@@ -1221,10 +1229,6 @@ video {
   height: 100%;
 }
 
-.h-2 {
-  height: 0.5rem;
-}
-
 .max-h-\[390px\] {
   max-height: 390px;
 }
@@ -1279,6 +1283,10 @@ video {
 
 .w-16 {
   width: 4rem;
+}
+
+.w-2 {
+  width: 0.5rem;
 }
 
 .w-20 {
@@ -1369,10 +1377,6 @@ video {
   width: 100%;
 }
 
-.w-2 {
-  width: 0.5rem;
-}
-
 .min-w-0 {
   min-width: 0px;
 }
@@ -1391,6 +1395,10 @@ video {
 
 .max-w-7xl {
   max-width: 80rem;
+}
+
+.max-w-full {
+  max-width: 100%;
 }
 
 .max-w-md {
@@ -2742,6 +2750,11 @@ video {
   background-color: rgb(0 0 0 / var(--tw-bg-opacity, 1));
 }
 
+.bg-blue-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(219 234 254 / var(--tw-bg-opacity, 1));
+}
+
 .bg-blue-300 {
   --tw-bg-opacity: 1;
   background-color: rgb(147 197 253 / var(--tw-bg-opacity, 1));
@@ -2765,6 +2778,11 @@ video {
 .bg-gray-300 {
   --tw-bg-opacity: 1;
   background-color: rgb(209 213 219 / var(--tw-bg-opacity, 1));
+}
+
+.bg-gray-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(156 163 175 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gray-50 {
@@ -2846,6 +2864,11 @@ video {
   background-color: rgb(254 242 242 / var(--tw-bg-opacity, 1));
 }
 
+.bg-red-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
+}
+
 .bg-red-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
@@ -2878,11 +2901,6 @@ video {
 .bg-yellow-50 {
   --tw-bg-opacity: 1;
   background-color: rgb(254 252 232 / var(--tw-bg-opacity, 1));
-}
-
-.bg-gray-400 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(156 163 175 / var(--tw-bg-opacity, 1));
 }
 
 .bg-opacity-10 {
@@ -3342,6 +3360,11 @@ video {
   line-height: 1;
 }
 
+.text-6xl {
+  font-size: 3.75rem;
+  line-height: 1;
+}
+
 .text-\[10px\] {
   font-size: 10px;
 }
@@ -3519,6 +3542,11 @@ video {
   color: rgb(37 99 235 / var(--tw-text-opacity, 1));
 }
 
+.text-blue-800 {
+  --tw-text-opacity: 1;
+  color: rgb(30 64 175 / var(--tw-text-opacity, 1));
+}
+
 .text-gray-300 {
   --tw-text-opacity: 1;
   color: rgb(209 213 219 / var(--tw-text-opacity, 1));
@@ -3564,6 +3592,11 @@ video {
   color: rgb(34 197 94 / var(--tw-text-opacity, 1));
 }
 
+.text-green-700 {
+  --tw-text-opacity: 1;
+  color: rgb(21 128 61 / var(--tw-text-opacity, 1));
+}
+
 .text-green-800 {
   --tw-text-opacity: 1;
   color: rgb(22 101 52 / var(--tw-text-opacity, 1));
@@ -3572,6 +3605,11 @@ video {
 .text-green-900 {
   --tw-text-opacity: 1;
   color: rgb(20 83 45 / var(--tw-text-opacity, 1));
+}
+
+.text-orange-800 {
+  --tw-text-opacity: 1;
+  color: rgb(154 52 18 / var(--tw-text-opacity, 1));
 }
 
 .text-primary-500 {
@@ -3688,6 +3726,10 @@ video {
   opacity: 1;
 }
 
+.opacity-40 {
+  opacity: 0.4;
+}
+
 .opacity-5 {
   opacity: 0.05;
 }
@@ -3698,10 +3740,6 @@ video {
 
 .opacity-90 {
   opacity: 0.9;
-}
-
-.opacity-40 {
-  opacity: 0.4;
 }
 
 .bg-blend-normal {
@@ -3997,6 +4035,12 @@ video {
 
 .transition-opacity {
   transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-shadow {
+  transition-property: box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -4591,6 +4635,11 @@ html, body {
 .hover\:bg-primary-800:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(107 68 15 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-red-600:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
 }
 
 .hover\:bg-white:hover {
@@ -5336,6 +5385,10 @@ html, body {
     margin-top: 0px;
   }
 
+  .md\:inline {
+    display: inline;
+  }
+
   .md\:flex {
     display: flex;
   }
@@ -5411,10 +5464,6 @@ html, body {
 @media (min-width: 1024px) {
   .lg\:ml-64 {
     margin-left: 16rem;
-  }
-
-  .lg\:mt-1\.5 {
-    margin-top: 0.375rem;
   }
 
   .lg\:flex {
