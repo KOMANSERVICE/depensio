@@ -243,11 +243,8 @@ $TaskPrompt
     # Appeler Claude avec toutes les permissions
     Write-Host "[CLAUDE] Lancement de claude (mode autonome)..." -ForegroundColor DarkGray
     
-    # Flags pour mode autonome complet:
-    # --dangerously-skip-permissions : bypass toutes les permissions
-    # --yes : auto-accepter les prompts
-    # --no-input : pas d'input interactif
-    $result = Get-Content $promptFile -Raw | claude --dangerously-skip-permissions --yes 2>&1
+    # Flag pour mode autonome complet
+    $result = Get-Content $promptFile -Raw | claude --dangerously-skip-permissions 2>&1
     
     $output = $result -join "`n"
     $script:LastClaudeOutput = $output
