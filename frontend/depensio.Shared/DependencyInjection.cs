@@ -82,7 +82,11 @@ public static class DependencyInjection
             .AddHttpMessageHandler<CookieHandler>()
             .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
-        
+        services.AddRefitClient<IMagasinService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(uri))
+            .AddHttpMessageHandler<CookieHandler>()
+            .AddHttpMessageHandler<JwtAuthorizationHandler>();
+
         return services;
     }
 

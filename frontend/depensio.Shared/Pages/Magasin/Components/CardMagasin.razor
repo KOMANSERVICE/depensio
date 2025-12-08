@@ -1,0 +1,57 @@
+@using depensio.Shared.Pages.Magasin.Models
+
+<div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+    <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 bg-primary-700 bg-opacity-10 rounded-full flex items-center justify-center">
+                <i class="fas @GetTypeIcon(Magasin.Type) text-primary-700 text-lg"></i>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-900">@Magasin.Name</h3>
+                <span class="px-2 py-0.5 text-xs font-medium rounded-full @GetTypeBadgeClass(Magasin.Type)">
+                    @GetTypeLabel(Magasin.Type)
+                </span>
+            </div>
+        </div>
+        <button @onclick="OnEdit" class="text-primary-700 hover:text-amber-800 p-2">
+            <i class="fas fa-edit"></i>
+        </button>
+    </div>
+
+    <div class="flex items-center text-sm text-gray-500">
+        <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>
+        <span>@Magasin.Address</span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public StockLocationDTO Magasin { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnEdit { get; set; }
+
+    private string GetTypeLabel(StockLocationType type) => type switch
+    {
+        StockLocationType.Sale => "Vente",
+        StockLocationType.Store => "Entrepôt",
+        StockLocationType.Site => "Chantier",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeIcon(StockLocationType type) => type switch
+    {
+        StockLocationType.Sale => "fa-store",
+        StockLocationType.Store => "fa-warehouse",
+        StockLocationType.Site => "fa-hard-hat",
+        _ => "fa-building"
+    };
+
+    private string GetTypeBadgeClass(StockLocationType type) => type switch
+    {
+        StockLocationType.Sale => "bg-green-100 text-green-800",
+        StockLocationType.Store => "bg-blue-100 text-blue-800",
+        StockLocationType.Site => "bg-orange-100 text-orange-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+}

@@ -30,7 +30,6 @@ public class DepensioDbContext : IdentityDbContext<ApplicationUser>, IDepensioDb
     public DbSet<PlanMenu> PlanMenus => Set<PlanMenu>();
     public DbSet<Profile> Profiles => Set<Profile>();
     public DbSet<ProfileMenu> ProfileMenus => Set<ProfileMenu>();
-    public DbSet<StockLocation> StockLocations => Set<StockLocation>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

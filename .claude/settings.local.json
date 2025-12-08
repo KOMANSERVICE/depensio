@@ -10,7 +10,10 @@
       "Bash(find:*)",
       "Bash(dir \"C:\\Workspace\\App\\depensio\\depensio\\frontend\\depensio.Shared\\wwwroot\\styles\" /s)",
       "Bash(dotnet tool restore:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []

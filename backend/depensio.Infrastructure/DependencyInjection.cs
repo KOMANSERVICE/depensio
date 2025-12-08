@@ -1,4 +1,5 @@
-﻿using depensio.Application.ApiExterne.Menus;
+﻿using depensio.Application.ApiExterne.Magasins;
+using depensio.Application.ApiExterne.Menus;
 using depensio.Application.Data;
 using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
@@ -37,6 +38,7 @@ public static class DependencyInjection
         var N8Nuri = configuration["N8N:Uri"] ?? "";
 
         var menuServiceUri = configuration["Service:Menu"]!;
+        var magasinServiceUri = configuration["Service:Magasin"]!;
         var localDomain = configuration["LOCALDOMAIN"] ?? "depensio.com";
 
         if (string.IsNullOrEmpty(host))
@@ -73,6 +75,11 @@ public static class DependencyInjection
             throw new InvalidOperationException("Menu Service Uri is not provided in configuration");
         }
 
+        if (string.IsNullOrEmpty(magasinServiceUri))
+        {
+            throw new InvalidOperationException("Magasin Service Uri is not provided in configuration");
+        }
+
         if (string.IsNullOrEmpty(vaultUri) ||
             string.IsNullOrEmpty(roleId) ||
             string.IsNullOrEmpty(secretId))
@@ -107,6 +114,7 @@ public static class DependencyInjection
         var connectionString = vaultSecretProvider.GetSecretAsync(dataBase).Result ?? "";
         var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(mailPassword).Result ?? "";
         var menu_url = vaultSecretProvider.GetSecretAsync(menuServiceUri).Result ?? "";
+        var magasin_url = vaultSecretProvider.GetSecretAsync(magasinServiceUri).Result ?? "";
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
@@ -158,6 +166,8 @@ public static class DependencyInjection
         services.AddRefitClient<IMenuService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(menu_url));
 
+        services.AddRefitClient<IMagasinService>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(magasin_url));
 
         return services;
     }

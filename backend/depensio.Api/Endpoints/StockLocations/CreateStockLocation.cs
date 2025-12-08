@@ -1,27 +1,28 @@
-﻿using depensio.Application.UseCases.StockLocations.Commands.CreateStockLocation;
-using depensio.Application.UseCases.StockLocations.DTOs;
+using depensio.Application.ApiExterne.Magasins;
 using depensio.Infrastructure.Filters;
 
 namespace depensio.Api.Endpoints.StockLocations;
 
-
-public record CreateStockLocationRequest(StockLocationDTO StockLocation);
+public record CreateStockLocationRequest(StockLocationCreateDTO StockLocation);
 public record CreateStockLocationResponse(Guid Id);
 
 public class CreateStockLocation : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-
-        app.MapPost("/stocklocation/{boutiqueId}", async (Guid boutiqueId, CreateStockLocationRequest request, ISender sender) =>
+        app.MapPost("/stocklocation/{boutiqueId}", async (Guid boutiqueId, CreateStockLocationRequest request, IMagasinService magasinService) =>
         {
-            var command = new CreateStockLocationCommand(boutiqueId, request.StockLocation);
-            var result = await sender.Send(command);
+            var result = await magasinService.CreateMagasinAsync(boutiqueId, request.StockLocation);
 
-            var response = result.Adapt<CreateStockLocationResponse>();
+            if (!result.Success)
+            {
+                return Results.BadRequest(result);
+            }
+
+            var response = new CreateStockLocationResponse(result.Data!.Id);
             var baseResponse = ResponseFactory.Success(response, "StockLocation créée avec succès", StatusCodes.Status201Created);
 
-            return Results.Created($"/boutique/{response.Id}", baseResponse);
+            return Results.Created($"/stocklocation/{boutiqueId}", baseResponse);
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("CreateStockLocation")

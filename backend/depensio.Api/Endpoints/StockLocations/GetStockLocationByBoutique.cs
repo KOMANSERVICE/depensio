@@ -1,5 +1,4 @@
-﻿using depensio.Application.UseCases.StockLocations.DTOs;
-using depensio.Application.UseCases.StockLocations.Queries.GetStockLocationByBoutique;
+using depensio.Application.ApiExterne.Magasins;
 using depensio.Infrastructure.Filters;
 
 namespace depensio.Api.Endpoints.StockLocations;
@@ -10,11 +9,16 @@ public class GetStockLocationByBoutique : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/stocklocation/{boutiqueId}", async (Guid boutiqueId, ISender sender) =>
+        app.MapGet("/stocklocation/{boutiqueId}", async (Guid boutiqueId, IMagasinService magasinService) =>
         {
-            var result = await sender.Send(new GetStockLocationByBoutiqueQuery(boutiqueId));
+            var result = await magasinService.GetMagasinsByBoutiqueAsync(boutiqueId);
 
-            var response = result.Adapt<GetStockLocationByBoutiqueResponse>();
+            if (!result.Success)
+            {
+                return Results.BadRequest(result);
+            }
+
+            var response = new GetStockLocationByBoutiqueResponse(result.Data!.StockLocations);
             var baseResponse = ResponseFactory.Success(response, "Liste des magasins récuperés avec succès", StatusCodes.Status200OK);
 
             return Results.Ok(baseResponse);

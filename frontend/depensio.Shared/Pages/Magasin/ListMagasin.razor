@@ -1,0 +1,231 @@
+@page "/magasin/{boutiqueId:guid}"
+@using depensio.Shared.Pages.Magasin.Models
+@using depensio.Shared.Pages.Magasin.Components
+@inherits FlowbitePage
+@layout MainLayout
+@inject IMagasinService _magasinService
+
+<PageTitleComponent Title="Gestion des magasins" />
+
+<HeaderPage
+    Title="Gestion des magasins"
+    SubTitle="Créer et gérer vos magasins et emplacements de stock"/>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex items-center">
+            <span class="text-sm text-gray-600">@magasins.Count magasin(s)</span>
+        </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" @bind="searchTerm" @bind:event="oninput" placeholder="Rechercher un magasin..."
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex gap-3">
+            <button type="button"
+                @onclick="() => onShowModal()"
+                class="bg-primary-700 hover:bg-amber-800 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors">
+                <i class="fas fa-plus"></i>
+                <span class="hidden md:inline">Nouveau magasin</span>
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingDataComponent />
+    }
+    else if (!magasins.Any())
+    {
+        <div class="text-center py-12">
+            <i class="fas fa-store text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun magasin</h3>
+            <p class="text-gray-500 mb-4">Vous n'avez pas encore créé de magasin.</p>
+            <button type="button"
+                @onclick="() => onShowModal()"
+                class="bg-primary-700 hover:bg-amber-800 text-white px-6 py-2 rounded-md inline-flex items-center gap-2 transition-colors">
+                <i class="fas fa-plus"></i>
+                Créer votre premier magasin
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Desktop Table -->
+        <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-primary-700 text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Nom</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Adresse</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Type</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach(var magasin in FilteredMagasins)
+                    {
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-primary-700 bg-opacity-10 rounded-full flex items-center justify-center">
+                                        <i class="fas @GetTypeIcon(magasin.Type) text-primary-700"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">@magasin.Name</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
+                                @magasin.Address
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full @GetTypeBadgeClass(magasin.Type)">
+                                    @GetTypeLabel(magasin.Type)
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button type="button"
+                                    @onclick="() => onShowModal(magasin.Id)"
+                                    class="text-primary-700 hover:text-amber-800 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-view">
+            <div class="grid grid-cols-1 gap-4">
+                @foreach (var magasin in FilteredMagasins)
+                {
+                    <CardMagasin
+                        Magasin="@magasin"
+                        OnEdit="() => onShowModal(magasin.Id)" />
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal -->
+<Modal
+    ShowModal="@showModal"
+    OnCloseModal="() => onShowModal()"
+    ModalTitle="@modalTitle"
+>
+    <CreateMagasinComponent
+        BoutiqueId="@boutiqueId"
+        MagasinId="@selectedMagasinId"
+        Magasin="@currentMagasin"
+        OnAfterSave="async () => {
+            await GetMagasinsAsync();
+            onShowModal();
+        }"
+        OnCancelSave="() => onShowModal()" />
+</Modal>
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    private List<StockLocationDTO> magasins = new();
+    private StockLocationDTO currentMagasin = new();
+    private bool showModal = false;
+    private bool isLoading = true;
+    private string modalTitle = "Nouveau magasin";
+    private Guid selectedMagasinId = Guid.Empty;
+    private string searchTerm = string.Empty;
+
+    private IEnumerable<StockLocationDTO> FilteredMagasins =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? magasins
+            : magasins.Where(m =>
+                m.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                m.Address.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMagasinsAsync();
+    }
+
+    private async Task GetMagasinsAsync()
+    {
+        isLoading = true;
+        try
+        {
+            var response = await _magasinService.GetMagasinsByBoutiqueAsync(boutiqueId);
+            if (response.Success && response.Data?.StockLocations != null)
+            {
+                magasins = response.Data.StockLocations.ToList();
+            }
+        }
+        catch
+        {
+            magasins = new();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void onShowModal(Guid magasinId = default)
+    {
+        selectedMagasinId = magasinId;
+
+        if (magasinId != Guid.Empty)
+        {
+            modalTitle = "Modifier le magasin";
+            var existing = magasins.FirstOrDefault(m => m.Id == magasinId);
+            currentMagasin = existing != null
+                ? new StockLocationDTO
+                {
+                    Id = existing.Id,
+                    Name = existing.Name,
+                    Address = existing.Address,
+                    Type = existing.Type
+                }
+                : new StockLocationDTO();
+        }
+        else
+        {
+            currentMagasin = new StockLocationDTO();
+            modalTitle = "Nouveau magasin";
+        }
+
+        showModal = !showModal;
+    }
+
+    private string GetTypeLabel(StockLocationType type) => type switch
+    {
+        StockLocationType.Sale => "Magasin de vente",
+        StockLocationType.Store => "Entrepôt",
+        StockLocationType.Site => "Chantier",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeIcon(StockLocationType type) => type switch
+    {
+        StockLocationType.Sale => "fa-store",
+        StockLocationType.Store => "fa-warehouse",
+        StockLocationType.Site => "fa-hard-hat",
+        _ => "fa-building"
+    };
+
+    private string GetTypeBadgeClass(StockLocationType type) => type switch
+    {
+        StockLocationType.Sale => "bg-green-100 text-green-800",
+        StockLocationType.Store => "bg-blue-100 text-blue-800",
+        StockLocationType.Site => "bg-orange-100 text-orange-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+}

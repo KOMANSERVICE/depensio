@@ -955,52 +955,6 @@ namespace depensio.Infrastructure.Data.Migrations
                     b.ToTable("SaleItems");
                 });
 
-            modelBuilder.Entity("depensio.Domain.Models.StockLocation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("champ1");
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("BoutiqueId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("champ2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("champ4");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("champ3");
-
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("champ5");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BoutiqueId");
-
-                    b.ToTable("StockLocations");
-                });
-
             modelBuilder.Entity("depensio.Domain.Models.Subscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1318,17 +1272,6 @@ namespace depensio.Infrastructure.Data.Migrations
                     b.Navigation("Sale");
                 });
 
-            modelBuilder.Entity("depensio.Domain.Models.StockLocation", b =>
-                {
-                    b.HasOne("depensio.Domain.Models.Boutique", "Boutique")
-                        .WithMany("StockLocations")
-                        .HasForeignKey("BoutiqueId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Boutique");
-                });
-
             modelBuilder.Entity("depensio.Domain.Models.Subscription", b =>
                 {
                     b.HasOne("depensio.Domain.Models.Boutique", "Boutique")
@@ -1385,8 +1328,6 @@ namespace depensio.Infrastructure.Data.Migrations
                     b.Navigation("Purchases");
 
                     b.Navigation("Sales");
-
-                    b.Navigation("StockLocations");
 
                     b.Navigation("Subscriptions");
 
