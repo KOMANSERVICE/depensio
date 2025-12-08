@@ -25,7 +25,7 @@ param(
     [switch]$ShowDetails
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 # ============================================
 # CONFIGURATION
@@ -438,82 +438,73 @@ function New-FeatureBranch {
     $originalLocation = Get-Location
     Set-Location $ProjectPath
     
-    try {
-        # Nettoyer le fichier 'nul' s'il existe (bug Windows)
-        $nulFile = Join-Path $ProjectPath "nul"
-        if (Test-Path $nulFile) {
-            Write-Host "[GIT] Suppression du fichier 'nul' (bug Windows)..." -ForegroundColor Yellow
-            cmd /c "del `"\\?\$nulFile`"" 2>&1 | Out-Null
-        }
-        
-        $safeName = $Title -replace '[^a-zA-Z0-9]', '-' -replace '-+', '-' -replace '^-|-$', ''
-        $safeName = $safeName.Substring(0, [Math]::Min(30, $safeName.Length)).ToLower()
-        $branchName = "feature/$IssueNumber-$safeName"
-        
-        # Verifier la branche actuelle
-        $currentBranch = git branch --show-current 2>&1 | Out-String
-        $currentBranch = $currentBranch.Trim()
-        
-        # Verifier s'il y a des changements non commites
-        $status = git status --porcelain 2>&1 | Out-String
-        if ($status -and $status.Trim() -ne "" -and $status -notmatch "^fatal:" -and $status -notmatch "invalid path") {
-            Write-Host "[GIT] Changements detectes - commit WIP..." -ForegroundColor Yellow
-            $null = git add -A 2>&1
-            $null = git commit -m "WIP: avant issue #$IssueNumber" 2>&1
-            
-            # Pull sur la branche actuelle
-            Write-Host "[GIT] Pull $currentBranch..." -ForegroundColor DarkGray
-            $null = git pull origin $currentBranch 2>&1
-            
-            # Push les changements
-            Write-Host "[GIT] Push des changements WIP..." -ForegroundColor DarkGray
-            $null = git push origin $currentBranch 2>&1
-        }
-        
-        # Checkout main seulement si on n'y est pas deja
-        if ($currentBranch -ne "main") {
-            Write-Host "[GIT] Checkout main..." -ForegroundColor DarkGray
-            $null = git checkout main 2>&1
-            $null = git pull origin main 2>&1
-        }
-        else {
-            # Deja sur main, juste pull
-            Write-Host "[GIT] Pull main..." -ForegroundColor DarkGray
-            $null = git pull origin main 2>&1
-        }
-        
-        # Verifier si la branche existe deja (locale ou remote)
-        $existingBranch = git branch --list $branchName 2>&1 | Out-String
-        $existingRemote = git branch -r --list "origin/$branchName" 2>&1 | Out-String
-        
-        if ($existingBranch.Trim() -or $existingRemote.Trim()) {
-            Write-Host "[GIT] Branche '$branchName' existe deja - checkout" -ForegroundColor Yellow
-            $null = git checkout $branchName 2>&1
-            $null = git pull origin $branchName 2>&1
-        }
-        else {
-            Write-Host "[GIT] Creation branche '$branchName'..." -ForegroundColor DarkGray
-            $null = git checkout -b $branchName 2>&1
-        }
-        
-        # Verifier qu'on est bien sur la bonne branche
-        $finalBranch = git branch --show-current 2>&1 | Out-String
-        $finalBranch = $finalBranch.Trim()
-        if ($finalBranch -eq $branchName) {
-            Write-Host "[OK] Branche '$branchName' prete" -ForegroundColor Green
-            return $branchName
-        }
-        else {
-            Write-Host "[ERREUR] Branche actuelle: $finalBranch (attendu: $branchName)" -ForegroundColor Red
-            return $null
-        }
+    # Desactiver les erreurs fatales pour git
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
+    # Nettoyer le fichier 'nul' s'il existe (bug Windows)
+    $nulFile = Join-Path $ProjectPath "nul"
+    if (Test-Path $nulFile) {
+        cmd /c "del `"\\?\$nulFile`"" 2>$null
     }
-    catch {
-        Write-Host "[ERREUR] Exception Git: $_" -ForegroundColor Red
+    
+    $safeName = $Title -replace '[^a-zA-Z0-9]', '-' -replace '-+', '-' -replace '^-|-$', ''
+    $safeName = $safeName.Substring(0, [Math]::Min(30, $safeName.Length)).ToLower()
+    $branchName = "feature/$IssueNumber-$safeName"
+    
+    # Verifier la branche actuelle
+    $currentBranch = (git branch --show-current 2>$null) | Out-String
+    $currentBranch = $currentBranch.Trim()
+    
+    # Verifier s'il y a des changements non commites
+    $status = (git status --porcelain 2>$null) | Out-String
+    if ($status.Trim()) {
+        Write-Host "[GIT] Changements detectes - commit WIP..." -ForegroundColor Yellow
+        git add -A 2>$null
+        git commit -m "WIP: avant issue #$IssueNumber" 2>$null
+        
+        Write-Host "[GIT] Pull et push $currentBranch..." -ForegroundColor DarkGray
+        git pull origin $currentBranch 2>$null
+        git push origin $currentBranch 2>$null
+    }
+    
+    # Checkout main si necessaire
+    if ($currentBranch -ne "main") {
+        Write-Host "[GIT] Checkout main..." -ForegroundColor DarkGray
+        git checkout main 2>$null
+    }
+    
+    Write-Host "[GIT] Pull main..." -ForegroundColor DarkGray
+    git pull origin main 2>$null
+    
+    # Verifier si la branche existe
+    $existingLocal = (git branch --list $branchName 2>$null) | Out-String
+    $existingRemote = (git branch -r --list "origin/$branchName" 2>$null) | Out-String
+    
+    if ($existingLocal.Trim() -or $existingRemote.Trim()) {
+        Write-Host "[GIT] Branche '$branchName' existe - checkout" -ForegroundColor Yellow
+        git checkout $branchName 2>$null
+        git pull origin $branchName 2>$null
+    }
+    else {
+        Write-Host "[GIT] Creation branche '$branchName'..." -ForegroundColor DarkGray
+        git checkout -b $branchName 2>$null
+    }
+    
+    # Verifier le resultat
+    $finalBranch = (git branch --show-current 2>$null) | Out-String
+    $finalBranch = $finalBranch.Trim()
+    
+    $ErrorActionPreference = $oldErrorAction
+    Set-Location $originalLocation
+    
+    if ($finalBranch -eq $branchName) {
+        Write-Host "[OK] Branche '$branchName' prete" -ForegroundColor Green
+        return $branchName
+    }
+    else {
+        Write-Host "[ERREUR] Branche: $finalBranch (attendu: $branchName)" -ForegroundColor Red
         return $null
-    }
-    finally {
-        Set-Location $originalLocation
     }
 }
 
@@ -569,53 +560,54 @@ function Merge-PullRequest {
     
     Write-Host "[MERGE] Recherche PR pour #$IssueNumber..." -ForegroundColor Cyan
     
-    try {
-        # Trouver la PR associee a l'issue
-        $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number,headRefName,state 2>&1 | Out-String
-        if (-not $prsJson -or $prsJson -match "^error:") {
-            Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
-            return $false
-        }
-        
-        $prs = $prsJson | ConvertFrom-Json
-        
-        if ($prs.Count -eq 0) {
-            Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
-            return $false
-        }
-        
-        $pr = $prs[0]
-        $prNumber = $pr.number
-        $branchName = $pr.headRefName
-        
-        Write-Host "[MERGE] Merge PR #$prNumber (branche: $branchName)..." -ForegroundColor Cyan
-        
-        # Merger la PR avec squash et suppression de branche
-        $result = gh pr merge $prNumber --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --squash --delete-branch 2>&1 | Out-String
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] PR #$prNumber mergee et branche supprimee" -ForegroundColor Green
-            
-            # Nettoyer la branche locale si elle existe
-            $originalLocation = Get-Location
-            Set-Location $ProjectPath
-            
-            $null = git checkout main 2>&1
-            $null = git pull origin main 2>&1
-            $null = git branch -D $branchName 2>&1
-            $null = git fetch --prune 2>&1
-            
-            Set-Location $originalLocation
-            
-            return $true
-        }
-        else {
-            Write-Host "[ERREUR] Echec merge: $result" -ForegroundColor Red
-            return $false
-        }
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
+    # Trouver la PR
+    $prsJson = gh pr list --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --search "$IssueNumber" --json number,headRefName,state 2>$null
+    
+    if (-not $prsJson) {
+        Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
+        $ErrorActionPreference = $oldErrorAction
+        return $false
     }
-    catch {
-        Write-Host "[ERREUR] Exception merge: $_" -ForegroundColor Red
+    
+    $prs = $prsJson | ConvertFrom-Json
+    
+    if ($prs.Count -eq 0) {
+        Write-Host "[WARN] Aucune PR trouvee pour #$IssueNumber" -ForegroundColor Yellow
+        $ErrorActionPreference = $oldErrorAction
+        return $false
+    }
+    
+    $pr = $prs[0]
+    $prNumber = $pr.number
+    $branchName = $pr.headRefName
+    
+    Write-Host "[MERGE] Merge PR #$prNumber (branche: $branchName)..." -ForegroundColor Cyan
+    
+    # Merger la PR
+    gh pr merge $prNumber --repo "$($env:GITHUB_OWNER)/$($env:GITHUB_REPO)" --squash --delete-branch 2>$null
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[OK] PR #$prNumber mergee" -ForegroundColor Green
+        
+        # Nettoyer
+        $originalLocation = Get-Location
+        Set-Location $ProjectPath
+        
+        git checkout main 2>$null
+        git pull origin main 2>$null
+        git branch -D $branchName 2>$null
+        git fetch --prune 2>$null
+        
+        Set-Location $originalLocation
+        $ErrorActionPreference = $oldErrorAction
+        return $true
+    }
+    else {
+        Write-Host "[ERREUR] Echec merge PR #$prNumber" -ForegroundColor Red
+        $ErrorActionPreference = $oldErrorAction
         return $false
     }
 }
