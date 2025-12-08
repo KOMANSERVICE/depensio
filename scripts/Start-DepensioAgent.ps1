@@ -587,14 +587,25 @@ while ($true) {
                     $success = Invoke-AnalysisAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
                     if ($success -and (Test-CanProceed)) {
-                        Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
-                        
+                        # Verifier si l'issue a ete deplacee AVANT de la marquer comme traitee
                         $currentColumn = Get-CurrentIssueColumn -IssueNumber $issue.IssueNumber
-                        if (Compare-ColumnName -Actual $currentColumn -Expected $Columns.Analyse) {
+                        
+                        if (-not (Compare-ColumnName -Actual $currentColumn -Expected $Columns.Analyse)) {
+                            # Issue deplacee avec succes -> marquer comme traitee
+                            Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
+                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) traitee et deplacee" -ForegroundColor Green
+                        }
+                        else {
+                            # Issue toujours dans Analyse -> forcer deplacement vers Todo
                             Write-Host "[$timestamp]   [WARN] Issue non deplacee - forcage vers 'Todo'" -ForegroundColor Yellow
-                            Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                            $moved = Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
+                            if ($moved) {
+                                Add-ProcessedIssue -FilePath $processedAnalysisFile -IssueNumber $issue.IssueNumber
+                            }
+                            # Si pas deplacee, ne PAS marquer comme traitee -> sera retraitee au prochain cycle
                         }
                     }
+                    # Si $success est $false, ne PAS marquer comme traitee -> sera retraitee
                 }
             }
             else {
@@ -620,11 +631,24 @@ while ($true) {
                     $success = Invoke-CoderAgent -IssueNumber $issue.IssueNumber -Title $issue.Title
                     
                     if ($success -and (Test-CanProceed)) {
-                        Add-ProcessedIssue -FilePath $processedCoderFile -IssueNumber $issue.IssueNumber
+                        # Verifier si l'issue a ete deplacee vers A Tester
+                        $currentColumn = Get-CurrentIssueColumn -IssueNumber $issue.IssueNumber
+                        
+                        if (Compare-ColumnName -Actual $currentColumn -Expected $Columns.ATester) {
+                            # Issue terminee -> marquer comme traitee
+                            Add-ProcessedIssue -FilePath $processedCoderFile -IssueNumber $issue.IssueNumber
+                            Write-Host "[$timestamp]   [OK] Issue #$($issue.IssueNumber) terminee" -ForegroundColor Green
+                        }
+                        else {
+                            Write-Host "[$timestamp]   [INFO] Issue #$($issue.IssueNumber) en cours (colonne: $currentColumn)" -ForegroundColor Cyan
+                            # Ne PAS marquer comme traitee si pas terminee
+                        }
                     }
                     elseif ($script:ClaudeLimitReached) {
+                        # Limite atteinte -> remettre dans Todo
                         Move-IssueToColumn -IssueNumber $issue.IssueNumber -TargetColumn $Columns.Todo
                     }
+                    # Si erreur, l'issue reste dans In Progress et sera reprise au prochain cycle
                 }
             }
             else {
