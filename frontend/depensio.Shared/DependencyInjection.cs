@@ -13,7 +13,16 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddHttpClientFactoryServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var uri = configuration["ApiSettings:Uri"]!;
+        var uri = configuration["ApiSettings:Uri"];
+
+        // AJOUTEZ CETTE VALIDATION
+        if (string.IsNullOrWhiteSpace(uri))
+        {
+            throw new InvalidOperationException(
+                "ApiSettings:Uri is not configured. Please check your appsettings.json file.");
+        }
+
+        Console.WriteLine($"🔍 API URI loaded: {uri}"); // Pour déboguer
 
         services.AddBlazorLibrairyServices(configuration, (options) =>
         {
