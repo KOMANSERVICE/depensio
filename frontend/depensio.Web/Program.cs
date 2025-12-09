@@ -61,7 +61,7 @@ else
 }
 
 app.UseHttpsRedirection();
-app.MapStaticAssets();
+app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.UseAuthentication();
@@ -71,7 +71,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(
         typeof(depensio.Shared._Imports).Assembly,
-        typeof(depensio.Web.Client._Imports).Assembly)
-    .WithStaticAssets();
+        typeof(depensio.Web.Client._Imports).Assembly);
 
 app.Run();
