@@ -1,12 +1,16 @@
-# Consultez https://aka.ms/customizecontainer pour savoir comment personnaliser votre conteneur de débogage et comment Visual Studio utilise ce Dockerfile pour générer vos images afin d'accélérer le débogage.
+# Consultez https://aka.ms/customizecontainer pour savoir comment personnaliser votre conteneur de débogage et comment Visual Studio utilise ce Dockerfile pour générer vos images afin d’accélérer le débogage.
+
 # Cet index est utilisé lors de l'exécution à partir de VS en mode rapide (par défaut pour la configuration de débogage)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
+
 # Créer le répertoire pour les clés Data Protection avec les bonnes permissions
 RUN mkdir -p /app/keys && chown -R app:app /app/keys
+
 USER app
 EXPOSE 8080
 EXPOSE 8081
+
 
 # Cette phase est utilisée pour générer le projet de service
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
@@ -25,25 +29,8 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Cette phase est utilisée en production ou lors de l'exécution à partir de VS en mode normal (par défaut quand la configuration de débogage n'est pas utilisée)
+# Cette phase est utilisée en production ou lors de l’exécution à partir de VS en mode normal (par défaut quand la configuration de débogage n’est pas utilisée)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
-# ======== AJOUT POUR REMPLACER LE PLACEHOLDER ========
-# Revenir temporairement en root pour modifier le fichier
-USER root
-
-# Récupérer l'URL de l'API depuis les arguments de build
-ARG API_SETTINGS_URL=https://apidemo.depensio.com
-
-# Remplacer le placeholder dans appsettings.json
-RUN sed -i "s|\${API_SETTINGS_URL}|${API_SETTINGS_URL}|g" /app/wwwroot/appsettings.json && \
-    echo "✅ appsettings.json modifié avec API_SETTINGS_URL=${API_SETTINGS_URL}" && \
-    cat /app/wwwroot/appsettings.json
-
-# Revenir à l'utilisateur non-root
-USER app
-# ======================================================
-
 ENTRYPOINT ["dotnet", "depensio.Web.dll"]

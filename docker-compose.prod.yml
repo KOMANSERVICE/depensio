@@ -44,10 +44,19 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
-      #- ApiSettings__Uri=${API_SETTINGS_URL}
+      - ApiSettings__Uri=${API_SETTINGS_URL}
       - JWT__ValidAudience=${JWT_VALID_AUDIENCE_WEB}
       - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
       - JWT__Secret=${JWT_SECRET_WEB}
+    entrypoint: ["/bin/sh", "-c"]  # ← Modifier l'entrypoint
+    command:  # ← Ajouter ce script de démarrage
+      - |
+        echo "🔧 Configuration de l'API URL..."
+        sed -i "s|\$${API_SETTINGS_URL}|$$API_SETTINGS_URL|g" /app/wwwroot/appsettings.json
+        echo "📝 Fichier appsettings.json:"
+        cat /app/wwwroot/appsettings.json
+        echo "🚀 Démarrage de l'application..."
+        exec dotnet depensio.Web.dll
     ports:
       - "127.0.0.1:9001:8080"
     depends_on:
