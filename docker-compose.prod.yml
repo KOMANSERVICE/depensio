@@ -48,6 +48,7 @@
       - JWT__ValidAudience=${JWT_VALID_AUDIENCE_WEB}
       - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
       - JWT__Secret=${JWT_SECRET_WEB}
+      - DataProtection__KeysPath=/app/keys
     ports:
       - "127.0.0.1:9001:8080"
     depends_on:
@@ -56,6 +57,7 @@
     volumes:
       - ./frontend/depensio.Web.Client/wwwroot/appsettings.json:/app/wwwroot/appsettings.json:ro
       - ./frontend/depensio.Web/appsettings.json:/app/appsettings.json:ro
+      - dataprotection_keys:/app/keys
     env_file:
       - ./.env
     networks:
@@ -105,3 +107,4 @@ networks:
       
 volumes:
   pgdata_depensio:
+  dataprotection_keys:
