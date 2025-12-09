@@ -60,7 +60,8 @@ else
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// Note: Ne pas utiliser UseStatusCodePagesWithReExecute avec Blazor WebAssembly
+// car le routing est géré côté client
 app.UseHttpsRedirection();
 app.MapStaticAssets();
 app.UseAntiforgery();
@@ -81,6 +82,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(
         typeof(depensio.Shared._Imports).Assembly,
-        typeof(depensio.Web.Client._Imports).Assembly);
+        typeof(depensio.Web.Client._Imports).Assembly)
+    .WithStaticAssets();
 
 app.Run();
