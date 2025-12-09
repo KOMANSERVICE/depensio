@@ -28,6 +28,9 @@
         </div>
         <div class="relative w-full md:w-64">
             <input type="text" placeholder="Rechercher une vente..."
+                @bind="searchTerm"
+                @bind:event="oninput"
+                @bind:after="ApplyFilter"
                 class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
         </div>
@@ -284,6 +287,7 @@
     private List<Product> products = new();
     private bool isLoad = false;
     private string filterStatus = "all";
+    private string searchTerm = "";
 
     // Pagination
     private int itemsPerPage = 10;
@@ -339,12 +343,25 @@
 
     private void ApplyFilter()
     {
-        filteredSales = filterStatus switch
+        var filtered = filterStatus switch
         {
-            "validated" => sales.Where(s => !s.IsCancelled).ToList(),
-            "cancelled" => sales.Where(s => s.IsCancelled).ToList(),
-            _ => sales.ToList()
+            "validated" => sales.Where(s => !s.IsCancelled),
+            "cancelled" => sales.Where(s => s.IsCancelled),
+            _ => sales.AsEnumerable()
         };
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var search = searchTerm.Trim().ToLower();
+            filtered = filtered.Where(s =>
+                s.Date.ToLocalTime().ToString("dd/MM/yyyy").Contains(search) ||
+                s.Date.ToLocalTime().ToString("HH:mm").Contains(search) ||
+                s.TotalPrice.ToString("N0").Contains(search) ||
+                s.Items.Any(item => GetProductName(item.ProductId).ToLower().Contains(search))
+            );
+        }
+
+        filteredSales = filtered.ToList();
         currentPage = 1;
     }
 
