@@ -44,22 +44,17 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
-      - ApiSettings__Uri=${API_SETTINGS_URL}
+      #- ApiSettings__Uri=${API_SETTINGS_URL}
       - JWT__ValidAudience=${JWT_VALID_AUDIENCE_WEB}
       - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
       - JWT__Secret=${JWT_SECRET_WEB}
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        sed -i "s|API_SETTINGS_URL|$$API_SETTINGS_URL|g" /app/wwwroot/appsettings.json
-        dotnet depensio.Web.dll
     ports:
       - "127.0.0.1:9001:8080"
     depends_on:
       depensio.api:
         condition: service_started
     volumes:
-      - ./frontend/depensio.Web.Client/wwwroot/appsettings.json:/app/wwwroot/appsettings.json:ro
+      #- ./frontend/depensio.Web.Client/wwwroot/appsettings.json:/app/wwwroot/appsettings.json:ro
       - ./frontend/depensio.Web/appsettings.json:/app/appsettings.json:ro
     env_file:
       - ./.env
