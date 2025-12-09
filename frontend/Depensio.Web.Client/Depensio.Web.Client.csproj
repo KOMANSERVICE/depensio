@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+    <RootNamespace>depensio.Web.Client</RootNamespace>
+    <AssemblyName>depensio.Web.Client</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Depensio.Shared\depensio.Shared.csproj" />
+    <ProjectReference Include="..\Depensio.Shared\Depensio.Shared.csproj" />
   </ItemGroup>
 
 </Project>

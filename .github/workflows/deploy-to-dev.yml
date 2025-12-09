@@ -122,7 +122,7 @@ jobs:
             chmod 644 /home/komanatse/depensio/.env
             dos2unix /home/komanatse/depensio/.env
 
-            cat <<EOF > /home/komanatse/depensio/frontend/depensio.Web.Client/wwwroot/appsettings.json
+            cat <<EOF > /home/komanatse/depensio/frontend/Depensio.Web.Client/wwwroot/appsettings.json
             {
               "Logging": {
                 "LogLevel": {
@@ -137,7 +137,7 @@ jobs:
             }
             EOF
             
-            cat <<EOF > /home/komanatse/depensio/frontend/depensio.Web/appsettings.json
+            cat <<EOF > /home/komanatse/depensio/frontend/Depensio.Web/appsettings.json
             {
               "Logging": {
                 "LogLevel": {

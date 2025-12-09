@@ -16,18 +16,18 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["frontend/depensio.Web/depensio.Web.csproj", "frontend/depensio.Web/"]
-COPY ["frontend/depensio.Web.Client/depensio.Web.Client.csproj", "frontend/depensio.Web.Client/"]
-COPY ["frontend/depensio.Shared/depensio.Shared.csproj", "frontend/depensio.Shared/"]
-RUN dotnet restore "./frontend/depensio.Web/depensio.Web.csproj"
+COPY ["frontend/Depensio.Web/Depensio.Web.csproj", "frontend/Depensio.Web/"]
+COPY ["frontend/Depensio.Web.Client/Depensio.Web.Client.csproj", "frontend/Depensio.Web.Client/"]
+COPY ["frontend/Depensio.Shared/Depensio.Shared.csproj", "frontend/Depensio.Shared/"]
+RUN dotnet restore "./frontend/Depensio.Web/Depensio.Web.csproj"
 COPY . .
-WORKDIR "/src/frontend/depensio.Web"
-RUN dotnet build "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/frontend/Depensio.Web"
+RUN dotnet build "./Depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Cette étape permet de publier le projet de service à copier dans la phase finale
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Cette phase est utilisée en production ou lors de l’exécution à partir de VS en mode normal (par défaut quand la configuration de débogage n’est pas utilisée)
 FROM base AS final
