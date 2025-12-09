@@ -43,14 +43,11 @@ jobs:
             echo "env=prod" >> $GITHUB_OUTPUT
             echo "version_tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
             echo "extra_tags=latest ${GITHUB_REF_NAME}-${COMMIT_SHA}" >> $GITHUB_OUTPUT
-            echo "api_url=${{ vars.API_SETTINGS_URL_PROD }}" >> $GITHUB_OUTPUT  # URL PROD
           else
             echo "env=nonprod" >> $GITHUB_OUTPUT
             echo "version_tag=dev-${DATE_TAG}" >> $GITHUB_OUTPUT
             echo "extra_tags=sha-${COMMIT_SHA}" >> $GITHUB_OUTPUT
-            echo "api_url=${{ vars.API_SETTINGS_URL }}" >> $GITHUB_OUTPUT  # URL PREPROD/DEV
           fi
-          
       # Générer le SQL EF
       - name: Generate EF SQL
         run: |
@@ -61,37 +58,28 @@ jobs:
             --startup-project backend/depensio.Api \
             --idempotent \
             --output migrations/migrations.sql
-    
-            
+
       # Fonction de build/push réutilisable
       - name: Build and push all Docker images
         run: |
-          API_URL="${{ steps.vars.outputs.api_url }}"
-          echo "🌐 Building with API URL: $API_URL (env: ${{ steps.vars.outputs.env }})"
-          
           build_and_push() {
             local image=$1
             local dockerfile=$2
-            local build_args=$3
-            
             echo "📦 Building $image:${{ steps.vars.outputs.version_tag }}"
-            docker build $build_args \
-              -t ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} \
-              -f $dockerfile .
-            
+            docker build -t ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} -f $dockerfile .
             echo "🚀 Pushing $image:${{ steps.vars.outputs.version_tag }}"
             docker push ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }}
-            
-            # Tag et push "latest" uniquement en prod
+            # Historiser les tags supplémentaires            
             if [[ "${{ steps.vars.outputs.env }}" == "prod" ]]; then
               docker tag ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} ${{ env.REGISTRY }}/$image:latest
               docker push ${{ env.REGISTRY }}/$image:latest
-              echo "✅ Tagged as latest"
             fi
+            # for tag in ${{ steps.vars.outputs.extra_tags }}; do
+            #   docker tag ${{ env.REGISTRY }}/$image:${{ steps.vars.outputs.version_tag }} ${{ env.REGISTRY }}/$image:$tag
+            #   docker push ${{ env.REGISTRY }}/$image:$tag
+            #   echo "🕒 Image historisée : $image:$tag"
+            # done
           }
-          
-          build_and_push "${{ env.IMAGE_SQL }}" "depensiosql.Dockerfile" ""
-          build_and_push "${{ env.IMAGE_API }}" "backend/depensio.Api/Dockerfile" ""
-          build_and_push "${{ env.IMAGE_WEB }}" "frontend/depensio.Web/Dockerfile" "--build-arg API_SETTINGS_URL=${API_URL}"
-          
-          echo "✅ All images built and pushed successfully"
+          build_and_push "${{ env.IMAGE_SQL }}" "depensiosql.Dockerfile"
+          build_and_push "${{ env.IMAGE_API }}" "backend/depensio.Api/Dockerfile"
+          build_and_push "${{ env.IMAGE_WEB }}" "frontend/depensio.Web/Dockerfile"
