@@ -1,9 +1,13 @@
 # Consultez https://aka.ms/customizecontainer pour savoir comment personnaliser votre conteneur de débogage et comment Visual Studio utilise ce Dockerfile pour générer vos images afin d’accélérer le débogage.
 
-# Cet index est utilisé lors de l’exécution à partir de VS en mode rapide (par défaut pour la configuration de débogage)
+# Cet index est utilisé lors de l'exécution à partir de VS en mode rapide (par défaut pour la configuration de débogage)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-USER $APP_UID
 WORKDIR /app
+
+# Créer le répertoire pour les clés Data Protection avec les bonnes permissions
+RUN mkdir -p /app/keys && chown -R app:app /app/keys
+
+USER app
 EXPOSE 8080
 EXPOSE 8081
 
