@@ -5,110 +5,216 @@
 @layout MainLayout
 @inject ToastService ToastService
 
-<PageTitle>Depensio - Historique des ventes</PageTitle>
+<PageTitleComponent Title="Historique des ventes" />
+
+<HeaderPage
+    Title="Historique des ventes"
+    SubTitle="Consultez et gérez l'historique de vos ventes"/>
 
 <LoadingComponent IsLoad="@isLoad" />
 <ToastContainer />
 
-<div class="container mx-auto p-4">
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-            <h1 class="text-2xl font-semibold text-primary-700 mb-4 md:mb-0">
-                <i class="fas fa-history mr-2"></i> Historique des ventes
-            </h1>
-            <div class="flex gap-2">
-                <select @bind="filterStatus" @bind:after="ApplyFilter" class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700">
-                    <option value="all">Toutes les ventes</option>
-                    <option value="validated">Validees uniquement</option>
-                    <option value="cancelled">Annulees uniquement</option>
-                </select>
-            </div>
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex items-center">
+            <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
+            <select id="itemsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+                <option>100</option>
+            </select>
+            <span class="ml-2 text-sm text-gray-600">éléments</span>
         </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" placeholder="Rechercher une vente..."
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex gap-3">
+            <select @bind="filterStatus" @bind:after="ApplyFilter"
+                class="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+                <option value="all">Toutes les ventes</option>
+                <option value="validated">Validées uniquement</option>
+                <option value="cancelled">Annulées uniquement</option>
+            </select>
+        </div>
+    </div>
 
-        @if (filteredSales.Any())
-        {
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-600 text-sm border-b">
-                            <th class="text-left py-3 px-4">Date</th>
-                            <th class="text-left py-3 px-4">Articles</th>
-                            <th class="text-right py-3 px-4">Total</th>
-                            <th class="text-center py-3 px-4">Statut</th>
-                            <th class="text-center py-3 px-4">Actions</th>
+    <!-- Desktop Table -->
+    <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-primary-700 text-white">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        Articles</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                        Total</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                        Statut</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                        Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @if (filteredSales.Any())
+                {
+                    @foreach (var sale in filteredSales)
+                    {
+                        <tr class="@(sale.IsCancelled ? "bg-red-50" : "")">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">@sale.Date.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                                <div class="text-sm text-gray-500">@sale.Date.ToLocalTime().ToString("HH:mm")</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    @foreach (var item in sale.Items.Take(3))
+                                    {
+                                        <span class="text-sm text-gray-600">
+                                            @(GetProductName(item.ProductId)) x @item.Quantity
+                                        </span>
+                                    }
+                                    @if (sale.Items.Count > 3)
+                                    {
+                                        <span class="text-xs text-gray-400">+ @(sale.Items.Count - 3) autre(s)...</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <span class="text-sm font-semibold text-gray-900">@sale.TotalPrice.ToString("N0") FCFA</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                @if (sale.IsCancelled)
+                                {
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-700">
+                                        <i class="fas fa-times-circle mr-1"></i> Annulée
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(sale.CancellationReason))
+                                    {
+                                        <p class="text-xs text-gray-500 mt-1">@sale.CancellationReason</p>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-700">
+                                        <i class="fas fa-check-circle mr-1"></i> Validée
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                @if (!sale.IsCancelled)
+                                {
+                                    <button type="button"
+                                            @onclick="() => ShowCancelModal(sale)"
+                                            class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-ban mr-1"></i> Annuler
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 text-xs">
+                                        @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                    </span>
+                                }
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var sale in filteredSales)
-                        {
-                            <tr class="border-b hover:bg-gray-50 @(sale.IsCancelled ? "bg-red-50" : "")">
-                                <td class="py-3 px-4">
-                                    @sale.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex flex-col">
-                                        @foreach (var item in sale.Items.Take(3))
-                                        {
-                                            <span class="text-sm text-gray-600">
-                                                @(GetProductName(item.ProductId)) x @item.Quantity
-                                            </span>
-                                        }
-                                        @if (sale.Items.Count > 3)
-                                        {
-                                            <span class="text-xs text-gray-400">+ @(sale.Items.Count - 3) autre(s)...</span>
-                                        }
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4 text-right font-semibold">
-                                    @sale.TotalPrice.ToString("N0") FCFA
-                                </td>
-                                <td class="py-3 px-4 text-center">
-                                    @if (sale.IsCancelled)
-                                    {
-                                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
-                                            <i class="fas fa-times-circle mr-1"></i> Annulee
-                                        </span>
-                                        @if (!string.IsNullOrEmpty(sale.CancellationReason))
-                                        {
-                                            <p class="text-xs text-gray-500 mt-1">@sale.CancellationReason</p>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                                            <i class="fas fa-check-circle mr-1"></i> Validee
-                                        </span>
-                                    }
-                                </td>
-                                <td class="py-3 px-4 text-center">
-                                    @if (!sale.IsCancelled)
-                                    {
-                                        <button type="button"
-                                                @onclick="() => ShowCancelModal(sale)"
-                                                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">
-                                            <i class="fas fa-ban mr-1"></i> Annuler
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-gray-400 text-sm">
-                                            Annulee le @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
-                                        </span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-12">
-                <i class="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500 text-lg">Aucune vente trouvee</p>
-            </div>
-        }
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <i class="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 text-lg">Aucune vente trouvée</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-view">
+        <div class="grid grid-cols-1 gap-4">
+            @if (filteredSales.Any())
+            {
+                @foreach (var sale in filteredSales)
+                {
+                    <div class="bg-white rounded-lg shadow-md p-4 @(sale.IsCancelled ? "border-l-4 border-red-500" : "border-l-4 border-green-500")">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-medium text-gray-900">@sale.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</h3>
+                                @if (sale.IsCancelled)
+                                {
+                                    <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+                                        <i class="fas fa-times-circle mr-1"></i> Annulée
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                        <i class="fas fa-check-circle mr-1"></i> Validée
+                                    </span>
+                                }
+                            </div>
+                            <span class="font-semibold text-primary-700">@sale.TotalPrice.ToString("N0") FCFA</span>
+                        </div>
+                        <div class="text-sm text-gray-500 mb-3">
+                            @foreach (var item in sale.Items.Take(2))
+                            {
+                                <div>@(GetProductName(item.ProductId)) x @item.Quantity</div>
+                            }
+                            @if (sale.Items.Count > 2)
+                            {
+                                <span class="text-xs text-gray-400">+ @(sale.Items.Count - 2) autre(s)...</span>
+                            }
+                        </div>
+                        <div class="flex justify-end">
+                            @if (!sale.IsCancelled)
+                            {
+                                <button type="button"
+                                        @onclick="() => ShowCancelModal(sale)"
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    <i class="fas fa-ban mr-1"></i> Annuler
+                                </button>
+                            }
+                            else if (!string.IsNullOrEmpty(sale.CancellationReason))
+                            {
+                                <span class="text-xs text-gray-500">@sale.CancellationReason</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-12">
+                    <i class="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg">Aucune vente trouvée</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Footer with pagination -->
+    <div class="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+        <div class="mb-4 md:mb-0">
+            <span class="text-sm text-gray-600">@filteredSales.Count vente(s)</span>
+        </div>
+        <div class="text-sm text-gray-600 mb-4 md:mb-0">
+            Affichage de 1 à @Math.Min(filteredSales.Count, 10) sur @filteredSales.Count éléments
+        </div>
+        <div class="flex items-center gap-1">
+            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+                <i class="fas fa-angle-left"></i>
+            </button>
+            <button class="px-3 py-1 rounded bg-primary-700 text-white">1</button>
+            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+                <i class="fas fa-angle-right"></i>
+            </button>
+        </div>
     </div>
 </div>
 
