@@ -126,7 +126,7 @@ jobs:
             JWT_SECRET_WEB=${{ secrets.JWT_SECRET_WEB }}
             SERVICE_MENU_URI=${{ secrets.SERVICE_MENU_URI }}
             DOCKER_TAG=$TAG
-            LOCALDOMAIN={{vars.LOCALDOMAIN}}
+            LOCALDOMAIN=${{ vars.LOCALDOMAIN }}
             SERVICE_MAGASIN_URI=${{ secrets.SERVICE_MAGASIN_URI }}
             EOF
 
