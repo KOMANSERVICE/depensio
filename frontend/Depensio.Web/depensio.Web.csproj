@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\depensio.Web.Client\depensio.Web.Client.csproj" />
+    <ProjectReference Include="..\Depensio.Web.Client\depensio.Web.Client.csproj" />
   </ItemGroup>
 
 </Project>
