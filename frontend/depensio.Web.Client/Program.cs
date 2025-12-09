@@ -11,16 +11,27 @@ using System.Net.Http.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// ✅ Charger la config depuis l'API au lieu du fichier
-using var httpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
-var configResponse = await httpClient.GetFromJsonAsync<Dictionary<string, Dictionary<string, string>>>("/api/config");
-var apiUrl = configResponse?["ApiSettings"]?["Uri"];
-
-// Ajouter la config manuellement
-builder.Configuration.AddInMemoryCollection(new[]
+// ✅ CHARGER LA CONFIG DEPUIS L'ENDPOINT /api/config AVANT TOUT
+try
 {
-    new KeyValuePair<string, string>("ApiSettings:Uri", apiUrl)
-});
+    using var httpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+
+    var configResponse = await httpClient.GetFromJsonAsync<ConfigResponse>("/api/config");
+    var apiUrl = configResponse?.ApiSettings?.Uri;
+
+    Console.WriteLine($"🌐 API URL chargée depuis /api/config : {apiUrl}");
+
+    // Remplacer la configuration par celle de l'API
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["ApiSettings:Uri"] = apiUrl
+    });
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"❌ Erreur lors du chargement de /api/config : {ex.Message}");
+    // Fallback sur la config par défaut
+}
 
 // Add device-specific services used by the depensio.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>()
@@ -35,3 +46,13 @@ builder.Services.AddScoped<IGraphComponent<SaleDashboard>, SalesGraphComponentSe
 
 
 await builder.Build().RunAsync();
+// ✅ AJOUTER CETTE CLASSE À LA FIN DU FICHIER
+public class ConfigResponse
+{
+    public ApiSettingsConfig? ApiSettings { get; set; }
+}
+
+public class ApiSettingsConfig
+{
+    public string? Uri { get; set; }
+}
