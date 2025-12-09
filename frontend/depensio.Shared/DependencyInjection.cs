@@ -22,8 +22,6 @@ public static class DependencyInjection
                 "ApiSettings:Uri is not configured. Please check your appsettings.json file.");
         }
 
-        Console.WriteLine($"🔍 API URI loaded: {uri}"); // Pour déboguer
-
         services.AddBlazorLibrairyServices(configuration, (options) =>
         {
             options.Uri = uri;
