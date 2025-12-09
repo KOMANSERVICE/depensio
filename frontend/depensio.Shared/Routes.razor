@@ -1,6 +1,6 @@
 ﻿
 <AuthInitializer PInvokeVoid=@JsMethode RedirectToLogin="/login" >
-    <Router AppAssembly="typeof(Layout.SecondaryLayout).Assembly" >
+    <Router AppAssembly="typeof(Layout.SecondaryLayout).Assembly" NotFoundPage="typeof(Pages.Errors.NotFound)">
         <Found Context="routeData">
             <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.SecondaryLayout)" />            
         </Found>

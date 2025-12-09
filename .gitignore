@@ -365,3 +365,5 @@ FodyWeavers.xsd
 *vault-depensio-env.*
 *setup.*.sh
 *.env
+
+keys/
