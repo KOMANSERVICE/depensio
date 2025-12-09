@@ -68,6 +68,15 @@ app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// ✅ AJOUTER CET ENDPOINT avant MapRazorComponents
+app.MapGet("/api/config", (IConfiguration config) =>
+{
+    var apiUrl = Environment.GetEnvironmentVariable("API_SETTINGS_URL")
+                 ?? config["ApiSettings:Uri"];
+
+    return Results.Json(new { ApiSettings = new { Uri = apiUrl } });
+});
+
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(
