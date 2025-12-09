@@ -18,10 +18,10 @@ builder.Configuration
     .AddEnvironmentVariables();
 
 // Configure Data Protection pour persister les clés
-var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"] ?? "/app/keys";
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
-    .SetApplicationName("depensio-web");
+//var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"] ?? "/app/keys";
+//builder.Services.AddDataProtection()
+//    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+//    .SetApplicationName("depensio-web");
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
