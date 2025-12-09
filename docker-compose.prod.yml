@@ -57,7 +57,6 @@
     volumes:
       - ./frontend/depensio.Web.Client/wwwroot/appsettings.json:/app/wwwroot/appsettings.json:ro
       - ./frontend/depensio.Web/appsettings.json:/app/appsettings.json:ro
-      - dataprotection_keys:/app/keys
     env_file:
       - ./.env
     networks:
