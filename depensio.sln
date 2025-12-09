@@ -16,13 +16,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Application", "backend\depensio.Application\depensio.Application.csproj", "{7AC75A7B-AB15-4EAC-932B-FCA732D0DCAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio", "frontend\depensio\depensio.csproj", "{B0EA34D7-3ECC-661F-817F-EB8EBCC2187A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio", "frontend\Depensio\depensio.csproj", "{B0EA34D7-3ECC-661F-817F-EB8EBCC2187A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Shared", "frontend\depensio.Shared\depensio.Shared.csproj", "{0E56350A-19F0-AC59-9021-F801DF74E27C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Shared", "frontend\Depensio.Shared\depensio.Shared.csproj", "{0E56350A-19F0-AC59-9021-F801DF74E27C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Web", "frontend\depensio.Web\depensio.Web.csproj", "{5C335C92-F9E7-81CB-1970-484687198C1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Web", "frontend\Depensio.Web\depensio.Web.csproj", "{5C335C92-F9E7-81CB-1970-484687198C1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Web.Client", "frontend\depensio.Web.Client\depensio.Web.Client.csproj", "{2414B08D-51B0-12EE-1021-1010FE7A1A3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "depensio.Web.Client", "frontend\Depensio.Web.Client\depensio.Web.Client.csproj", "{2414B08D-51B0-12EE-1021-1010FE7A1A3F}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
