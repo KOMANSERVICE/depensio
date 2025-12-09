@@ -18,11 +18,11 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div class="flex items-center">
             <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
-            <select id="itemsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-                <option>100</option>
+            <select id="itemsPerPage" @bind="itemsPerPage" @bind:after="OnItemsPerPageChanged" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
             </select>
             <span class="ml-2 text-sm text-gray-600">éléments</span>
         </div>
@@ -59,9 +59,9 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                @if (filteredSales.Any())
+                @if (paginatedSales.Any())
                 {
-                    @foreach (var sale in filteredSales)
+                    @foreach (var sale in paginatedSales)
                     {
                         <tr class="@(sale.IsCancelled ? "bg-red-50" : "")">
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -138,9 +138,9 @@
     <!-- Mobile Cards -->
     <div class="mobile-view">
         <div class="grid grid-cols-1 gap-4">
-            @if (filteredSales.Any())
+            @if (paginatedSales.Any())
             {
-                @foreach (var sale in filteredSales)
+                @foreach (var sale in paginatedSales)
                 {
                     <div class="bg-white rounded-lg shadow-md p-4 @(sale.IsCancelled ? "border-l-4 border-red-500" : "border-l-4 border-green-500")">
                         <div class="flex justify-between items-start mb-2">
@@ -204,14 +204,25 @@
             <span class="text-sm text-gray-600">@filteredSales.Count vente(s)</span>
         </div>
         <div class="text-sm text-gray-600 mb-4 md:mb-0">
-            Affichage de 1 à @Math.Min(filteredSales.Count, 10) sur @filteredSales.Count éléments
+            Affichage de @StartIndex à @EndIndex sur @filteredSales.Count éléments
         </div>
         <div class="flex items-center gap-1">
-            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+            <button @onclick="GoToPreviousPage"
+                    disabled="@(currentPage <= 1)"
+                    class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-angle-left"></i>
             </button>
-            <button class="px-3 py-1 rounded bg-primary-700 text-white">1</button>
-            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+            @for (int i = 1; i <= TotalPages; i++)
+            {
+                var pageNumber = i;
+                <button @onclick="() => GoToPage(pageNumber)"
+                        class="px-3 py-1 rounded @(currentPage == pageNumber ? "bg-primary-700 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-100")">
+                    @pageNumber
+                </button>
+            }
+            <button @onclick="GoToNextPage"
+                    disabled="@(currentPage >= TotalPages)"
+                    class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-angle-right"></i>
             </button>
         </div>
@@ -274,6 +285,19 @@
     private bool isLoad = false;
     private string filterStatus = "all";
 
+    // Pagination
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+
+    private List<Sale> paginatedSales => filteredSales
+        .Skip((currentPage - 1) * itemsPerPage)
+        .Take(itemsPerPage)
+        .ToList();
+
+    private int TotalPages => (int)Math.Ceiling((double)filteredSales.Count / itemsPerPage);
+    private int StartIndex => filteredSales.Count == 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+    private int EndIndex => Math.Min(currentPage * itemsPerPage, filteredSales.Count);
+
     private bool showCancelModal = false;
     private Sale? selectedSale = null;
     private string cancellationReason = "";
@@ -321,6 +345,7 @@
             "cancelled" => sales.Where(s => s.IsCancelled).ToList(),
             _ => sales.ToList()
         };
+        currentPage = 1;
     }
 
     private string GetProductName(Guid productId)
@@ -403,5 +428,35 @@
     private void ShowError(string message)
     {
         ToastService.ShowToast("Erreur", message, "error");
+    }
+
+    // Pagination methods
+    private void OnItemsPerPageChanged()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
     }
 }
