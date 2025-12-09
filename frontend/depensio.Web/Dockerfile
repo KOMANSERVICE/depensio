@@ -30,7 +30,13 @@ ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Cette phase est utilisée en production ou lors de l’exécution à partir de VS en mode normal (par défaut quand la configuration de débogage n’est pas utilisée)
-FROM base AS final
+FROM base AS finalFROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# ✅ AJOUTER CES LIGNES - Donner les permissions à l'utilisateur app
+USER root
+RUN chown -R app:app /app/wwwroot && chmod -R 755 /app/wwwroot
+USER app
+
 ENTRYPOINT ["dotnet", "depensio.Web.dll"]

@@ -48,8 +48,8 @@
       - JWT__ValidAudience=${JWT_VALID_AUDIENCE_WEB}
       - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
       - JWT__Secret=${JWT_SECRET_WEB}
-    entrypoint: ["/bin/sh", "-c"]  # ← Modifier l'entrypoint
-    command:  # ← Ajouter ce script de démarrage
+    entrypoint: ["/bin/sh", "-c"]  
+    command:  
       - |
         echo "🔧 Configuration de l'API URL..."
         sed -i "s|\$${API_SETTINGS_URL}|$$API_SETTINGS_URL|g" /app/wwwroot/appsettings.json
