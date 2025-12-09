@@ -48,7 +48,11 @@
       - JWT__ValidAudience=${JWT_VALID_AUDIENCE_WEB}
       - JWT__ValidIssuer=${JWT_VALID_ISSUER_WEB}
       - JWT__Secret=${JWT_SECRET_WEB}
-      - DataProtection__KeysPath=/app/keys
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sed -i "s|API_SETTINGS_URL|$$API_SETTINGS_URL|g" /app/wwwroot/appsettings.json
+        dotnet depensio.Web.dll
     ports:
       - "127.0.0.1:9001:8080"
     depends_on:
