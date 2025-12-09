@@ -30,7 +30,7 @@ ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./depensio.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Cette phase est utilisée en production ou lors de l’exécution à partir de VS en mode normal (par défaut quand la configuration de débogage n’est pas utilisée)
-FROM base AS finalFROM base AS final
+FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
