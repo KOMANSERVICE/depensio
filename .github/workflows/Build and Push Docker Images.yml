@@ -82,4 +82,4 @@ jobs:
           }
           build_and_push "${{ env.IMAGE_SQL }}" "depensiosql.Dockerfile"
           build_and_push "${{ env.IMAGE_API }}" "backend/depensio.Api/Dockerfile"
-          build_and_push "${{ env.IMAGE_WEB }}" "frontend/depensio.Web/Dockerfile"
+          build_and_push "${{ env.IMAGE_WEB }}" "frontend/Depensio.Web/Dockerfile"

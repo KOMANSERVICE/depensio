@@ -127,7 +127,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\depensio.Shared\depensio.Shared.csproj" />
+    <ProjectReference Include="..\Depensio.Shared\Depensio.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

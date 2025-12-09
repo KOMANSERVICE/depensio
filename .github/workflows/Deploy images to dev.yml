@@ -133,10 +133,10 @@ jobs:
             chmod 644 $ENV_PATH
             dos2unix $ENV_PATH
 
-            mkdir -p $DIR_PATH/frontend/depensio.Web.Client/wwwroot
-            mkdir -p $DIR_PATH/frontend/depensio.Web
-            
-            cat <<EOF > $DIR_PATH/frontend/depensio.Web.Client/wwwroot/appsettings.json
+            mkdir -p $DIR_PATH/frontend/Depensio.Web.Client/wwwroot
+            mkdir -p $DIR_PATH/frontend/Depensio.Web
+
+            cat <<EOF > $DIR_PATH/frontend/Depensio.Web.Client/wwwroot/appsettings.json
             {
               "Logging": {
                 "LogLevel": {
@@ -151,7 +151,7 @@ jobs:
             }
             EOF
             
-            cat <<EOF > $DIR_PATH/frontend/depensio.Web/appsettings.json
+            cat <<EOF > $DIR_PATH/frontend/Depensio.Web/appsettings.json
             {
               "Logging": {
                 "LogLevel": {
