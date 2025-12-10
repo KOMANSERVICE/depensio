@@ -1,0 +1,462 @@
+@page "/ventes/{boutiqueId:guid}"
+@inject ISaleService _saleService
+@inject IProductService _productService
+@inherits FlowbitePage
+@layout MainLayout
+@inject ToastService ToastService
+
+<PageTitleComponent Title="Historique des ventes" />
+
+<HeaderPage
+    Title="Historique des ventes"
+    SubTitle="Consultez et gérez l'historique de vos ventes"/>
+
+<LoadingComponent IsLoad="@isLoad" />
+<ToastContainer />
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex items-center">
+            <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
+            <select id="itemsPerPage" @bind="itemsPerPage" @bind:after="OnItemsPerPageChanged" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span class="ml-2 text-sm text-gray-600">éléments</span>
+        </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" placeholder="Rechercher une vente..."
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex gap-3">
+            <select @bind="filterStatus" @bind:after="ApplyFilter"
+                class="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+                <option value="all">Toutes les ventes</option>
+                <option value="validated">Validées uniquement</option>
+                <option value="cancelled">Annulées uniquement</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-primary-700 text-white">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        Articles</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                        Total</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                        Statut</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                        Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @if (paginatedSales.Any())
+                {
+                    @foreach (var sale in paginatedSales)
+                    {
+                        <tr class="@(sale.IsCancelled ? "bg-red-50" : "")">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">@sale.Date.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                                <div class="text-sm text-gray-500">@sale.Date.ToLocalTime().ToString("HH:mm")</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    @foreach (var item in sale.Items.Take(3))
+                                    {
+                                        <span class="text-sm text-gray-600">
+                                            @(GetProductName(item.ProductId)) x @item.Quantity
+                                        </span>
+                                    }
+                                    @if (sale.Items.Count > 3)
+                                    {
+                                        <span class="text-xs text-gray-400">+ @(sale.Items.Count - 3) autre(s)...</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <span class="text-sm font-semibold text-gray-900">@sale.TotalPrice.ToString("N0") FCFA</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                @if (sale.IsCancelled)
+                                {
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-700">
+                                        <i class="fas fa-times-circle mr-1"></i> Annulée
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(sale.CancellationReason))
+                                    {
+                                        <p class="text-xs text-gray-500 mt-1">@sale.CancellationReason</p>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-700">
+                                        <i class="fas fa-check-circle mr-1"></i> Validée
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                @if (!sale.IsCancelled)
+                                {
+                                    <button type="button"
+                                            @onclick="() => ShowCancelModal(sale)"
+                                            class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-ban mr-1"></i> Annuler
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 text-xs">
+                                        @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <i class="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 text-lg">Aucune vente trouvée</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-view">
+        <div class="grid grid-cols-1 gap-4">
+            @if (paginatedSales.Any())
+            {
+                @foreach (var sale in paginatedSales)
+                {
+                    <div class="bg-white rounded-lg shadow-md p-4 @(sale.IsCancelled ? "border-l-4 border-red-500" : "border-l-4 border-green-500")">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-medium text-gray-900">@sale.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</h3>
+                                @if (sale.IsCancelled)
+                                {
+                                    <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+                                        <i class="fas fa-times-circle mr-1"></i> Annulée
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                        <i class="fas fa-check-circle mr-1"></i> Validée
+                                    </span>
+                                }
+                            </div>
+                            <span class="font-semibold text-primary-700">@sale.TotalPrice.ToString("N0") FCFA</span>
+                        </div>
+                        <div class="text-sm text-gray-500 mb-3">
+                            @foreach (var item in sale.Items.Take(2))
+                            {
+                                <div>@(GetProductName(item.ProductId)) x @item.Quantity</div>
+                            }
+                            @if (sale.Items.Count > 2)
+                            {
+                                <span class="text-xs text-gray-400">+ @(sale.Items.Count - 2) autre(s)...</span>
+                            }
+                        </div>
+                        <div class="flex justify-end">
+                            @if (!sale.IsCancelled)
+                            {
+                                <button type="button"
+                                        @onclick="() => ShowCancelModal(sale)"
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    <i class="fas fa-ban mr-1"></i> Annuler
+                                </button>
+                            }
+                            else if (!string.IsNullOrEmpty(sale.CancellationReason))
+                            {
+                                <span class="text-xs text-gray-500">@sale.CancellationReason</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-12">
+                    <i class="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg">Aucune vente trouvée</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Footer with pagination -->
+    <div class="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+        <div class="mb-4 md:mb-0">
+            <span class="text-sm text-gray-600">@filteredSales.Count vente(s)</span>
+        </div>
+        <div class="text-sm text-gray-600 mb-4 md:mb-0">
+            Affichage de @StartIndex à @EndIndex sur @filteredSales.Count éléments
+        </div>
+        <div class="flex items-center gap-1">
+            <button @onclick="GoToPreviousPage"
+                    disabled="@(currentPage <= 1)"
+                    class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-angle-left"></i>
+            </button>
+            @for (int i = 1; i <= TotalPages; i++)
+            {
+                var pageNumber = i;
+                <button @onclick="() => GoToPage(pageNumber)"
+                        class="px-3 py-1 rounded @(currentPage == pageNumber ? "bg-primary-700 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-100")">
+                    @pageNumber
+                </button>
+            }
+            <button @onclick="GoToNextPage"
+                    disabled="@(currentPage >= TotalPages)"
+                    class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-angle-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (showCancelModal && selectedSale != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
+            <h3 class="text-xl font-semibold text-red-600 mb-4">
+                <i class="fas fa-exclamation-triangle mr-2"></i> Annuler la vente
+            </h3>
+            <p class="text-gray-600 mb-4">
+                Etes-vous sur de vouloir annuler cette vente de <strong>@selectedSale.TotalPrice.ToString("N0") FCFA</strong> ?
+            </p>
+            <p class="text-sm text-gray-500 mb-4">
+                Cette action va restaurer le stock des produits concernes.
+            </p>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Raison de l'annulation (optionnel):</label>
+                <textarea @bind="cancellationReason"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Ex: Erreur de saisie, retour client..."
+                          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-700"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="button"
+                        @onclick="CloseCancelModal"
+                        class="flex-grow bg-gray-200 text-gray-800 p-2 rounded hover:bg-gray-300 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Retour
+                </button>
+                <button type="button"
+                        @onclick="ConfirmCancel"
+                        disabled="@isCancelling"
+                        class="flex-grow bg-red-500 text-white p-2 rounded hover:bg-red-600 transition disabled:opacity-50">
+                    @if (isCancelling)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-ban mr-1"></i>
+                    }
+                    Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    private List<Sale> sales = new();
+    private List<Sale> filteredSales = new();
+    private List<Product> products = new();
+    private bool isLoad = false;
+    private string filterStatus = "all";
+
+    // Pagination
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+
+    private List<Sale> paginatedSales => filteredSales
+        .Skip((currentPage - 1) * itemsPerPage)
+        .Take(itemsPerPage)
+        .ToList();
+
+    private int TotalPages => (int)Math.Ceiling((double)filteredSales.Count / itemsPerPage);
+    private int StartIndex => filteredSales.Count == 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+    private int EndIndex => Math.Min(currentPage * itemsPerPage, filteredSales.Count);
+
+    private bool showCancelModal = false;
+    private Sale? selectedSale = null;
+    private string cancellationReason = "";
+    private bool isCancelling = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoad = true;
+        try
+        {
+            var salesResult = await _saleService.GetSaleByBoutiqueAsync(BoutiqueId);
+            if (salesResult.Success)
+            {
+                sales = salesResult.Data.Sales.OrderByDescending(s => s.Date).ToList();
+            }
+
+            var productsResult = await _productService.GetProductsByUserAsync(BoutiqueId);
+            if (productsResult.Success)
+            {
+                products = productsResult.Data.Products.ToList();
+            }
+
+            ApplyFilter();
+        }
+        catch (Exception)
+        {
+            ShowError("Erreur lors du chargement des ventes");
+        }
+        finally
+        {
+            isLoad = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        filteredSales = filterStatus switch
+        {
+            "validated" => sales.Where(s => !s.IsCancelled).ToList(),
+            "cancelled" => sales.Where(s => s.IsCancelled).ToList(),
+            _ => sales.ToList()
+        };
+        currentPage = 1;
+    }
+
+    private string GetProductName(Guid productId)
+    {
+        return products.FirstOrDefault(p => p.Id == productId)?.Name ?? "Produit inconnu";
+    }
+
+    private void ShowCancelModal(Sale sale)
+    {
+        selectedSale = sale;
+        cancellationReason = "";
+        showCancelModal = true;
+    }
+
+    private void CloseCancelModal()
+    {
+        showCancelModal = false;
+        selectedSale = null;
+        cancellationReason = "";
+    }
+
+    private async Task ConfirmCancel()
+    {
+        if (selectedSale == null) return;
+
+        isCancelling = true;
+        try
+        {
+            var request = new CancelSaleRequest(
+                selectedSale.Id,
+                string.IsNullOrWhiteSpace(cancellationReason) ? null : cancellationReason.Trim()
+            );
+
+            var result = await _saleService.CancelSaleAsync(request);
+            if (result.Success && result.Data.Success)
+            {
+                ShowSuccess("Vente annulee avec succes");
+                CloseCancelModal();
+                await LoadData();
+            }
+            else
+            {
+                ShowError("Erreur lors de l'annulation de la vente");
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    ShowError(errorResult.Detail);
+                }
+                else
+                {
+                    ShowError("Une erreur est survenue");
+                }
+            }
+            catch
+            {
+                ShowError("Une erreur est survenue");
+            }
+        }
+        finally
+        {
+            isCancelling = false;
+        }
+    }
+
+    private void ShowSuccess(string message)
+    {
+        ToastService.ShowToast("Succes", message, "success");
+    }
+
+    private void ShowError(string message)
+    {
+        ToastService.ShowToast("Erreur", message, "error");
+    }
+
+    // Pagination methods
+    private void OnItemsPerPageChanged()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
+    }
+}

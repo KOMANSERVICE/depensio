@@ -1397,6 +1397,10 @@ video {
   max-width: 80rem;
 }
 
+.max-w-\[150px\] {
+  max-width: 150px;
+}
+
 .max-w-full {
   max-width: 100%;
 }
@@ -1527,6 +1531,10 @@ video {
 
 .cursor-default {
   cursor: default;
+}
+
+.cursor-help {
+  cursor: help;
 }
 
 .cursor-not-allowed {

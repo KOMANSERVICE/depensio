@@ -121,6 +121,17 @@ server {
     }
 }
 
+server {
+    listen 80;
+    server_name demo.depensio.com;
+
+    location / {
+        proxy_pass http://10.99.0.2:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
 Avec page de maintenance
 
 server {
@@ -818,5 +829,15 @@ stream {
     server {
         listen 2222;
         proxy_pass ssh_komanserveur;
+        
+        # Timeouts pour déploiements longs
+        proxy_connect_timeout 60s;
+        proxy_timeout 3600s;  # 1 heure !
+        
+        # Buffers pour SSH
+        proxy_buffer_size 16k;
     }
 }
+
+sudo nginx -t
+sudo systemctl reload nginx
