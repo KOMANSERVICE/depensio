@@ -91,7 +91,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @if (sale.IsCancelled)
                                 {
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-700">
+                                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
                                         <i class="fas fa-times-circle mr-1"></i> Annulée
                                     </span>
                                     @if (!string.IsNullOrEmpty(sale.CancellationReason))
@@ -101,7 +101,7 @@
                                 }
                                 else
                                 {
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-700">
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
                                         <i class="fas fa-check-circle mr-1"></i> Validée
                                     </span>
                                 }
@@ -111,14 +111,14 @@
                                 {
                                     <button type="button"
                                             @onclick="() => ShowCancelModal(sale)"
-                                            class="text-red-600 hover:text-red-800">
+                                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">
                                         <i class="fas fa-ban mr-1"></i> Annuler
                                     </button>
                                 }
                                 else
                                 {
-                                    <span class="text-gray-400 text-xs">
-                                        @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                    <span class="text-gray-400 text-sm">
+                                        Annulée le @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
                                     </span>
                                 }
                             </td>
@@ -151,13 +151,13 @@
                                 <h3 class="font-medium text-gray-900">@sale.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</h3>
                                 @if (sale.IsCancelled)
                                 {
-                                    <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+                                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
                                         <i class="fas fa-times-circle mr-1"></i> Annulée
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
                                         <i class="fas fa-check-circle mr-1"></i> Validée
                                     </span>
                                 }
@@ -179,7 +179,7 @@
                             {
                                 <button type="button"
                                         @onclick="() => ShowCancelModal(sale)"
-                                        class="text-red-600 hover:text-red-800 text-sm">
+                                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">
                                     <i class="fas fa-ban mr-1"></i> Annuler
                                 </button>
                             }
