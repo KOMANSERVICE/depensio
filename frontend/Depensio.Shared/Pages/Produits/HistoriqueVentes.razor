@@ -96,7 +96,7 @@
                                     </span>
                                     @if (!string.IsNullOrEmpty(sale.CancellationReason))
                                     {
-                                        <p class="text-xs text-gray-500 mt-1">@sale.CancellationReason</p>
+                                        <p class="text-xs text-gray-500 mt-1 max-w-[150px] truncate cursor-help" title="@sale.CancellationReason">@sale.CancellationReason</p>
                                     }
                                 }
                                 else
@@ -185,7 +185,7 @@
                             }
                             else if (!string.IsNullOrEmpty(sale.CancellationReason))
                             {
-                                <span class="text-xs text-gray-500">@sale.CancellationReason</span>
+                                <span class="text-xs text-gray-500 block max-w-[150px] truncate cursor-help" title="@sale.CancellationReason">@sale.CancellationReason</span>
                             }
                         </div>
                     </div>
