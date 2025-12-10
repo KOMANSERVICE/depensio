@@ -28,7 +28,11 @@
       "Bash(ls:*)",
       "Bash(docker-compose exec:*)",
       "Bash(docker-compose ps:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(git mv:*)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c \"cd C:\\Workspace\\App\\depensio\\depensio\\frontend && ren depensio.Shared depensio.Shared_temp\")"
     ],
     "deny": [],
     "ask": []

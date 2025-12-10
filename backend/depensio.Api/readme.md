@@ -544,3 +544,279 @@ docker compose up -d
 🧱 6️⃣ Vérification intrusion / Malware
 sudo apt install -y lynis
 sudo lynis audit system
+
+
+#### Configuration WireGuard : VPS Contabo ↔ PC Local
+Parfait ! Utilisons votre VPS Contabo existant. Impact minimal sur la prod.
+
+Architecture finale :
+Internet
+    ↓
+VPS Contabo (depensio.com)
+    ├─ Nginx → depensio.com (prod) [pas touché]
+    ├─ Nginx → demo.depensio.com (nouveau)
+    └─ WireGuard (tunnel vers votre PC local)
+           ↓
+       komanserveur (chez vous, derrière CGNAT)
+           └─ Application sur localhost:9001
+
+#### PARTIE 1 : Sur le VPS Contabo
+Étape 1 : Se connecter au VPS
+Depuis Windows (PowerShell) :
+powershellssh root@IP_VPS_CONTABO
+# ou
+ssh votre-user@IP_VPS_CONTABO
+
+Étape 2 : Installer WireGuard
+bash# Mettre à jour
+sudo apt update
+
+# Installer WireGuard
+sudo apt install wireguard -y
+
+# Vérifier
+wg --version
+
+Étape 3 : Générer les clés du serveur (VPS)
+bash# Créer le répertoire
+sudo mkdir -p /etc/wireguard
+cd /etc/wireguard
+
+# Générer la clé privée du serveur
+wg genkey | sudo tee server_private.key | wg pubkey | sudo tee server_public.key
+
+# Sécuriser la clé privée
+sudo chmod 600 server_private.key
+
+# Afficher les clés (notez-les)
+echo "=== CLÉ PRIVÉE SERVEUR ==="
+sudo cat server_private.key
+echo ""
+echo "=== CLÉ PUBLIQUE SERVEUR ==="
+cat server_public.key
+⚠️ NOTEZ CES DEUX CLÉS !
+
+Étape 4 : Configuration WireGuard sur le VPS
+bashsudo nano /etc/wireguard/wg0.conf
+Contenu (remplacez SERVER_PRIVATE_KEY) :
+ini[Interface]
+PrivateKey = SERVER_PRIVATE_KEY
+Address = 10.99.0.1/24
+ListenPort = 51820
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+# Cette section sera remplie après avoir configuré le client
+[Peer]
+# PublicKey du client (à ajouter après l'étape 8)
+# PublicKey = CLIENT_PUBLIC_KEY
+# AllowedIPs = 10.99.0.2/32
+Remplacez :
+
+SERVER_PRIVATE_KEY : La clé privée de l'étape 3
+eth0 : Votre interface réseau (vérifiez avec ip addr - peut être ens3, enp0s3, etc.)
+
+Sauvegarder : Ctrl+O, Enter, Ctrl+X
+
+Étape 5 : Activer le forwarding IP
+bash# Activer temporairement
+sudo sysctl -w net.ipv4.ip_forward=1
+
+# Activer de façon permanente
+echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+
+Étape 6 : Ouvrir le port WireGuard dans le firewall
+bash# Si vous utilisez UFW
+sudo ufw allow 51820/udp
+
+# Si vous utilisez iptables directement
+sudo iptables -A INPUT -p udp --dport 51820 -j ACCEPT
+sudo netfilter-persistent save
+
+PARTIE 2 : Sur komanserveur (PC local Ubuntu)
+Étape 7 : Installer WireGuard
+Via SSH depuis Windows vers komanserveur :
+powershellssh komanatse@IP_LOCAL_KOMANSERVEUR
+Sur komanserveur :
+bash# Installer
+sudo apt update
+sudo apt install wireguard -y
+
+Étape 8 : Générer les clés du client
+bashcd ~
+wg genkey | sudo tee client_private.key | wg pubkey | sudo tee client_public.key
+sudo chmod 600 client_private.key
+
+# Afficher les clés
+echo "=== CLÉ PRIVÉE CLIENT ==="
+cat client_private.key
+echo ""
+echo "=== CLÉ PUBLIQUE CLIENT ==="
+cat client_public.key
+⚠️ NOTEZ CES DEUX CLÉS !
+
+Étape 9 : Configuration WireGuard sur komanserveur
+bashsudo nano /etc/wireguard/wg0.conf
+Contenu (remplacez les valeurs) :
+ini[Interface]
+PrivateKey = CLIENT_PRIVATE_KEY
+Address = 10.99.0.2/24
+
+[Peer]
+PublicKey = SERVER_PUBLIC_KEY
+Endpoint = IP_PUBLIC_VPS_CONTABO:51820
+AllowedIPs = 10.99.0.0/24
+PersistentKeepalive = 25
+Remplacez :
+
+CLIENT_PRIVATE_KEY : Clé privée client de l'étape 8
+SERVER_PUBLIC_KEY : Clé publique serveur de l'étape 3
+IP_PUBLIC_VPS_CONTABO : L'IP publique de votre VPS Contabo
+
+Sauvegarder : Ctrl+O, Enter, Ctrl+X
+
+PARTIE 3 : Finaliser la configuration
+Étape 10 : Ajouter le peer client sur le VPS
+Retournez sur le VPS Contabo :
+bashsudo nano /etc/wireguard/wg0.conf
+Complétez la section [Peer] :
+ini[Peer]
+PublicKey = CLIENT_PUBLIC_KEY
+AllowedIPs = 10.99.0.2/32
+Remplacez CLIENT_PUBLIC_KEY par la clé publique client de l'étape 8.
+Sauvegarder.
+
+Étape 11 : Démarrer WireGuard
+Sur le VPS Contabo :
+bashsudo systemctl enable wg-quick@wg0
+sudo systemctl start wg-quick@wg0
+sudo systemctl status wg-quick@wg0
+Sur komanserveur :
+bashsudo systemctl enable wg-quick@wg0
+sudo systemctl start wg-quick@wg0
+sudo systemctl status wg-quick@wg0
+
+Étape 12 : Tester le tunnel
+Depuis komanserveur, pinguer le VPS via le tunnel :
+bashping 10.99.0.1
+Depuis le VPS, pinguer komanserveur via le tunnel :
+bashping 10.99.0.2
+✅ Si les deux fonctionnent, le tunnel est UP !
+
+PARTIE 4 : Configurer Nginx sur le VPS
+Étape 13 : Créer la configuration pour demo.depensio.com
+Sur le VPS Contabo :
+bashsudo nano /etc/nginx/sites-available/demo.depensio.com
+Contenu :
+nginxserver {
+    listen 80;
+    server_name demo.depensio.com;
+
+    location / {
+        proxy_pass http://10.99.0.2:9001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Pour WebSocket (Blazor SignalR)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_exchange;
+        proxy_set_header Connection "upgrade";
+    }
+}
+Activer le site :
+bashsudo ln -s /etc/nginx/sites-available/demo.depensio.com /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+Étape 14 : HTTPS avec Certbot
+bashsudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d demo.depensio.com
+```
+
+Suivez les instructions.
+
+---
+
+## **PARTIE 5 : Configuration DNS chez LWS**
+
+### **Étape 15 : Ajouter l'enregistrement A**
+
+**Dans votre panneau LWS :**
+```
+Type: A
+Nom: demo
+Valeur: IP_PUBLIC_VPS_CONTABO
+TTL: 3600
+```
+
+**Attendez 5-10 minutes pour la propagation.**
+
+---
+
+## **PARTIE 6 : Test final**
+
+### **Étape 16 : Tester**
+
+**Depuis n'importe où sur Internet :**
+```
+https://demo.depensio.com
+✅ Devrait afficher votre application locale !
+
+Gestion et monitoring
+Voir le statut du tunnel :
+Sur le VPS ou komanserveur :
+bashsudo wg show
+Redémarrer WireGuard :
+bashsudo systemctl restart wg-quick@wg0
+Voir les logs :
+bashsudo journalctl -u wg-quick@wg0 -f
+
+Dépannage
+Le tunnel ne fonctionne pas :
+bash# Vérifier que le port 51820 est ouvert sur le VPS
+sudo netstat -tulpn | grep 51820
+
+# Vérifier les interfaces
+sudo wg show
+
+# Vérifier les routes
+ip route
+demo.depensio.com ne répond pas :
+bash# Sur le VPS, tester le tunnel
+curl http://10.99.0.2:9001
+
+# Vérifier Nginx
+sudo nginx -t
+sudo systemctl status nginx
+```
+
+---
+
+## **Récapitulatif des IPs :**
+```
+VPS Contabo : IP publique (ex: 142.x.x.x)
+    └─ WireGuard : 10.99.0.1
+
+komanserveur (local) : IP privée locale (ex: 192.168.0.x)
+    └─ WireGuard : 10.99.0.2
+    └─ Application : localhost:9001
+
+Commencez par l'Étape 1 sur le VPS Contabo et avancez étape par étape. Dites-moi si vous bloquez ! 🚀
+
+# Redirection SSH avec NGINX
+
+sudo nano /etc/nginx/nginx.conf
+
+stream {
+    upstream ssh_komanserveur {
+        server 10.99.0.2:22;
+    }
+    
+    server {
+        listen 2222;
+        proxy_pass ssh_komanserveur;
+    }
+}
