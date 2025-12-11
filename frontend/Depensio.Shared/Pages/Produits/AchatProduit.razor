@@ -8,45 +8,40 @@
 
 <PageTitle>Depensio - Achat de produits</PageTitle>
 
-<HeaderPage 
+<HeaderPage
             Title="Gestion des achats"
             SubTitle="Créer, modifier ou approver vos achats"/>
+
+<LoadingComponent IsLoad="@isLoad" />
 
 <div class="bg-white rounded-lg shadow-md p-4 mb-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div class="flex items-center">
             <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
-            <select id="itemsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-                <option>100</option>
+            <select id="itemsPerPage" @bind="itemsPerPage" @bind:after="OnItemsPerPageChanged" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
             </select>
             <span class="ml-2 text-sm text-gray-600">éléments</span>
         </div>
         <div class="relative w-full md:w-64">
             <input type="text" placeholder="Rechercher un achat..."
+                @bind="searchTerm"
+                @bind:event="oninput"
+                @bind:after="ApplyFilter"
                 class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
         </div>
         <div class="flex gap-3">
-            <button type="button" 
+            <button type="button"
                 @onclick="()=>{
                     onShowModal();
                 }"
                 class="bg-primary-700 hover:bg-amber-800 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors">
                 <i class="fas fa-plus"></i>
             </button>
-           @*  <button
-                type="button" 
-                class="border border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white px-3 py-2 rounded-md flex items-center justify-center transition-colors">
-                <i class="fas fa-file-excel"></i>
-            </button>
-            <button
-                type="button"
-                class="border border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white px-3 py-2 rounded-md flex items-center justify-center transition-colors">
-                <i class="fas fa-file-pdf"></i>
-            </button> *@
         </div>
     </div>
 
@@ -72,48 +67,55 @@
                 </tr>
             </thead>
             <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
-                @foreach(var sale in purchases)
+                @if (paginatedPurchases.Any())
                 {
-                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <input type="checkbox" class="product-checkbox rounded text-primary-700 focus:ring-primary-700" data-id=@($"checkbox-{sale.Id}")>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                                <div class="text-base font-semibold text-gray-900 dark:text-white">
-                                    @sale.Title
-                                </div>
+                    @foreach(var purchase in paginatedPurchases)
+                    {
+                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="checkbox" class="product-checkbox rounded text-primary-700 focus:ring-primary-700" data-id=@($"checkbox-{purchase.Id}")>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                                     @(sale.Description.Length > 50 
-                                ? sale.Description.Substring(0, 50) + "..." 
-                                : sale.Description) 
+                                    <div class="text-base font-semibold text-gray-900 dark:text-white">
+                                        @purchase.Title
+                                    </div>
+                                    <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                                        @TruncateText(purchase.Description, 50)
+                                    </div>
                                 </div>
-                            </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @TruncateText(purchase.Description, 50)
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if(purchase.DateAchat != DateOnly.MinValue)
+                                {
+                                    @purchase.DateAchat.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span>--/--/----</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @purchase.TotalQuantity
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @purchase.TotalAmount.ToString("N0") FCFA
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 text-lg">Aucun achat trouvé</p>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                             @(sale.Description.Length > 50 
-                                ? sale.Description.Substring(0, 50) + "..." 
-                                : sale.Description) 
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @if(sale.DateAchat != DateOnly.MinValue)
-                            {
-                                @sale.DateAchat                                
-                            }
-                            else
-                            {
-                                <span>--/--/----</span>
-                            }                            
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @sale.TotalQuantity
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            @sale.TotalAmount FCFA
-                        </td>                        
                     </tr>
                 }
-                       
             </tbody>
         </table>
     </div>
@@ -121,71 +123,75 @@
     <!-- Mobile Cards -->
     <div class="mobile-view">
         <div class="grid grid-cols-1 gap-4" id="mobileProductsList">
-            @foreach (var sale in purchases)
+            @if (paginatedPurchases.Any())
             {
-                <div class="product-card bg-white rounded-lg shadow-md p-4">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-medium text-gray-900">@sale.Title</h3>
-                            <span class="text-xs px-2 py-1 rounded-full bg-primary-700 bg-opacity-10 text-primary-700">category</span>
+                @foreach (var purchase in paginatedPurchases)
+                {
+                    <div class="product-card bg-white rounded-lg shadow-md p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-medium text-gray-900">@purchase.Title</h3>
+                            </div>
+                            <input type="checkbox" class="product-checkbox rounded text-primary-700 focus:ring-primary-700" data-id="@purchase.Id">
                         </div>
-                        <input type="checkbox" class="product-checkbox rounded text-primary-700 focus:ring-primary-700" data-id="@sale.Id">
-                    </div>
-                    <p class="text-sm text-gray-500 mb-3">
-                        @(sale.Description.Length > 50 
-                                ? sale.Description.Substring(0, 50) + "..." 
-                                : sale.Description)                         
-                    </p>
-                    <p class="text-sm text-gray-500 mb-3">
-                        Date d'achat: 
-                        @if(sale.DateAchat != DateOnly.MinValue)
-                        {
-                            @sale.DateAchat                                
-                        }
-                        else
-                        {
-                            <span>--/--/----</span>
-                        }                        
-                    </p>
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <span class="font-medium">Prix total: @sale.TotalAmount FCFA</span>
-                            <span class="text-xs ml-2">Quantité totale: @sale.TotalQuantity</span>
-                        </div>
-                        <div>
-                           @*  <button 
-                               
-                                class="edit-btn text-primary-700 hover:text-amber-800 mr-3" data-id="@product.Id">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-btn text-red-600 hover:text-red-800" data-id="${product.id}">
-                                <i class="fas fa-trash-alt"></i>
-                            </button> *@
+                        <p class="text-sm text-gray-500 mb-3">
+                            @TruncateText(purchase.Description, 50)
+                        </p>
+                        <p class="text-sm text-gray-500 mb-3">
+                            Date d'achat:
+                            @if(purchase.DateAchat != DateOnly.MinValue)
+                            {
+                                @purchase.DateAchat.ToString("dd/MM/yyyy")
+                            }
+                            else
+                            {
+                                <span>--/--/----</span>
+                            }
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-medium">Prix total: @purchase.TotalAmount.ToString("N0") FCFA</span>
+                                <span class="text-xs ml-2">Quantité totale: @purchase.TotalQuantity</span>
+                            </div>
                         </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-12">
+                    <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg">Aucun achat trouvé</p>
                 </div>
             }
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Footer with pagination -->
     <div class="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
         <div class="mb-4 md:mb-0">
-            <button id="deleteSelectedBtn" class="text-red-600 hover:text-red-800 disabled:text-gray-400" disabled>
-                <i class="fas fa-trash-alt"></i> Supprimer sélection
-            </button>
+            <span class="text-sm text-gray-600">@filteredPurchases.Count achat(s)</span>
         </div>
         <div class="text-sm text-gray-600 mb-4 md:mb-0">
-            Affichage de 1 à 3 sur 3 éléments
+            Affichage de @StartIndex à @EndIndex sur @filteredPurchases.Count éléments
         </div>
         <div class="flex items-center gap-1">
-            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+            <button @onclick="GoToPreviousPage"
+                    disabled="@(currentPage <= 1)"
+                    class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-angle-left"></i>
             </button>
-            <button class="px-3 py-1 rounded bg-primary-700 text-white">1</button>
-            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">2</button>
-            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">3</button>
-            <button class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+            @for (int i = 1; i <= TotalPages; i++)
+            {
+                var pageNumber = i;
+                <button @onclick="() => GoToPage(pageNumber)"
+                        class="px-3 py-1 rounded @(currentPage == pageNumber ? "bg-primary-700 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-100")">
+                    @pageNumber
+                </button>
+            }
+            <button @onclick="GoToNextPage"
+                    disabled="@(currentPage >= TotalPages)"
+                    class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-angle-right"></i>
             </button>
         </div>
@@ -212,17 +218,47 @@
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
-    
+
     private bool showModal = false;
     private string modalTitle = "";
+    private bool isLoad = false;
 
     private List<Purchase> purchases = new();
+    private List<Purchase> filteredPurchases = new();
     private List<Product> products = new();
+    private string searchTerm = "";
+
+    // Pagination
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+
+    private List<Purchase> paginatedPurchases => filteredPurchases
+        .Skip((currentPage - 1) * itemsPerPage)
+        .Take(itemsPerPage)
+        .ToList();
+
+    private int TotalPages => (int)Math.Ceiling((double)filteredPurchases.Count / itemsPerPage);
+    private int StartIndex => filteredPurchases.Count == 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+    private int EndIndex => Math.Min(currentPage * itemsPerPage, filteredPurchases.Count);
 
     protected override async Task OnInitializedAsync()
     {
-        await GetPurchaseAsync();
-        await GetProductsAsync();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoad = true;
+        try
+        {
+            await GetPurchaseAsync();
+            await GetProductsAsync();
+            ApplyFilter();
+        }
+        finally
+        {
+            isLoad = false;
+        }
     }
 
     private async Task GetProductsAsync()
@@ -234,23 +270,67 @@
     private async Task GetPurchaseAsync()
     {
         var purchasesReponse = await _purchaseService.GetPurchaseByBoutiqueAsync(boutiqueId);
-        purchases = purchasesReponse.Data.Purchases.ToList();
+        purchases = purchasesReponse.Data.Purchases.OrderByDescending(p => p.DateAchat).ToList();
+    }
+
+    private void ApplyFilter()
+    {
+        var filtered = purchases.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var search = searchTerm.Trim().ToLower();
+            filtered = filtered.Where(p =>
+                p.Title.ToLower().Contains(search) ||
+                p.Description.ToLower().Contains(search) ||
+                p.DateAchat.ToString("dd/MM/yyyy").Contains(search) ||
+                p.TotalAmount.ToString("N0").Contains(search)
+            );
+        }
+
+        filteredPurchases = filtered.ToList();
+        currentPage = 1;
+    }
+
+    private string TruncateText(string? text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text.Substring(0, maxLength) + "...";
     }
 
     private void onShowModal(Guid Id = default)
     {
-        // productId = Id;
-        // if(productId != Guid.Empty)
-        // {
-        //     modalTitle = "Modifier le produit";
-        //     product = products.FirstOrDefault(p => p.Id == productId);
-            
-        // }
-        // else
-        // {
-        //     product = new();
         modalTitle = "Nouvel Achat";
-        //}
         showModal = !showModal;
+    }
+
+    // Pagination methods
+    private void OnItemsPerPageChanged()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
     }
 }
