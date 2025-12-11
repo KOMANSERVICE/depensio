@@ -96,7 +96,9 @@
                                     </span>
                                     @if (!string.IsNullOrEmpty(sale.CancellationReason))
                                     {
-                                        <p class="text-xs text-gray-500 mt-1 max-w-[150px] truncate cursor-help" title="@sale.CancellationReason">@sale.CancellationReason</p>
+                                        <IdrTooltip Text="@sale.CancellationReason">
+                                            <p class="text-xs text-gray-500 mt-1 cursor-help">@TruncateText(sale.CancellationReason, 20)</p>
+                                        </IdrTooltip>
                                     }
                                 }
                                 else
@@ -185,7 +187,9 @@
                             }
                             else if (!string.IsNullOrEmpty(sale.CancellationReason))
                             {
-                                <span class="text-xs text-gray-500 block max-w-[150px] truncate cursor-help" title="@sale.CancellationReason">@sale.CancellationReason</span>
+                                <IdrTooltip Text="@sale.CancellationReason">
+                                    <span class="text-xs text-gray-500 block cursor-help">@TruncateText(sale.CancellationReason, 20)</span>
+                                </IdrTooltip>
                             }
                         </div>
                     </div>
@@ -369,6 +373,12 @@
     private string GetProductName(Guid productId)
     {
         return products.FirstOrDefault(p => p.Id == productId)?.Name ?? "Produit inconnu";
+    }
+
+    private string TruncateText(string? text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text.Substring(0, maxLength) + "...";
     }
 
     private void ShowCancelModal(Sale sale)
