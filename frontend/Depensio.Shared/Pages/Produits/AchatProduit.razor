@@ -200,11 +200,12 @@
     }"
     ModalTitle="@modalTitle"
 >
-    <CreatePurchaseComponent 
+    <CreatePurchaseComponent
             BoutiqueId="@boutiqueId"
             products="@products"
             OnAfterSave="async ()=>{
                 await GetPurchaseAsync();
+                showModal = false;
             }" />
 </Modal>
 

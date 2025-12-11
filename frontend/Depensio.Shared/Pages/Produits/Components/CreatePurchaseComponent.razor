@@ -3,6 +3,102 @@
 
 <LoadingComponent IsLoad="@isLoad" />
 
+@if (showPurchaseSummary)
+{
+    <!-- Purchase Summary - Articles achetés -->
+    <div class="p-6">
+        <div class="flex flex-col items-center justify-center mb-6">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Achat enregistré avec succès!</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Voici le récapitulatif des articles achetés</p>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+            <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                    <span class="font-medium text-gray-900 dark:text-white ml-1">@completedPurchase.Title</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                    <span class="font-medium text-gray-900 dark:text-white ml-1">@completedPurchase.SupplierName</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Date d'achat:</span>
+                    <span class="font-medium text-gray-900 dark:text-white ml-1">@completedPurchase.DateAchat.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                    <span class="font-semibold text-primary-700 ml-1">@completedPurchase.TotalAmount FCFA</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                <thead class="bg-gray-100 dark:bg-gray-700">
+                    <tr>
+                        <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                            Produit
+                        </th>
+                        <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                            Prix unitaire
+                        </th>
+                        <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                            Quantité
+                        </th>
+                        <th scope="col" class="p-3 text-xs font-medium text-right text-gray-500 uppercase dark:text-gray-400">
+                            Sous-total
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    @foreach (var item in completedPurchase.Items)
+                    {
+                        var productName = products.FirstOrDefault(p => p.Id == item.ProductId)?.Name ?? "Produit inconnu";
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="p-3 text-sm font-medium text-gray-900 dark:text-white">
+                                @productName
+                            </td>
+                            <td class="p-3 text-sm text-gray-500 dark:text-gray-400">
+                                @item.Price FCFA
+                            </td>
+                            <td class="p-3 text-sm text-gray-500 dark:text-gray-400">
+                                @item.Quantity
+                            </td>
+                            <td class="p-3 text-sm font-medium text-gray-900 dark:text-white text-right">
+                                @(item.Price * item.Quantity) FCFA
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <td colspan="3" class="p-3 text-sm font-semibold text-gray-900 dark:text-white text-right">
+                            Total général:
+                        </td>
+                        <td class="p-3 text-sm font-bold text-primary-700 text-right">
+                            @completedPurchase.TotalAmount FCFA
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                type="button" @onclick="CloseSummaryAndReset">
+            Fermer
+        </button>
+    </div>
+}
+else
+{
 <EditForm EditContext="@editContext" OnValidSubmit="HandleCreateProduit">
     <DataAnnotationsValidator />
     <ErrorsSummary editContext="@editContext" />
@@ -167,8 +263,7 @@
         </button>
     </div>
 </EditForm>
-
-
+}
 
 @code {
     [Parameter]
@@ -182,7 +277,9 @@
 
 
     private bool isLoad = false;
+    private bool showPurchaseSummary = false;
     private Purchase purchase = new();
+    private Purchase completedPurchase = new();
     private PurchaseItem purchaseItem = new();
     private ErrorMessage errorMessage = new();
 
@@ -209,8 +306,23 @@
             {
                 messageStore.Clear();
                 editContext.NotifyValidationStateChanged();
-                purchase = new(); // Reset the boutique object
-                await OnAfterSave.InvokeAsync(null); // Notify parent component
+
+                // Store the completed purchase for display in summary
+                completedPurchase = new Purchase
+                {
+                    Id = result.Data.Id,
+                    BoutiqueId = purchase.BoutiqueId,
+                    Title = purchase.Title,
+                    SupplierName = purchase.SupplierName,
+                    DateAchat = purchase.DateAchat,
+                    Description = purchase.Description,
+                    TotalAmount = purchase.TotalAmount,
+                    TotalQuantity = purchase.Items.Sum(x => x.Quantity),
+                    Items = purchase.Items.ToList()
+                };
+
+                // Show the purchase summary instead of immediately closing
+                showPurchaseSummary = true;
             }
 
         }
@@ -287,6 +399,24 @@
         purchase.TotalAmount = purchase.Items.Sum(x => x.Price * x.Quantity);
 
         purchaseItem = new();
+    }
+
+    private async Task CloseSummaryAndReset()
+    {
+        // Reset all state
+        showPurchaseSummary = false;
+        purchase = new();
+        completedPurchase = new();
+        purchaseItem = new();
+
+        // Reinitialize edit context for next purchase
+        editContext = new EditContext(purchase);
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationRequested += (s, e) => messageStore.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+
+        // Notify parent to refresh the list
+        await OnAfterSave.InvokeAsync(null);
     }
 
 }
