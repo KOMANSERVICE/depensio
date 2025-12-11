@@ -38,6 +38,7 @@ public record UserBoutiqueDTO
     public string FirstName { get; set; } = string.Empty;
     public Guid BoutiqueId { get; set; }
     public Guid ProfileId { get; set; }
+    public string ProfileName { get; set; } = string.Empty;
 }
 public record CreateUserRequest(SignUpBoutiqueDTO Signup);
 public record CreateUserResponse(bool Result);
