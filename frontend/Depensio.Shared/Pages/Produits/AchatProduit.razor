@@ -63,7 +63,9 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                         Quantité totale</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                        Prix total</th>                   
+                        Prix total</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        Actions</th>
                 </tr>
             </thead>
             <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
@@ -104,13 +106,21 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 @purchase.TotalAmount.ToString("N0") FCFA
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button type="button"
+                                    @onclick="() => ShowPurchaseDetails(purchase)"
+                                    class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
+                                    title="Voir les détails">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center">
+                        <td colspan="7" class="px-6 py-12 text-center">
                             <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 text-lg">Aucun achat trouvé</p>
                         </td>
@@ -153,6 +163,12 @@
                                 <span class="font-medium">Prix total: @purchase.TotalAmount.ToString("N0") FCFA</span>
                                 <span class="text-xs ml-2">Quantité totale: @purchase.TotalQuantity</span>
                             </div>
+                            <button type="button"
+                                @onclick="() => ShowPurchaseDetails(purchase)"
+                                class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
+                                title="Voir les détails">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
                 }
@@ -198,7 +214,7 @@
     </div>
 </div>
 
-<!-- Add User Modal -->
+<!-- Add Purchase Modal -->
 <Modal
     ShowModal="@showModal"
     OnCloseModal="()=>{
@@ -215,13 +231,27 @@
             }" />
 </Modal>
 
+<!-- View Purchase Details Modal -->
+<Modal
+    ShowModal="@showViewModal"
+    OnCloseModal="CloseViewModal"
+    ModalTitle="Détails de l'achat"
+>
+    <ViewPurchaseComponent
+        Purchase="@selectedPurchase"
+        Products="@products"
+        OnClose="CloseViewModal" />
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
 
     private bool showModal = false;
+    private bool showViewModal = false;
     private string modalTitle = "";
     private bool isLoad = false;
+    private Purchase selectedPurchase = new();
 
     private List<Purchase> purchases = new();
     private List<Purchase> filteredPurchases = new();
@@ -302,6 +332,18 @@
     {
         modalTitle = "Nouvel Achat";
         showModal = !showModal;
+    }
+
+    private void ShowPurchaseDetails(Purchase purchase)
+    {
+        selectedPurchase = purchase;
+        showViewModal = true;
+    }
+
+    private void CloseViewModal()
+    {
+        showViewModal = false;
+        selectedPurchase = new();
     }
 
     // Pagination methods

@@ -1,0 +1,130 @@
+@using depensio.Shared.Pages.Produits.Models
+
+<div class="p-6">
+    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                <span class="font-medium text-gray-900 dark:text-white ml-1">@Purchase.Title</span>
+            </div>
+            <div>
+                <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                <span class="font-medium text-gray-900 dark:text-white ml-1">@Purchase.SupplierName</span>
+            </div>
+            <div>
+                <span class="text-gray-500 dark:text-gray-400">Date d'achat:</span>
+                <span class="font-medium text-gray-900 dark:text-white ml-1">
+                    @if (Purchase.DateAchat != DateOnly.MinValue)
+                    {
+                        @Purchase.DateAchat.ToString("dd/MM/yyyy")
+                    }
+                    else
+                    {
+                        <span>--/--/----</span>
+                    }
+                </span>
+            </div>
+            <div>
+                <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                <span class="font-semibold text-primary-700 ml-1">@Purchase.TotalAmount.ToString("N0") FCFA</span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Purchase.Description))
+            {
+                <div class="col-span-2">
+                    <span class="text-gray-500 dark:text-gray-400">Description:</span>
+                    <p class="font-medium text-gray-900 dark:text-white mt-1">@Purchase.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Articles achetés</h4>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+            <thead class="bg-gray-100 dark:bg-gray-700">
+                <tr>
+                    <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                        Produit
+                    </th>
+                    <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                        Prix unitaire
+                    </th>
+                    <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                        Quantité
+                    </th>
+                    <th scope="col" class="p-3 text-xs font-medium text-right text-gray-500 uppercase dark:text-gray-400">
+                        Sous-total
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                @if (Purchase.Items.Any())
+                {
+                    @foreach (var item in Purchase.Items)
+                    {
+                        var productName = Products.FirstOrDefault(p => p.Id == item.ProductId)?.Name ?? "Produit inconnu";
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="p-3 text-sm font-medium text-gray-900 dark:text-white">
+                                @productName
+                            </td>
+                            <td class="p-3 text-sm text-gray-500 dark:text-gray-400">
+                                @item.Price.ToString("N0") FCFA
+                            </td>
+                            <td class="p-3 text-sm text-gray-500 dark:text-gray-400">
+                                @item.Quantity
+                            </td>
+                            <td class="p-3 text-sm font-medium text-gray-900 dark:text-white text-right">
+                                @((item.Price * item.Quantity).ToString("N0")) FCFA
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="p-4 text-center text-gray-500 dark:text-gray-400">
+                            Aucun article dans cet achat
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            @if (Purchase.Items.Any())
+            {
+                <tfoot class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <td colspan="2" class="p-3 text-sm font-semibold text-gray-900 dark:text-white">
+                            Total
+                        </td>
+                        <td class="p-3 text-sm font-semibold text-gray-900 dark:text-white">
+                            @Purchase.TotalQuantity articles
+                        </td>
+                        <td class="p-3 text-sm font-bold text-primary-700 text-right">
+                            @Purchase.TotalAmount.ToString("N0") FCFA
+                        </td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+</div>
+
+<div class="flex justify-end gap-3 px-6 py-4 border-t">
+    <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            type="button" @onclick="OnClose">
+        Fermer
+    </button>
+</div>
+
+@code {
+    [Parameter]
+    public Purchase Purchase { get; set; } = new();
+
+    [Parameter]
+    public IEnumerable<Product> Products { get; set; } = new List<Product>();
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+}
