@@ -8,13 +8,22 @@ public interface IMagasinService
     [Get("/magasin/{boutiqueId}")]
     Task<BaseResponse<GetMagasinsResponse>> GetMagasinsByBoutiqueAsync(Guid boutiqueId);
 
+    [Get("/magasin/{boutiqueId}/{id}")]
+    Task<BaseResponse<GetMagasinByIdResponse>> GetMagasinByIdAsync(Guid boutiqueId, Guid id);
+
     [Post("/magasin/{boutiqueId}")]
     Task<BaseResponse<CreateMagasinResponse>> CreateMagasinAsync(Guid BoutiqueId, [Body] CreateStockLocationRequest request);
+
+    [Patch("/magasin/{boutiqueId}/{stockLocationId}")]
+    Task<BaseResponse<UpdateMagasinResponse>> UpdateMagasinAsync(Guid boutiqueId, Guid stockLocationId, [Body] UpdateStockLocationRequest request);
 }
 
 public record CreateStockLocationRequest(StockLocationCreateDTO StockLocation);
+public record UpdateStockLocationRequest(StockLocationUpdateDTO StockLocation);
 public record GetMagasinsResponse(List<StockLocationDTO> StockLocations);
+public record GetMagasinByIdResponse(StockLocationDTO StockLocation);
 public record CreateMagasinResponse(Guid Id);
+public record UpdateMagasinResponse(Guid Id);
 
 public record StockLocationDTO
 {

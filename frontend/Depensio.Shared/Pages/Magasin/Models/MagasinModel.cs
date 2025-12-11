@@ -3,10 +3,12 @@ using System.ComponentModel.DataAnnotations;
 namespace depensio.Shared.Pages.Magasin.Models;
 
 public record CreateMagasinResponse(Guid Id);
+public record UpdateMagasinResponse(Guid Id);
 public record CreateMagasinRequest(StockLocationCreateDTO StockLocation);
-public record UpdateMagasinRequest(StockLocationUpdateDTO StockLocation, Guid Id);
+public record UpdateMagasinRequest(StockLocationUpdateDTO StockLocation);
 
 public record GetMagasinsByBoutiqueResponse(IEnumerable<StockLocationDTO> StockLocations);
+public record GetMagasinByIdResponse(StockLocationDTO StockLocation);
 
 public record StockLocationDTO
 {
