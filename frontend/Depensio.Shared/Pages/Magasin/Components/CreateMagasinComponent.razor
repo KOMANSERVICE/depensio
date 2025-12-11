@@ -77,17 +77,53 @@
     public StockLocationDTO Magasin { get; set; } = new();
 
     private bool isLoad = false;
+    private bool isLoadingMagasin = false;
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
+    private Guid previousMagasinId = Guid.Empty;
 
     protected override void OnInitialized()
     {
         InitializeEditContext();
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        InitializeEditContext();
+        if (MagasinId != previousMagasinId)
+        {
+            previousMagasinId = MagasinId;
+
+            if (MagasinId != Guid.Empty)
+            {
+                await LoadMagasinAsync();
+            }
+
+            InitializeEditContext();
+        }
+    }
+
+    private async Task LoadMagasinAsync()
+    {
+        isLoadingMagasin = true;
+        try
+        {
+            var response = await _magasinService.GetMagasinByIdAsync(BoutiqueId, MagasinId);
+            if (response.Success && response.Data?.StockLocation != null)
+            {
+                Magasin.Id = response.Data.StockLocation.Id;
+                Magasin.Name = response.Data.StockLocation.Name;
+                Magasin.Address = response.Data.StockLocation.Address;
+                Magasin.Type = response.Data.StockLocation.Type;
+            }
+        }
+        catch
+        {
+            // En cas d'erreur, on garde les valeurs passées en paramètre
+        }
+        finally
+        {
+            isLoadingMagasin = false;
+        }
     }
 
     private void InitializeEditContext()
@@ -108,16 +144,35 @@
         isLoad = true;
         try
         {
-            var request = new CreateMagasinRequest(new StockLocationCreateDTO
+            bool success;
+
+            if (MagasinId != Guid.Empty)
             {
-                Name = Magasin.Name,
-                Address = Magasin.Address,
-                Type = Magasin.Type
-            });
+                // Mode modification
+                var updateRequest = new UpdateMagasinRequest(new StockLocationUpdateDTO
+                {
+                    Name = Magasin.Name,
+                    Address = Magasin.Address
+                });
 
-            var result = await _magasinService.CreateMagasinAsync(BoutiqueId, request);
+                var updateResult = await _magasinService.UpdateMagasinAsync(BoutiqueId, MagasinId, updateRequest);
+                success = updateResult.Success;
+            }
+            else
+            {
+                // Mode création
+                var createRequest = new CreateMagasinRequest(new StockLocationCreateDTO
+                {
+                    Name = Magasin.Name,
+                    Address = Magasin.Address,
+                    Type = Magasin.Type
+                });
 
-            if (result.Success)
+                var createResult = await _magasinService.CreateMagasinAsync(BoutiqueId, createRequest);
+                success = createResult.Success;
+            }
+
+            if (success)
             {
                 messageStore?.Clear();
                 editContext?.NotifyValidationStateChanged();
