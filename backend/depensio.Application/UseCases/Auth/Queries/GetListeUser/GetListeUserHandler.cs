@@ -30,7 +30,8 @@ public class GetListeUserHandler(
                 FirstName = _encryptionService.Decrypt(ub.User.FirstName),
                 LastName = _encryptionService.Decrypt(ub.User.LastName),
                 BoutiqueId = ub.BoutiqueId.Value,
-                ProfileId = ub.ProfileId != null ? ub.ProfileId.Value : Guid.Empty
+                ProfileId = ub.ProfileId != null ? ub.ProfileId.Value : Guid.Empty,
+                ProfileName = ub.Profile != null ? ub.Profile.Name : ""
             })
             .ToListAsync(cancellationToken);
 
