@@ -227,6 +227,7 @@
             products="@products"
             OnAfterSave="async ()=>{
                 await GetPurchaseAsync();
+                ApplyFilter();
                 showModal = false;
             }" />
 </Modal>
