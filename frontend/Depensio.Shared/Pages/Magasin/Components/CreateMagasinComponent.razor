@@ -10,19 +10,19 @@
     <div class="p-6">
         <div class="mb-4">
             <label for="magasinName" class="block text-sm font-medium text-gray-700 mb-1">Nom du magasin</label>
-            <InputText @bind-Value="Magasin.Name" id="magasinName"
+            <InputText @bind-Value="localMagasin.Name" id="magasinName"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
             <div class="error-message">
-                <ValidationMessage For="@(() => Magasin.Name)" />
+                <ValidationMessage For="@(() => localMagasin.Name)" />
             </div>
         </div>
 
         <div class="mb-4">
             <label for="magasinAddress" class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
-            <InputText @bind-Value="Magasin.Address" id="magasinAddress"
+            <InputText @bind-Value="localMagasin.Address" id="magasinAddress"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
             <div class="error-message">
-                <ValidationMessage For="@(() => Magasin.Address)" />
+                <ValidationMessage For="@(() => localMagasin.Address)" />
             </div>
         </div>
 
@@ -30,7 +30,7 @@
         {
             <div class="mb-4">
                 <label for="magasinType" class="block text-sm font-medium text-gray-700 mb-1">Type de magasin</label>
-                <InputSelect @bind-Value="Magasin.Type" id="magasinType"
+                <InputSelect @bind-Value="localMagasin.Type" id="magasinType"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
                     <option value="1">Magasin de vente</option>
                     <option value="2">Entrepôt / Magasin de stockage</option>
@@ -41,10 +41,10 @@
             <!-- Type Description -->
             <div class="mb-4 p-3 bg-gray-50 rounded-lg">
                 <div class="flex items-start gap-3">
-                    <i class="fas @GetTypeIcon(Magasin.Type) text-primary-700 mt-1"></i>
+                    <i class="fas @GetTypeIcon(localMagasin.Type) text-primary-700 mt-1"></i>
                     <div>
-                        <p class="text-sm font-medium text-gray-700">@GetTypeLabel(Magasin.Type)</p>
-                        <p class="text-xs text-gray-500 mt-1">@GetTypeDescription(Magasin.Type)</p>
+                        <p class="text-sm font-medium text-gray-700">@GetTypeLabel(localMagasin.Type)</p>
+                        <p class="text-xs text-gray-500 mt-1">@GetTypeDescription(localMagasin.Type)</p>
                     </div>
                 </div>
             </div>
@@ -84,9 +84,11 @@
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
     private Guid previousMagasinId = Guid.Empty;
+    private StockLocationDTO localMagasin = new();
 
     protected override void OnInitialized()
     {
+        CopyMagasinToLocal();
         InitializeEditContext();
     }
 
@@ -100,9 +102,24 @@
             {
                 await LoadMagasinAsync();
             }
+            else
+            {
+                CopyMagasinToLocal();
+            }
 
             InitializeEditContext();
         }
+    }
+
+    private void CopyMagasinToLocal()
+    {
+        localMagasin = new StockLocationDTO
+        {
+            Id = Magasin.Id,
+            Name = Magasin.Name,
+            Address = Magasin.Address,
+            Type = Magasin.Type
+        };
     }
 
     private async Task LoadMagasinAsync()
@@ -113,15 +130,19 @@
             var response = await _magasinService.GetMagasinByIdAsync(BoutiqueId, MagasinId);
             if (response.Success && response.Data?.StockLocation != null)
             {
-                Magasin.Id = response.Data.StockLocation.Id;
-                Magasin.Name = response.Data.StockLocation.Name;
-                Magasin.Address = response.Data.StockLocation.Address;
-                Magasin.Type = response.Data.StockLocation.Type;
+                localMagasin = new StockLocationDTO
+                {
+                    Id = response.Data.StockLocation.Id,
+                    Name = response.Data.StockLocation.Name,
+                    Address = response.Data.StockLocation.Address,
+                    Type = response.Data.StockLocation.Type
+                };
             }
         }
         catch
         {
             // En cas d'erreur, on garde les valeurs passées en paramètre
+            CopyMagasinToLocal();
         }
         finally
         {
@@ -131,7 +152,7 @@
 
     private void InitializeEditContext()
     {
-        editContext = new EditContext(Magasin);
+        editContext = new EditContext(localMagasin);
         messageStore = new ValidationMessageStore(editContext);
         editContext.OnValidationRequested += (s, e) => messageStore?.Clear();
         editContext.OnFieldChanged += (s, e) => messageStore?.Clear(e.FieldIdentifier);
@@ -154,8 +175,8 @@
                 // Mode modification
                 var updateRequest = new UpdateMagasinRequest(new StockLocationUpdateDTO
                 {
-                    Name = Magasin.Name,
-                    Address = Magasin.Address
+                    Name = localMagasin.Name,
+                    Address = localMagasin.Address
                 });
 
                 var updateResult = await _magasinService.UpdateMagasinAsync(BoutiqueId, MagasinId, updateRequest);
@@ -166,9 +187,9 @@
                 // Mode création
                 var createRequest = new CreateMagasinRequest(new StockLocationCreateDTO
                 {
-                    Name = Magasin.Name,
-                    Address = Magasin.Address,
-                    Type = Magasin.Type
+                    Name = localMagasin.Name,
+                    Address = localMagasin.Address,
+                    Type = localMagasin.Type
                 });
 
                 var createResult = await _magasinService.CreateMagasinAsync(BoutiqueId, createRequest);
@@ -179,7 +200,7 @@
             {
                 messageStore?.Clear();
                 editContext?.NotifyValidationStateChanged();
-                Magasin = new StockLocationDTO();
+                localMagasin = new StockLocationDTO();
                 await OnAfterSave.InvokeAsync(null);
             }
         }
@@ -202,13 +223,13 @@
                         if (propertyName.Contains('.'))
                             propertyName = propertyName.Split('.').Last();
 
-                        var fieldIdentifier = new FieldIdentifier(Magasin, propertyName);
+                        var fieldIdentifier = new FieldIdentifier(localMagasin, propertyName);
                         messageStore?.Add(fieldIdentifier, validationError.ErrorMessage);
                     }
                 }
                 else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
-                    var fieldIdentifier = new FieldIdentifier(Magasin, string.Empty);
+                    var fieldIdentifier = new FieldIdentifier(localMagasin, string.Empty);
                     messageStore?.Add(fieldIdentifier, errorResult.Detail);
                 }
 
@@ -216,7 +237,7 @@
             }
             catch
             {
-                messageStore?.Add(new FieldIdentifier(Magasin, string.Empty), "Une erreur est survenue.");
+                messageStore?.Add(new FieldIdentifier(localMagasin, string.Empty), "Une erreur est survenue.");
                 editContext?.NotifyValidationStateChanged();
             }
         }
