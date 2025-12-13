@@ -297,6 +297,15 @@ else
 
     private async Task HandleCreateProduit()
     {
+        // Validation: vérifier qu'au moins un produit est ajouté
+        if (!purchase.Items.Any())
+        {
+            messageStore.Clear();
+            messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Vous devez ajouter au moins un produit avant d'enregistrer l'achat.");
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
         isLoad = true;
         try
         {
