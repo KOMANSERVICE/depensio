@@ -9,7 +9,9 @@
                     @foreach(var menu in menuUsers)
                     {
                         <li>
-                            <NavLink href="@($"{menu.UrlFront}/{@boutique.Id}")" @onclick="OnClose" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700"
+                            <NavLink href="@(menu.UrlFront.Contains("{boutiqueid}")
+                                                         ? menu.UrlFront.Replace("{boutiqueid}", boutique.Id.ToString())
+                                                         : $"{menu.UrlFront}/{boutique.Id}")" @onclick="OnClose" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700"
                                      activeClass="font-bold text-primary-700 dark:text-primary-500 dark:border-primary-500"
                                      match="NavLinkMatch.Prefix">
                                 <i class="@menu.Icon"></i>

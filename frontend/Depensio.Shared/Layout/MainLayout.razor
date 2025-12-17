@@ -73,16 +73,41 @@
     {
         var menureponse = await _menuService.GetMenuByUserBoutiqueAsync(_boutiqueId);
         menuUsers = menureponse.Data.Menus.ToList();
-
-        if (!menuUsers.Any()) {
+    
+        if (!menuUsers.Any()) 
+        {
             HasAccess = false;
             return;
         }
-
+    
         var currentPath = $"/{NavManager.ToBaseRelativePath(NavManager.Uri)}";
-        HasAccess = menuUsers.Any(m => currentPath.StartsWith(m.UrlFront, StringComparison.OrdinalIgnoreCase));
+        HasAccess = menuUsers.Any(m => IsUrlMatchExact(currentPath, m.UrlFront, _boutiqueId));
+    }
 
-    } 
+    private bool IsUrlMatchExact(string currentUrl, string menuTemplate, Guid boutiqueId)
+    {
+        // Remplacer les placeholders
+        var resolvedMenuUrl = menuTemplate
+            .Replace("{boutiqueid}", boutiqueId.ToString(), StringComparison.OrdinalIgnoreCase)
+            .Replace("{boutiqueId}", boutiqueId.ToString(), StringComparison.OrdinalIgnoreCase);
+    
+        // Séparer en segments
+        var currentSegments = currentUrl.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var menuSegments = resolvedMenuUrl.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+    
+        // Vérifier que l'URL actuelle a au moins le même nombre de segments
+        if (currentSegments.Length < menuSegments.Length)
+            return false;
+    
+        // Comparer uniquement les N premiers segments (N = nombre de segments du menu)
+        for (int i = 0; i < menuSegments.Length; i++)
+        {
+            if (!currentSegments[i].Equals(menuSegments[i], StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+    
+        return true;
+    }
 
     private async Task GetOneBoutiqueByUser(Guid _boutiqueId)
     {
