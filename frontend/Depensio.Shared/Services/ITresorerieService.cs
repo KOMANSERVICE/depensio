@@ -15,4 +15,11 @@ public interface ITresorerieService
         Guid boutiqueId,
         Guid accountId,
         [Body] UpdateAccountRequest request);
+
+    [Get("/tresorerie/{boutiqueId}/accounts/{accountId}")]
+    Task<BaseResponse<GetAccountDetailResponse>> GetAccountDetailAsync(
+        Guid boutiqueId,
+        Guid accountId,
+        DateTime? fromDate = null,
+        DateTime? toDate = null);
 }

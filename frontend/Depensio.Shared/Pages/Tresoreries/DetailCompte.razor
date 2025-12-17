@@ -1,0 +1,398 @@
+@page "/tresorerie/{boutiqueId:guid}/comptes/{accountId:guid}"
+@using depensio.Shared.Pages.Tresoreries.Models
+@inherits FlowbitePage
+@layout MainLayout
+@inject ITresorerieService _tresorerieService
+@inject NavigationManager NavigationManager
+
+<PageTitleComponent Title="Detail du compte" />
+
+<HeaderPage
+    Title="Detail du compte"
+    SubTitle="Consulter les informations et mouvements du compte"/>
+
+@if (isLoading)
+{
+    <LoadingDataComponent />
+}
+else if (account == null)
+{
+    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+        <i class="fas fa-exclamation-triangle text-6xl text-yellow-500 mb-4"></i>
+        <p class="text-gray-600 text-lg">Compte non trouve</p>
+        <button @onclick="GoBack" class="mt-4 px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800">
+            <i class="fas fa-arrow-left mr-2"></i>Retour a la liste
+        </button>
+    </div>
+}
+else
+{
+    <!-- Bouton Retour -->
+    <div class="mb-4">
+        <button @onclick="GoBack" class="text-primary-700 hover:text-amber-800 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>Retour a la liste des comptes
+        </button>
+    </div>
+
+    <!-- Informations du compte -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center @GetTypeBackgroundColor(account.Type)">
+                    <i class="@GetTypeIcon(account.Type) text-xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">
+                        @account.Name
+                        @if (account.IsDefault)
+                        {
+                            <span class="ml-2 px-2 py-0.5 text-xs bg-primary-700 text-white rounded-full">Par defaut</span>
+                        }
+                    </h2>
+                    <span class="text-sm px-2 py-1 rounded-full @GetTypeColor(account.Type)">@GetTypeLabel(account.Type)</span>
+                </div>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center gap-2">
+                @if (account.IsActive)
+                {
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                        <i class="fas fa-check-circle mr-1"></i>Actif
+                    </span>
+                }
+                else
+                {
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-gray-100 text-gray-800">
+                        <i class="fas fa-times-circle mr-1"></i>Inactif
+                    </span>
+                }
+                @if (account.IsInAlert)
+                {
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>En alerte
+                    </span>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(account.Description))
+        {
+            <p class="text-gray-600 mb-4">@account.Description</p>
+        }
+
+        <!-- Grille d'informations -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            @if (!string.IsNullOrWhiteSpace(account.BankName))
+            {
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-xs text-gray-500">Banque</p>
+                    <p class="text-sm font-medium text-gray-900">@account.BankName</p>
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(account.AccountNumber))
+            {
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-xs text-gray-500">Numero de compte</p>
+                    <p class="text-sm font-medium text-gray-900">@account.AccountNumber</p>
+                </div>
+            }
+            <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-500">Devise</p>
+                <p class="text-sm font-medium text-gray-900">@account.Currency</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-500">Cree le</p>
+                <p class="text-sm font-medium text-gray-900">@account.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </div>
+
+        @if (account.AlertThreshold.HasValue || account.OverdraftLimit.HasValue)
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @if (account.AlertThreshold.HasValue)
+                {
+                    <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                        <p class="text-xs text-yellow-700">Seuil d'alerte</p>
+                        <p class="text-sm font-medium text-yellow-800">@account.AlertThreshold.Value.ToString("N0") @account.Currency</p>
+                    </div>
+                }
+                @if (account.OverdraftLimit.HasValue)
+                {
+                    <div class="bg-red-50 rounded-lg p-3 border border-red-200">
+                        <p class="text-xs text-red-700">Limite de decouvert</p>
+                        <p class="text-sm font-medium text-red-800">@account.OverdraftLimit.Value.ToString("N0") @account.Currency</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Cartes de soldes -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gradient-to-r from-primary-700 to-amber-600 rounded-lg p-4 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm opacity-80">Solde actuel</p>
+                    <p class="text-2xl font-bold @(account.IsInAlert ? "text-red-200" : "")">@account.CurrentBalance.ToString("N0") @account.Currency</p>
+                </div>
+                <i class="fas fa-wallet text-3xl opacity-50"></i>
+            </div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">Solde initial</p>
+                    <p class="text-2xl font-bold text-gray-800">@account.InitialBalance.ToString("N0") @account.Currency</p>
+                </div>
+                <i class="fas fa-flag-checkered text-3xl text-gray-300"></i>
+            </div>
+        </div>
+        <div class="bg-white border border-green-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">Total entrees</p>
+                    <p class="text-2xl font-bold text-green-600">+@account.TotalIncome.ToString("N0") @account.Currency</p>
+                </div>
+                <i class="fas fa-arrow-down text-3xl text-green-300"></i>
+            </div>
+        </div>
+        <div class="bg-white border border-red-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-red-600">Total sorties</p>
+                    <p class="text-2xl font-bold text-red-600">-@account.TotalExpense.ToString("N0") @account.Currency</p>
+                </div>
+                <i class="fas fa-arrow-up text-3xl text-red-300"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres de periode -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date de debut</label>
+                <input type="date" @bind="fromDate" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                <input type="date" @bind="toDate" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+            <button @onclick="ApplyDateFilter" class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800">
+                <i class="fas fa-filter mr-2"></i>Filtrer
+            </button>
+            <button @onclick="ClearDateFilter" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                <i class="fas fa-times mr-2"></i>Reinitialiser
+            </button>
+        </div>
+    </div>
+
+    <!-- Derniers mouvements -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-exchange-alt mr-2 text-primary-700"></i>Derniers mouvements
+        </h3>
+
+        @if (account.RecentMovements.Any())
+        {
+            <!-- Vue Desktop -->
+            <div class="desktop-view overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Libelle</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiers</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach (var movement in account.RecentMovements)
+                        {
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    @movement.Date.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    @(string.IsNullOrEmpty(movement.Reference) ? "-" : movement.Reference)
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    <div>@movement.Label</div>
+                                    @if (!string.IsNullOrWhiteSpace(movement.Description))
+                                    {
+                                        <div class="text-xs text-gray-500">@movement.Description</div>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    @(string.IsNullOrEmpty(movement.ThirdPartyName) ? "-" : movement.ThirdPartyName)
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full @GetStatusColor(movement.Status)">
+                                        @GetStatusLabel(movement.Status)
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-right @(movement.Type == CashFlowType.Income ? "text-green-600" : "text-red-600")">
+                                    @(movement.Type == CashFlowType.Income ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Vue Mobile -->
+            <div class="mobile-view">
+                <div class="space-y-3">
+                    @foreach (var movement in account.RecentMovements)
+                    {
+                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 @(movement.Type == CashFlowType.Income ? "border-green-500" : "border-red-500")">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="font-medium text-gray-900">@movement.Label</p>
+                                    @if (!string.IsNullOrWhiteSpace(movement.Description))
+                                    {
+                                        <p class="text-xs text-gray-500">@movement.Description</p>
+                                    }
+                                </div>
+                                <span class="text-sm font-bold @(movement.Type == CashFlowType.Income ? "text-green-600" : "text-red-600")">
+                                    @(movement.Type == CashFlowType.Income ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs text-gray-500">
+                                <span>@movement.Date.ToString("dd/MM/yyyy")</span>
+                                <span class="px-2 py-0.5 rounded-full @GetStatusColor(movement.Status)">
+                                    @GetStatusLabel(movement.Status)
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 text-lg">Aucun mouvement enregistre</p>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    [Parameter]
+    public Guid accountId { get; set; }
+
+    private GetAccountDetailResponse? account;
+    private bool isLoading = true;
+    private DateTime? fromDate;
+    private DateTime? toDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountDetailAsync();
+    }
+
+    private async Task LoadAccountDetailAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetAccountDetailAsync(boutiqueId, accountId, fromDate, toDate);
+            if (response.Success && response.Data != null)
+            {
+                account = response.Data;
+            }
+            else
+            {
+                account = null;
+            }
+        }
+        catch (Exception)
+        {
+            account = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ApplyDateFilter()
+    {
+        await LoadAccountDetailAsync();
+    }
+
+    private async Task ClearDateFilter()
+    {
+        fromDate = null;
+        toDate = null;
+        await LoadAccountDetailAsync();
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo($"/tresorerie/{boutiqueId}/comptes");
+    }
+
+    private string GetTypeLabel(AccountType type) => type switch
+    {
+        AccountType.Cash => "Especes",
+        AccountType.Bank => "Banque",
+        AccountType.MobileMoney => "Mobile Money",
+        AccountType.Other => "Autre",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeColor(AccountType type) => type switch
+    {
+        AccountType.Cash => "bg-green-100 text-green-800",
+        AccountType.Bank => "bg-blue-100 text-blue-800",
+        AccountType.MobileMoney => "bg-orange-100 text-orange-800",
+        AccountType.Other => "bg-gray-100 text-gray-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+
+    private string GetTypeBackgroundColor(AccountType type) => type switch
+    {
+        AccountType.Cash => "bg-green-500",
+        AccountType.Bank => "bg-blue-500",
+        AccountType.MobileMoney => "bg-orange-500",
+        AccountType.Other => "bg-gray-500",
+        _ => "bg-gray-500"
+    };
+
+    private string GetTypeIcon(AccountType type) => type switch
+    {
+        AccountType.Cash => "fas fa-money-bill-wave",
+        AccountType.Bank => "fas fa-university",
+        AccountType.MobileMoney => "fas fa-mobile-alt",
+        AccountType.Other => "fas fa-wallet",
+        _ => "fas fa-wallet"
+    };
+
+    private string GetStatusLabel(CashFlowStatus status) => status switch
+    {
+        CashFlowStatus.Pending => "En attente",
+        CashFlowStatus.Approved => "Approuve",
+        CashFlowStatus.Rejected => "Rejete",
+        CashFlowStatus.Cancelled => "Annule",
+        _ => "Inconnu"
+    };
+
+    private string GetStatusColor(CashFlowStatus status) => status switch
+    {
+        CashFlowStatus.Pending => "bg-yellow-100 text-yellow-800",
+        CashFlowStatus.Approved => "bg-green-100 text-green-800",
+        CashFlowStatus.Rejected => "bg-red-100 text-red-800",
+        CashFlowStatus.Cancelled => "bg-gray-100 text-gray-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+}
