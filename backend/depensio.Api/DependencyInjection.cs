@@ -1,4 +1,6 @@
 ﻿using IDR.Library.BuildingBlocks.Exceptions.Handler;
+using IDR.Library.BuildingBlocks.Security.Authentication;
+using Microsoft.FeatureManagement.FeatureFilters;
 
 namespace depensio.Api;
 
@@ -43,31 +45,29 @@ public static class DependencyInjection
             throw new InvalidOperationException("CORS origins are not provided in configuration");
         }
         var origin = vaultSecretProvider.GetSecretAsync(Allow_origin).Result;
-        var origins = origin.Split(';', StringSplitOptions.RemoveEmptyEntries).ToArray();
 
-        services.AddCors(options =>
+        var jwtOptions = new JwtAuthOptions
         {
-            options.AddPolicy(name: MyAllowSpecificOrigins,
-                policy =>
-                {
-                    policy.WithOrigins(origins)
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials();
-                });
+            Secret = JWT_Secret,
+            Issuer = JWT_ValidIssuer,
+            Audience = JWT_ValidAudience,
+            AllowedOrigins = origin,
+            CorsPolicyName = MyAllowSpecificOrigins,
+        };
+
+
+        services.AddJwtAuth(options =>
+        {
+            options.AllowedOrigins = jwtOptions.AllowedOrigins;
+            options.CorsPolicyName = jwtOptions.CorsPolicyName;
         });
+
         services.AddAuthorizationBuilder().AddPolicy(MyAllowSpecificOrigins,
                 policy => policy
                     .RequireRole("admin")
                     .RequireClaim("scope", "greetings_api"));
 
         services.AddEndpointsApiExplorer();
-        services.AddOpenApi(options =>
-        {
-            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-        });
-
-
 
         services.AddAuthorization();
         services.AddAuthentication(option =>
@@ -76,22 +76,17 @@ public static class DependencyInjection
             option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             option.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-            .AddJwtBearer(option =>
-            {
-                option.SaveToken = true;
-                option.RequireHttpsMetadata = false;
-                option.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidAudience = JWT_ValidAudience,
-                    ValidIssuer = JWT_ValidIssuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT_Secret)),
-                    ClockSkew = TimeSpan.Zero //Supprime la tolérance de 5 min par défaut
-                };
-            });
-       
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = jwtOptions.SaveToken;
+            options.RequireHttpsMetadata = jwtOptions.RequireHttpsMetadata;
+            options.TokenValidationParameters = jwtOptions.CreateTokenValidationParameters();
+        });
+
+        services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        });
 
         return services;
     }
@@ -108,7 +103,7 @@ public static class DependencyInjection
         //    });
 
         app.UseHttpsRedirection();
-        app.UseCors(MyAllowSpecificOrigins);
+        app.UseJwtAuthCors();
         app.UseAuthentication();
         app.UseAuthorization();
 

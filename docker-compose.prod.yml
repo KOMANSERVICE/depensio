@@ -54,7 +54,6 @@
       depensio.api:
         condition: service_started
     volumes:
-      #- ./frontend/Depensio.Web.Client/wwwroot/appsettings.json:/app/wwwroot/appsettings.json:ro
       - ./frontend/Depensio.Web/appsettings.json:/app/appsettings.json:ro
     env_file:
       - ./.env
@@ -91,6 +90,7 @@
       - Service__Menu=${SERVICE_MENU_URI}
       - Service__Magasin=${SERVICE_MAGASIN_URI}
       - LOCALDOMAIN=${LOCALDOMAIN}
+      - Service__Tresorerie=${SERVICE_TRESORERIE_URI}
     ports:
       - "127.0.0.1:9101:8080"
     env_file:
@@ -105,4 +105,3 @@ networks:
       
 volumes:
   pgdata_depensio:
-  dataprotection_keys:

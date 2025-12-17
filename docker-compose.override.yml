@@ -85,6 +85,7 @@ services:
       - Service__Menu=${SERVICE_MENU_URI}
       - LOCALDOMAIN=${LOCALDOMAIN}
       - Service__Magasin=${SERVICE_MAGASIN_URI}
+      - Service__Tresorerie=${SERVICE_TRESORERIE_URI}
     ports:
       - "9101:8080"
       - "9102:8081"
@@ -102,6 +103,7 @@ services:
       resources:
         limits:
           memory: 2g
+
 
 networks:
   vault-net:

@@ -841,3 +841,9 @@ stream {
 
 sudo nginx -t
 sudo systemctl reload nginx
+
+## Supprimer les fichiers tar.gz dans un dossier
+sudo rm -f *.tar.gz
+
+## Copier un dossier local vers un container docker
+docker cp "./vault" "secretvault:/"
