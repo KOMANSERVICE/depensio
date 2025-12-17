@@ -1,0 +1,377 @@
+@page "/tresorerie/{boutiqueId:guid}/comptes"
+@inherits FlowbitePage
+@layout MainLayout
+@inject ITresorerieService _tresorerieService
+
+<PageTitleComponent Title="Gestion des comptes" />
+
+<HeaderPage
+    Title="Tresorerie"
+    SubTitle="Gestion des comptes de tresorerie"/>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex items-center">
+            <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
+            <select id="itemsPerPage" @bind="itemsPerPage" @bind:after="OnItemsPerPageChanged" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span class="ml-2 text-sm text-gray-600">elements</span>
+        </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" placeholder="Rechercher un compte..."
+                @bind="searchTerm"
+                @bind:event="oninput"
+                @bind:after="ApplyFilter"
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex gap-3">
+            <div class="flex items-center">
+                <input type="checkbox" id="includeInactive" @bind="includeInactive" @bind:after="GetAccountsAsync"
+                    class="rounded text-primary-700 focus:ring-primary-700 mr-2">
+                <label for="includeInactive" class="text-sm text-gray-600">Afficher inactifs</label>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingDataComponent />
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gradient-to-r from-primary-700 to-amber-600 rounded-lg p-4 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-80">Solde Total Disponible</p>
+                        <p class="text-2xl font-bold">@totalAvailable.ToString("N0") FCFA</p>
+                    </div>
+                    <i class="fas fa-wallet text-3xl opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Nombre de comptes</p>
+                        <p class="text-2xl font-bold text-gray-800">@totalCount</p>
+                    </div>
+                    <i class="fas fa-credit-card text-3xl text-gray-300"></i>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Comptes en alerte</p>
+                        <p class="text-2xl font-bold @(alertCount > 0 ? "text-red-600" : "text-green-600")">@alertCount</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle text-3xl @(alertCount > 0 ? "text-red-300" : "text-gray-300")"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-primary-700 text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Nom du compte</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Solde actuel</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Devise</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Statut</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Seuil d'alerte</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if (paginatedAccounts.Any())
+                    {
+                        @foreach(var account in paginatedAccounts)
+                        {
+                            <tr class="@(account.IsInAlert ? "bg-red-50" : "")">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            @account.Name
+                                            @if (account.IsDefault)
+                                            {
+                                                <span class="ml-2 px-2 py-0.5 text-xs bg-primary-700 text-white rounded-full">Par defaut</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @GetTypeColor(account.Type)">
+                                        @GetTypeLabel(account.Type)
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm @(account.IsInAlert ? "text-red-600 font-bold" : "text-gray-900")">
+                                    @account.CurrentBalance.ToString("N0") @account.Currency
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @account.Currency
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (account.IsActive)
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Actif
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Inactif
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @if (account.AlertThreshold.HasValue)
+                                    {
+                                        <span class="@(account.IsInAlert ? "text-red-600" : "")">
+                                            @account.AlertThreshold.Value.ToString("N0") @account.Currency
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <i class="fas fa-wallet text-6xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500 text-lg">Aucun compte trouve</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-view">
+            <div class="grid grid-cols-1 gap-4">
+                @if (paginatedAccounts.Any())
+                {
+                    @foreach (var account in paginatedAccounts)
+                    {
+                        <div class="bg-white rounded-lg shadow-md p-4 @(account.IsInAlert ? "border-l-4 border-red-500" : "")">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">
+                                        @account.Name
+                                        @if (account.IsDefault)
+                                        {
+                                            <span class="ml-2 px-2 py-0.5 text-xs bg-primary-700 text-white rounded-full">Par defaut</span>
+                                        }
+                                    </h3>
+                                    <span class="text-xs px-2 py-1 rounded-full @GetTypeColor(account.Type)">@GetTypeLabel(account.Type)</span>
+                                </div>
+                                @if (account.IsActive)
+                                {
+                                    <span class="px-2 text-xs font-semibold rounded-full bg-green-100 text-green-800">Actif</span>
+                                }
+                                else
+                                {
+                                    <span class="px-2 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Inactif</span>
+                                }
+                            </div>
+                            <div class="flex justify-between items-center mt-3">
+                                <div>
+                                    <span class="text-lg font-bold @(account.IsInAlert ? "text-red-600" : "text-gray-900")">
+                                        @account.CurrentBalance.ToString("N0") @account.Currency
+                                    </span>
+                                </div>
+                                @if (account.AlertThreshold.HasValue && account.IsInAlert)
+                                {
+                                    <span class="text-xs text-red-600">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Seuil: @account.AlertThreshold.Value.ToString("N0")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-12">
+                        <i class="fas fa-wallet text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">Aucun compte trouve</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Footer with pagination -->
+        <div class="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+            <div class="mb-4 md:mb-0">
+                <span class="text-sm text-gray-600">@filteredAccounts.Count compte(s)</span>
+            </div>
+            <div class="text-sm text-gray-600 mb-4 md:mb-0">
+                Affichage de @StartIndex a @EndIndex sur @filteredAccounts.Count elements
+            </div>
+            <div class="flex items-center gap-1">
+                <button @onclick="GoToPreviousPage"
+                        disabled="@(currentPage <= 1)"
+                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    var pageNumber = i;
+                    <button @onclick="() => GoToPage(pageNumber)"
+                            class="px-3 py-1 rounded @(currentPage == pageNumber ? "bg-primary-700 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-100")">
+                        @pageNumber
+                    </button>
+                }
+                <button @onclick="GoToNextPage"
+                        disabled="@(currentPage >= TotalPages)"
+                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    private List<AccountListDto> accounts = new();
+    private List<AccountListDto> filteredAccounts = new();
+    private bool isLoading = true;
+    private bool includeInactive = false;
+    private string searchTerm = "";
+    private decimal totalAvailable = 0;
+    private int totalCount = 0;
+    private int alertCount = 0;
+
+    // Pagination
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+
+    private List<AccountListDto> paginatedAccounts => filteredAccounts
+        .Skip((currentPage - 1) * itemsPerPage)
+        .Take(itemsPerPage)
+        .ToList();
+
+    private int TotalPages => filteredAccounts.Count == 0 ? 1 : (int)Math.Ceiling((double)filteredAccounts.Count / itemsPerPage);
+    private int StartIndex => filteredAccounts.Count == 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+    private int EndIndex => Math.Min(currentPage * itemsPerPage, filteredAccounts.Count);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAccountsAsync();
+    }
+
+    private async Task GetAccountsAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetAccountsAsync(boutiqueId, includeInactive);
+            if (response.Success && response.Data != null)
+            {
+                accounts = response.Data.Accounts.ToList();
+                totalAvailable = response.Data.TotalAvailable;
+                totalCount = response.Data.TotalCount;
+                alertCount = accounts.Count(a => a.IsInAlert);
+                ApplyFilter();
+            }
+        }
+        catch (Exception)
+        {
+            accounts = new List<AccountListDto>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        var filtered = accounts.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var search = searchTerm.Trim().ToLower();
+            filtered = filtered.Where(a =>
+                (a.Name?.ToLower().Contains(search) ?? false) ||
+                a.CurrentBalance.ToString("N0").Contains(search) ||
+                GetTypeLabel(a.Type).ToLower().Contains(search)
+            );
+        }
+
+        filteredAccounts = filtered.ToList();
+        currentPage = 1;
+    }
+
+    private void OnItemsPerPageChanged()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
+    }
+
+    private string GetTypeLabel(AccountType type) => type switch
+    {
+        AccountType.Cash => "Especes",
+        AccountType.Bank => "Banque",
+        AccountType.MobileMoney => "Mobile Money",
+        AccountType.Other => "Autre",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeColor(AccountType type) => type switch
+    {
+        AccountType.Cash => "bg-green-100 text-green-800",
+        AccountType.Bank => "bg-blue-100 text-blue-800",
+        AccountType.MobileMoney => "bg-orange-100 text-orange-800",
+        AccountType.Other => "bg-gray-100 text-gray-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+}

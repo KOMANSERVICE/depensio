@@ -10,6 +10,13 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateAccountRequest request);
+
+    [Get("/api/accounts")]
+    Task<BaseResponse<GetAccountsResponse>> GetAccountsAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Query] bool includeInactive = false,
+        [Query] AccountType? type = null);
 }
 
 public enum AccountType
@@ -52,4 +59,22 @@ public record AccountDTO(
     decimal? AlertThreshold,
     DateTime CreatedAt,
     DateTime UpdatedAt
+);
+
+public record GetAccountsResponse(
+    IReadOnlyList<AccountListDto> Accounts,
+    decimal TotalAvailable,
+    int TotalCount
+);
+
+public record AccountListDto(
+    Guid Id,
+    string Name,
+    AccountType Type,
+    decimal CurrentBalance,
+    string Currency,
+    bool IsActive,
+    bool IsDefault,
+    decimal? AlertThreshold,
+    bool IsInAlert
 );
