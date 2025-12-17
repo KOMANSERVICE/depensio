@@ -32,6 +32,12 @@ public interface ITresorerieService
         [Header("X-Boutique-Id")] string boutiqueId,
         [Query] DateTime? fromDate = null,
         [Query] DateTime? toDate = null);
+
+    [Get("/api/accounts/{id}/balance")]
+    Task<BaseResponse<AccountBalanceDto>> GetAccountBalanceAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 public enum AccountType
@@ -159,4 +165,16 @@ public record BalanceEvolutionDto(
     decimal Balance,
     decimal TotalIncome,
     decimal TotalExpense
+);
+
+public record AccountBalanceDto(
+    Guid AccountId,
+    string AccountName,
+    decimal CurrentBalance,
+    string Currency,
+    decimal VariationToday,
+    decimal VariationThisMonth,
+    bool IsAlertTriggered,
+    decimal? AlertThreshold,
+    DateTime CalculatedAt
 );
