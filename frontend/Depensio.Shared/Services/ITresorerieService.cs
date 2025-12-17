@@ -27,4 +27,9 @@ public interface ITresorerieService
     Task<BaseResponse<AccountBalanceDto>> GetAccountBalanceAsync(
         Guid boutiqueId,
         Guid accountId);
+
+    [Post("/tresorerie/{boutiqueId}/accounts")]
+    Task<BaseResponse<CreateAccountResponse>> CreateAccountAsync(
+        Guid boutiqueId,
+        [Body] CreateAccountRequest request);
 }

@@ -30,12 +30,17 @@
                 class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-3 items-center">
             <div class="flex items-center">
                 <input type="checkbox" id="includeInactive" @bind="includeInactive" @bind:after="GetAccountsAsync"
                     class="rounded text-primary-700 focus:ring-primary-700 mr-2">
                 <label for="includeInactive" class="text-sm text-gray-600">Afficher inactifs</label>
             </div>
+            <button @onclick="OpenCreateModal"
+                class="px-4 py-2 bg-primary-700 hover:bg-amber-800 text-white rounded-lg flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span class="hidden md:inline">Nouveau compte</span>
+            </button>
         </div>
     </div>
 
@@ -282,6 +287,25 @@
     }
 </div>
 
+<!-- Modal de creation -->
+@if (showCreateModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="text-lg font-semibold text-gray-900">Nouveau compte de tresorerie</h3>
+                <button @onclick="CloseCreateModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <CreateAccountComponent
+                BoutiqueId="@boutiqueId"
+                OnAfterSave="HandleAfterCreate"
+                OnCancelSave="CloseCreateModal" />
+        </div>
+    </div>
+}
+
 <!-- Modal de modification -->
 @if (showEditModal && selectedAccount != null)
 {
@@ -318,6 +342,9 @@
     // Pagination
     private int itemsPerPage = 10;
     private int currentPage = 1;
+
+    // Create modal
+    private bool showCreateModal = false;
 
     // Edit modal
     private bool showEditModal = false;
@@ -445,6 +472,22 @@
     private async Task HandleAfterSave()
     {
         CloseEditModal();
+        await GetAccountsAsync();
+    }
+
+    private void OpenCreateModal()
+    {
+        showCreateModal = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        showCreateModal = false;
+    }
+
+    private async Task HandleAfterCreate()
+    {
+        CloseCreateModal();
         await GetAccountsAsync();
     }
 }

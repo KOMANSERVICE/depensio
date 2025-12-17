@@ -114,3 +114,50 @@ public record AccountBalanceDto(
     decimal? AlertThreshold,
     DateTime CalculatedAt
 );
+
+public record CreateAccountRequest(
+    string Name,
+    string? Description,
+    AccountType Type,
+    decimal InitialBalance,
+    decimal? AlertThreshold,
+    decimal? OverdraftLimit,
+    string? AccountNumber,
+    string? BankName,
+    bool IsDefault
+);
+
+public record CreateAccountResponse(AccountDTO Account);
+
+public record AccountDTO(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    string Name,
+    string? Description,
+    AccountType Type,
+    string? AccountNumber,
+    string? BankName,
+    decimal InitialBalance,
+    decimal CurrentBalance,
+    string Currency,
+    bool IsActive,
+    bool IsDefault,
+    decimal? OverdraftLimit,
+    decimal? AlertThreshold,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);
+
+public class AccountCreateDTO
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public AccountType Type { get; set; } = AccountType.Cash;
+    public decimal InitialBalance { get; set; }
+    public decimal? AlertThreshold { get; set; }
+    public decimal? OverdraftLimit { get; set; }
+    public string? AccountNumber { get; set; }
+    public string? BankName { get; set; }
+    public bool IsDefault { get; set; }
+}
