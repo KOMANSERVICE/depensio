@@ -9,4 +9,10 @@ public interface ITresorerieService
         Guid boutiqueId,
         bool includeInactive = false,
         AccountType? type = null);
+
+    [Put("/tresorerie/{boutiqueId}/accounts/{accountId}")]
+    Task<BaseResponse<UpdateAccountResponse>> UpdateAccountAsync(
+        Guid boutiqueId,
+        Guid accountId,
+        [Body] UpdateAccountRequest request);
 }
