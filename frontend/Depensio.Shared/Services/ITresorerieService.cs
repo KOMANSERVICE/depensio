@@ -22,4 +22,9 @@ public interface ITresorerieService
         Guid accountId,
         DateTime? fromDate = null,
         DateTime? toDate = null);
+
+    [Get("/tresorerie/{boutiqueId}/accounts/{accountId}/balance")]
+    Task<BaseResponse<AccountBalanceDto>> GetAccountBalanceAsync(
+        Guid boutiqueId,
+        Guid accountId);
 }

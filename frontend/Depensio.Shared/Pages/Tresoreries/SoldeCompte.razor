@@ -1,0 +1,261 @@
+@page "/tresorerie/{boutiqueId:guid}/comptes/{accountId:guid}/solde"
+@using depensio.Shared.Pages.Tresoreries.Models
+@inherits FlowbitePage
+@layout MainLayout
+@inject ITresorerieService _tresorerieService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitleComponent Title="Solde en temps reel" />
+
+<HeaderPage
+    Title="Solde en temps reel"
+    SubTitle="Consulter le solde actuel et les variations du compte"/>
+
+@if (isLoading)
+{
+    <LoadingDataComponent />
+}
+else if (balance == null)
+{
+    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+        <i class="fas fa-exclamation-triangle text-6xl text-yellow-500 mb-4"></i>
+        <p class="text-gray-600 text-lg">Impossible de recuperer le solde du compte</p>
+        <button @onclick="GoBack" class="mt-4 px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800">
+            <i class="fas fa-arrow-left mr-2"></i>Retour a la liste
+        </button>
+    </div>
+}
+else
+{
+    <!-- Bouton Retour -->
+    <div class="mb-4 flex justify-between items-center">
+        <button @onclick="GoBack" class="text-primary-700 hover:text-amber-800 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>Retour a la liste des comptes
+        </button>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-500">
+                <i class="fas fa-clock mr-1"></i>
+                Mis a jour le @balance.CalculatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+            </span>
+            <button @onclick="RefreshBalance"
+                    disabled="@isRefreshing"
+                    class="px-3 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                <i class="fas fa-sync-alt mr-2 @(isRefreshing ? "animate-spin" : "")"></i>
+                Actualiser
+            </button>
+        </div>
+    </div>
+
+    <!-- Carte principale du solde -->
+    <div class="bg-gradient-to-r from-primary-700 to-amber-600 rounded-xl shadow-lg p-8 mb-6 text-white">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h2 class="text-lg opacity-80 mb-1">@balance.AccountName</h2>
+                <p class="text-5xl font-bold mb-2 @(balance.IsAlertTriggered ? "text-red-200" : "")">
+                    @balance.CurrentBalance.ToString("N0") @balance.Currency
+                </p>
+                @if (balance.IsAlertTriggered && balance.AlertThreshold.HasValue)
+                {
+                    <div class="flex items-center mt-2 bg-red-500 bg-opacity-30 rounded-full px-4 py-2">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <span>Solde sous le seuil d'alerte (@balance.AlertThreshold.Value.ToString("N0") @balance.Currency)</span>
+                    </div>
+                }
+            </div>
+            <div class="mt-4 md:mt-0">
+                <i class="fas fa-wallet text-8xl opacity-20"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartes de variations -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Variation du jour -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 @(balance.VariationToday >= 0 ? "border-green-500" : "border-red-500")">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">Variation du jour</p>
+                    <p class="text-3xl font-bold @(balance.VariationToday >= 0 ? "text-green-600" : "text-red-600")">
+                        @(balance.VariationToday >= 0 ? "+" : "")@balance.VariationToday.ToString("N0") @balance.Currency
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Depuis 00:00 aujourd'hui</p>
+                </div>
+                <div class="w-16 h-16 rounded-full flex items-center justify-center @(balance.VariationToday >= 0 ? "bg-green-100" : "bg-red-100")">
+                    <i class="fas @(balance.VariationToday >= 0 ? "fa-arrow-up text-green-600" : "fa-arrow-down text-red-600") text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation du mois -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 @(balance.VariationThisMonth >= 0 ? "border-green-500" : "border-red-500")">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">Variation du mois</p>
+                    <p class="text-3xl font-bold @(balance.VariationThisMonth >= 0 ? "text-green-600" : "text-red-600")">
+                        @(balance.VariationThisMonth >= 0 ? "+" : "")@balance.VariationThisMonth.ToString("N0") @balance.Currency
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Depuis le 1er du mois</p>
+                </div>
+                <div class="w-16 h-16 rounded-full flex items-center justify-center @(balance.VariationThisMonth >= 0 ? "bg-green-100" : "bg-red-100")">
+                    <i class="fas @(balance.VariationThisMonth >= 0 ? "fa-chart-line text-green-600" : "fa-chart-line text-red-600") text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section alerte -->
+    @if (balance.AlertThreshold.HasValue)
+    {
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-bell mr-2 text-primary-700"></i>Configuration des alertes
+            </h3>
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1 bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500">Seuil d'alerte configure</p>
+                    <p class="text-2xl font-bold text-gray-800">@balance.AlertThreshold.Value.ToString("N0") @balance.Currency</p>
+                </div>
+                <div class="flex-1 bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500">Ecart par rapport au seuil</p>
+                    @{
+                        var ecart = balance.CurrentBalance - balance.AlertThreshold.Value;
+                    }
+                    <p class="text-2xl font-bold @(ecart >= 0 ? "text-green-600" : "text-red-600")">
+                        @(ecart >= 0 ? "+" : "")@ecart.ToString("N0") @balance.Currency
+                    </p>
+                </div>
+                <div class="flex-1 bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500">Statut</p>
+                    @if (balance.IsAlertTriggered)
+                    {
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                            <i class="fas fa-exclamation-circle mr-1"></i>Alerte declenchee
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                            <i class="fas fa-check-circle mr-1"></i>Solde normal
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Actions rapides -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-bolt mr-2 text-primary-700"></i>Actions rapides
+        </h3>
+        <div class="flex flex-wrap gap-3">
+            <a href="/tresorerie/@boutiqueId/comptes/@accountId"
+               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+                <i class="fas fa-eye mr-2"></i>Voir le detail complet
+            </a>
+            <button @onclick="GoToAccountList"
+                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center">
+                <i class="fas fa-list mr-2"></i>Liste des comptes
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    [Parameter]
+    public Guid accountId { get; set; }
+
+    private AccountBalanceDto? balance;
+    private bool isLoading = true;
+    private bool isRefreshing = false;
+    private System.Timers.Timer? autoRefreshTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBalanceAsync();
+        SetupAutoRefresh();
+    }
+
+    private void SetupAutoRefresh()
+    {
+        autoRefreshTimer = new System.Timers.Timer(30000);
+        autoRefreshTimer.Elapsed += async (sender, args) =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await RefreshBalance();
+            });
+        };
+        autoRefreshTimer.AutoReset = true;
+        autoRefreshTimer.Start();
+    }
+
+    private async Task LoadBalanceAsync()
+    {
+        try
+        {
+            var response = await _tresorerieService.GetAccountBalanceAsync(boutiqueId, accountId);
+            if (response.Success && response.Data != null)
+            {
+                balance = response.Data;
+            }
+            else
+            {
+                balance = null;
+            }
+        }
+        catch (Exception)
+        {
+            balance = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshBalance()
+    {
+        isRefreshing = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetAccountBalanceAsync(boutiqueId, accountId);
+            if (response.Success && response.Data != null)
+            {
+                balance = response.Data;
+            }
+        }
+        catch (Exception)
+        {
+            // On garde les donnees precedentes en cas d'erreur
+        }
+        finally
+        {
+            isRefreshing = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo($"/tresorerie/{boutiqueId}/comptes");
+    }
+
+    private void GoToAccountList()
+    {
+        NavigationManager.NavigateTo($"/tresorerie/{boutiqueId}/comptes");
+    }
+
+    public void Dispose()
+    {
+        autoRefreshTimer?.Stop();
+        autoRefreshTimer?.Dispose();
+    }
+}

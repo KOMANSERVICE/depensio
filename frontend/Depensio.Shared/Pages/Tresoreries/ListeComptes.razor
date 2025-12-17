@@ -156,6 +156,10 @@
                                         class="text-blue-600 hover:text-blue-800 mr-3" title="Voir le detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    <a href="/tresorerie/@boutiqueId/comptes/@account.Id/solde"
+                                        class="text-green-600 hover:text-green-800 mr-3" title="Solde en temps reel">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </a>
                                     <button @onclick="() => OpenEditModal(account)"
                                         class="text-primary-700 hover:text-amber-800" title="Modifier">
                                         <i class="fas fa-edit"></i>
@@ -222,6 +226,10 @@
                                     <a href="/tresorerie/@boutiqueId/comptes/@account.Id"
                                         class="text-blue-600 hover:text-blue-800 p-2" title="Voir le detail">
                                         <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="/tresorerie/@boutiqueId/comptes/@account.Id/solde"
+                                        class="text-green-600 hover:text-green-800 p-2" title="Solde en temps reel">
+                                        <i class="fas fa-sync-alt"></i>
                                     </a>
                                     <button @onclick="() => OpenEditModal(account)"
                                         class="text-primary-700 hover:text-amber-800 p-2" title="Modifier">

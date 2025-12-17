@@ -27,11 +27,15 @@ else if (account == null)
 }
 else
 {
-    <!-- Bouton Retour -->
-    <div class="mb-4">
+    <!-- Bouton Retour et Action rapide -->
+    <div class="mb-4 flex justify-between items-center">
         <button @onclick="GoBack" class="text-primary-700 hover:text-amber-800 flex items-center">
             <i class="fas fa-arrow-left mr-2"></i>Retour a la liste des comptes
         </button>
+        <a href="/tresorerie/@boutiqueId/comptes/@accountId/solde"
+           class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 flex items-center">
+            <i class="fas fa-sync-alt mr-2"></i>Solde en temps reel
+        </a>
     </div>
 
     <!-- Informations du compte -->

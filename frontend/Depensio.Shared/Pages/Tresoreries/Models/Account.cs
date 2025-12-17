@@ -102,3 +102,15 @@ public record BalanceEvolutionDto(
     decimal TotalIncome,
     decimal TotalExpense
 );
+
+public record AccountBalanceDto(
+    Guid AccountId,
+    string AccountName,
+    decimal CurrentBalance,
+    string Currency,
+    decimal VariationToday,
+    decimal VariationThisMonth,
+    bool IsAlertTriggered,
+    decimal? AlertThreshold,
+    DateTime CalculatedAt
+);
