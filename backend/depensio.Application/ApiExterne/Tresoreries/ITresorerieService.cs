@@ -17,6 +17,13 @@ public interface ITresorerieService
         [Header("X-Boutique-Id")] string boutiqueId,
         [Query] bool includeInactive = false,
         [Query] AccountType? type = null);
+
+    [Put("/api/accounts/{accountId}")]
+    Task<BaseResponse<UpdateAccountResponse>> UpdateAccountAsync(
+        Guid accountId,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] UpdateAccountRequest request);
 }
 
 public enum AccountType
@@ -78,3 +85,13 @@ public record AccountListDto(
     decimal? AlertThreshold,
     bool IsInAlert
 );
+
+public record UpdateAccountRequest(
+    string Name,
+    decimal? AlertThreshold,
+    decimal? OverdraftLimit,
+    bool IsActive,
+    decimal? InitialBalance = null
+);
+
+public record UpdateAccountResponse(Guid Id);
