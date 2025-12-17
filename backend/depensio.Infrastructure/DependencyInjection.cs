@@ -1,5 +1,6 @@
 ﻿using depensio.Application.ApiExterne.Magasins;
 using depensio.Application.ApiExterne.Menus;
+using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Application.Data;
 using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
@@ -39,6 +40,7 @@ public static class DependencyInjection
 
         var menuServiceUri = configuration["Service:Menu"]!;
         var magasinServiceUri = configuration["Service:Magasin"]!;
+        var tresorerieServiceUri = configuration["Service:Tresorerie"] ?? "";
         var localDomain = configuration["LOCALDOMAIN"] ?? "depensio.com";
 
         if (string.IsNullOrEmpty(host))
@@ -115,6 +117,9 @@ public static class DependencyInjection
         var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(mailPassword).Result ?? "";
         var menu_url = vaultSecretProvider.GetSecretAsync(menuServiceUri).Result ?? "";
         var magasin_url = vaultSecretProvider.GetSecretAsync(magasinServiceUri).Result ?? "";
+        var tresorerie_url = !string.IsNullOrEmpty(tresorerieServiceUri)
+            ? vaultSecretProvider.GetSecretAsync(tresorerieServiceUri).Result ?? ""
+            : "";
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
@@ -168,6 +173,12 @@ public static class DependencyInjection
 
         services.AddRefitClient<IMagasinService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(magasin_url));
+
+        if (!string.IsNullOrEmpty(tresorerie_url))
+        {
+            services.AddRefitClient<ITresorerieService>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(tresorerie_url));
+        }
 
         return services;
     }
