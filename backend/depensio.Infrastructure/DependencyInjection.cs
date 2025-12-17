@@ -99,6 +99,11 @@ public static class DependencyInjection
             throw new InvalidOperationException("Vault mount point is not provided in configuration");
         }
 
+        if (string.IsNullOrEmpty(tresorerieServiceUri))
+        {
+            throw new InvalidOperationException("Tresorerie Uri is not provided in configuration");
+        }
+
 
         services.AddSingleton<ISecureSecretProvider>(sp =>
             new VaultSecretProvider(
@@ -117,9 +122,7 @@ public static class DependencyInjection
         var fromMailIdPassword = vaultSecretProvider.GetSecretAsync(mailPassword).Result ?? "";
         var menu_url = vaultSecretProvider.GetSecretAsync(menuServiceUri).Result ?? "";
         var magasin_url = vaultSecretProvider.GetSecretAsync(magasinServiceUri).Result ?? "";
-        var tresorerie_url = !string.IsNullOrEmpty(tresorerieServiceUri)
-            ? vaultSecretProvider.GetSecretAsync(tresorerieServiceUri).Result ?? ""
-            : "";
+        var tresorerie_url = vaultSecretProvider.GetSecretAsync(tresorerieServiceUri).Result;
 
         services.AddDbContext<DepensioDbContext>((sp, options) =>
         {
