@@ -31,3 +31,8 @@ public class CategoryCreateDTO
     public CategoryType Type { get; set; } = CategoryType.Expense;
     public string? Icon { get; set; }
 }
+
+public record GetCategoriesResponse(
+    IReadOnlyList<CategoryDTO> Categories,
+    int TotalCount
+);

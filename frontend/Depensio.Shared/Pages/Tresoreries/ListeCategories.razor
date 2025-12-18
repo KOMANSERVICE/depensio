@@ -14,9 +14,35 @@
 <div class="bg-white rounded-lg shadow-md p-4 mb-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div class="flex items-center">
-            <span class="text-sm text-gray-600">Categories de tresorerie</span>
+            <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
+            <select id="itemsPerPage" @bind="itemsPerPage" @bind:after="OnItemsPerPageChanged" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span class="ml-2 text-sm text-gray-600">elements</span>
+        </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" placeholder="Rechercher une categorie..."
+                @bind="searchTerm"
+                @bind:event="oninput"
+                @bind:after="ApplyFilter"
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
         </div>
         <div class="flex gap-3 items-center">
+            <select @bind="selectedType" @bind:after="GetCategoriesAsync"
+                class="border border-gray-300 rounded px-3 py-2 text-sm">
+                <option value="">Tous les types</option>
+                <option value="@CategoryType.Income">Revenus</option>
+                <option value="@CategoryType.Expense">Depenses</option>
+            </select>
+            <div class="flex items-center">
+                <input type="checkbox" id="includeInactive" @bind="includeInactive" @bind:after="GetCategoriesAsync"
+                    class="rounded text-primary-700 focus:ring-primary-700 mr-2">
+                <label for="includeInactive" class="text-sm text-gray-600">Afficher inactifs</label>
+            </div>
             <button @onclick="OpenCreateModal"
                 class="px-4 py-2 bg-primary-700 hover:bg-amber-800 text-white rounded-lg flex items-center gap-2">
                 <i class="fas fa-plus"></i>
@@ -25,11 +51,197 @@
         </div>
     </div>
 
-    <div class="text-center py-12">
-        <i class="fas fa-tags text-6xl text-gray-300 mb-4"></i>
-        <p class="text-gray-500 text-lg mb-4">Gestion des categories de tresorerie</p>
-        <p class="text-gray-400 text-sm">Creez des categories pour organiser vos revenus et depenses</p>
-    </div>
+    @if (isLoading)
+    {
+        <LoadingDataComponent />
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gradient-to-r from-primary-700 to-amber-600 rounded-lg p-4 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-80">Total Categories</p>
+                        <p class="text-2xl font-bold">@totalCount</p>
+                    </div>
+                    <i class="fas fa-tags text-3xl opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Categories de revenus</p>
+                        <p class="text-2xl font-bold text-green-600">@incomeCount</p>
+                    </div>
+                    <i class="fas fa-arrow-up text-3xl text-green-300"></i>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Categories de depenses</p>
+                        <p class="text-2xl font-bold text-red-600">@expenseCount</p>
+                    </div>
+                    <i class="fas fa-arrow-down text-3xl text-red-300"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-primary-700 text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Nom</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Icone</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Statut</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Date de creation</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if (paginatedCategories.Any())
+                    {
+                        @foreach(var category in paginatedCategories)
+                        {
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        @if (!string.IsNullOrEmpty(category.Icon))
+                                        {
+                                            <i class="@category.Icon mr-3 text-gray-500"></i>
+                                        }
+                                        <div class="text-sm font-medium text-gray-900">
+                                            @category.Name
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @GetTypeColor(category.Type)">
+                                        @GetTypeLabel(category.Type)
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @if (!string.IsNullOrEmpty(category.Icon))
+                                    {
+                                        <code class="bg-gray-100 px-2 py-1 rounded">@category.Icon</code>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400">-</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (category.IsActive)
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Actif
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Inactif
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @category.CreatedAt.ToString("dd/MM/yyyy")
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <i class="fas fa-tags text-6xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500 text-lg">Aucune categorie trouvee</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-view">
+            <div class="grid grid-cols-1 gap-4">
+                @if (paginatedCategories.Any())
+                {
+                    @foreach (var category in paginatedCategories)
+                    {
+                        <div class="bg-white rounded-lg shadow-md p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    @if (!string.IsNullOrEmpty(category.Icon))
+                                    {
+                                        <i class="@category.Icon mr-3 text-gray-500 text-lg"></i>
+                                    }
+                                    <h3 class="font-medium text-gray-900">@category.Name</h3>
+                                </div>
+                                @if (category.IsActive)
+                                {
+                                    <span class="px-2 text-xs font-semibold rounded-full bg-green-100 text-green-800">Actif</span>
+                                }
+                                else
+                                {
+                                    <span class="px-2 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Inactif</span>
+                                }
+                            </div>
+                            <div class="flex justify-between items-center mt-3">
+                                <span class="text-xs px-2 py-1 rounded-full @GetTypeColor(category.Type)">@GetTypeLabel(category.Type)</span>
+                                <span class="text-xs text-gray-500">@category.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-12">
+                        <i class="fas fa-tags text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">Aucune categorie trouvee</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Footer with pagination -->
+        <div class="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+            <div class="mb-4 md:mb-0">
+                <span class="text-sm text-gray-600">@filteredCategories.Count categorie(s)</span>
+            </div>
+            <div class="text-sm text-gray-600 mb-4 md:mb-0">
+                Affichage de @StartIndex a @EndIndex sur @filteredCategories.Count elements
+            </div>
+            <div class="flex items-center gap-1">
+                <button @onclick="GoToPreviousPage"
+                        disabled="@(currentPage <= 1)"
+                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    var pageNumber = i;
+                    <button @onclick="() => GoToPage(pageNumber)"
+                            class="px-3 py-1 rounded @(currentPage == pageNumber ? "bg-primary-700 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-100")">
+                        @pageNumber
+                    </button>
+                }
+                <button @onclick="GoToNextPage"
+                        disabled="@(currentPage >= TotalPages)"
+                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+            </div>
+        </div>
+    }
 </div>
 
 <!-- Modal de creation -->
@@ -51,7 +263,125 @@
 }
 
 @code {
+    private List<CategoryDTO> categories = new();
+    private List<CategoryDTO> filteredCategories = new();
+    private bool isLoading = true;
+    private bool includeInactive = false;
+    private CategoryType? selectedType = null;
+    private string searchTerm = "";
+    private int totalCount = 0;
+    private int incomeCount = 0;
+    private int expenseCount = 0;
+
+    // Pagination
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+
+    // Create modal
     private bool showCreateModal = false;
+
+    private List<CategoryDTO> paginatedCategories => filteredCategories
+        .Skip((currentPage - 1) * itemsPerPage)
+        .Take(itemsPerPage)
+        .ToList();
+
+    private int TotalPages => filteredCategories.Count == 0 ? 1 : (int)Math.Ceiling((double)filteredCategories.Count / itemsPerPage);
+    private int StartIndex => filteredCategories.Count == 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+    private int EndIndex => Math.Min(currentPage * itemsPerPage, filteredCategories.Count);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCategoriesAsync();
+    }
+
+    private async Task GetCategoriesAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetCategoriesAsync(selectedType, includeInactive);
+            if (response.Success && response.Data != null)
+            {
+                categories = response.Data.Categories.ToList();
+                totalCount = response.Data.TotalCount;
+                incomeCount = categories.Count(c => c.Type == CategoryType.Income);
+                expenseCount = categories.Count(c => c.Type == CategoryType.Expense);
+                ApplyFilter();
+            }
+        }
+        catch (Exception)
+        {
+            categories = new List<CategoryDTO>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        var filtered = categories.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var search = searchTerm.Trim().ToLower();
+            filtered = filtered.Where(c =>
+                (c.Name?.ToLower().Contains(search) ?? false) ||
+                (c.Icon?.ToLower().Contains(search) ?? false) ||
+                GetTypeLabel(c.Type).ToLower().Contains(search)
+            );
+        }
+
+        filteredCategories = filtered.ToList();
+        currentPage = 1;
+    }
+
+    private void OnItemsPerPageChanged()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
+    }
+
+    private string GetTypeLabel(CategoryType type) => type switch
+    {
+        CategoryType.Income => "Revenu",
+        CategoryType.Expense => "Depense",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeColor(CategoryType type) => type switch
+    {
+        CategoryType.Income => "bg-green-100 text-green-800",
+        CategoryType.Expense => "bg-red-100 text-red-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
 
     private void OpenCreateModal()
     {
@@ -66,6 +396,6 @@
     private async Task HandleAfterCreate()
     {
         CloseCreateModal();
-        StateHasChanged();
+        await GetCategoriesAsync();
     }
 }

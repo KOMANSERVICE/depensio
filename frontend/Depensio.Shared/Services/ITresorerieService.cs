@@ -36,4 +36,9 @@ public interface ITresorerieService
     [Post("/tresorerie/categories")]
     Task<BaseResponse<CreateCategoryResponse>> CreateCategoryAsync(
         [Body] CreateCategoryRequest request);
+
+    [Get("/tresorerie/categories")]
+    Task<BaseResponse<GetCategoriesResponse>> GetCategoriesAsync(
+        CategoryType? type = null,
+        bool includeInactive = false);
 }
