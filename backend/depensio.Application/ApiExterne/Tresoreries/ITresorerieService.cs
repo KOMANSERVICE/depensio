@@ -42,6 +42,7 @@ public interface ITresorerieService
     [Post("/api/categories")]
     Task<BaseResponse<CreateCategoryResponse>> CreateCategoryAsync(
         [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateCategoryRequest request);
 }
 
