@@ -1,7 +1,7 @@
 @using depensio.Shared.Pages.Tresoreries.Models
 @inject ITresorerieService _tresorerieService
 
-<LoadingComponent IsLoad="@isLoad" />
+<LoadingComponent IsLoad="@(isLoad || isLoadingDetails)" />
 
 <EditForm EditContext="@editContext" OnValidSubmit="HandleUpdate">
     <DataAnnotationsValidator />
@@ -68,29 +68,69 @@
     public AccountListDto? Account { get; set; }
 
     private bool isLoad = false;
+    private bool isLoadingDetails = true;
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
     private AccountEditDTO localAccount = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        CopyAccountToLocal();
+        await LoadAccountDetailsAsync();
         InitializeEditContext();
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (Account != null && Account.Id != localAccount.Id)
         {
-            CopyAccountToLocal();
+            await LoadAccountDetailsAsync();
             InitializeEditContext();
         }
     }
 
-    private void CopyAccountToLocal()
+    private async Task LoadAccountDetailsAsync()
     {
-        if (Account != null)
+        if (Account == null)
         {
+            localAccount = new AccountEditDTO();
+            isLoadingDetails = false;
+            return;
+        }
+
+        isLoadingDetails = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetAccountDetailAsync(BoutiqueId, Account.Id);
+            if (response.Success && response.Data != null)
+            {
+                var detail = response.Data;
+                localAccount = new AccountEditDTO
+                {
+                    Id = detail.Id,
+                    Name = detail.Name,
+                    AlertThreshold = detail.AlertThreshold,
+                    OverdraftLimit = detail.OverdraftLimit,
+                    IsActive = detail.IsActive,
+                    InitialBalance = detail.InitialBalance
+                };
+            }
+            else
+            {
+                // Fallback: utiliser les donnees de base si le detail echoue
+                localAccount = new AccountEditDTO
+                {
+                    Id = Account.Id,
+                    Name = Account.Name,
+                    AlertThreshold = Account.AlertThreshold,
+                    IsActive = Account.IsActive
+                };
+            }
+        }
+        catch
+        {
+            // Fallback en cas d'erreur: utiliser les donnees de base
             localAccount = new AccountEditDTO
             {
                 Id = Account.Id,
@@ -99,9 +139,10 @@
                 IsActive = Account.IsActive
             };
         }
-        else
+        finally
         {
-            localAccount = new AccountEditDTO();
+            isLoadingDetails = false;
+            StateHasChanged();
         }
     }
 
