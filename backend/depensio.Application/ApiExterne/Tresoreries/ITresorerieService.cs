@@ -48,18 +48,17 @@ public enum AccountType
     Other = 3
 }
 
-public record CreateAccountRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public AccountType Type { get; set; }
-    public decimal InitialBalance { get; set; }
-    public decimal? AlertThreshold { get; set; }
-    public decimal? OverdraftLimit { get; set; }
-    public string? AccountNumber { get; set; }
-    public string? BankName { get; set; }
-    public bool IsDefault { get; set; }
-}
+public record CreateAccountRequest(
+    string Name,
+    string? Description,
+    AccountType Type,
+    decimal InitialBalance,
+    decimal? AlertThreshold,
+    decimal? OverdraftLimit,
+    string? AccountNumber,
+    string? BankName,
+    bool IsDefault
+);
 
 public record CreateAccountResponse(AccountDTO Account);
 
