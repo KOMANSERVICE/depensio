@@ -4,6 +4,7 @@ using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Application.Data;
 using depensio.Infrastructure.ApiExterne.n8n;
 using depensio.Infrastructure.Data;
+using depensio.Infrastructure.Handlers;
 using depensio.Infrastructure.Services;
 using IDR.Library.BuildingBlocks;
 using IDR.Library.BuildingBlocks.Contexts;
@@ -177,10 +178,15 @@ public static class DependencyInjection
         services.AddRefitClient<IMagasinService>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(magasin_url));
 
+        // Register the JWT propagation handler for microservices that require authentication
+        services.AddTransient<JwtPropagationHandler>();
+        services.AddHttpContextAccessor();
+
         if (!string.IsNullOrEmpty(tresorerie_url))
         {
             services.AddRefitClient<ITresorerieService>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(tresorerie_url));
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(tresorerie_url))
+                .AddHttpMessageHandler<JwtPropagationHandler>();
         }
 
         return services;

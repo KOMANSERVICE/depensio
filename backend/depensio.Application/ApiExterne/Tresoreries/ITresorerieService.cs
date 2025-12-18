@@ -48,7 +48,7 @@ public enum AccountType
     Other = 3
 }
 
-public class CreateAccountRequest
+public record CreateAccountRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
