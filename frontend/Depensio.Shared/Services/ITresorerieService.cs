@@ -32,4 +32,8 @@ public interface ITresorerieService
     Task<BaseResponse<CreateAccountResponse>> CreateAccountAsync(
         Guid boutiqueId,
         CreateAccountRequest request);
+
+    [Post("/tresorerie/categories")]
+    Task<BaseResponse<CreateCategoryResponse>> CreateCategoryAsync(
+        [Body] CreateCategoryRequest request);
 }

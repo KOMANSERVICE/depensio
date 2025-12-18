@@ -38,6 +38,11 @@ public interface ITresorerieService
         Guid id,
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Post("/api/categories")]
+    Task<BaseResponse<CreateCategoryResponse>> CreateCategoryAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Body] CreateCategoryRequest request);
 }
 
 public enum AccountType
@@ -178,4 +183,30 @@ public record AccountBalanceDto(
     bool IsAlertTriggered,
     decimal? AlertThreshold,
     DateTime CalculatedAt
+);
+
+// Category DTOs
+public enum CategoryType
+{
+    Income = 0,
+    Expense = 1
+}
+
+public record CreateCategoryRequest(
+    string Name,
+    CategoryType Type,
+    string? Icon
+);
+
+public record CreateCategoryResponse(CategoryDTO Category);
+
+public record CategoryDTO(
+    Guid Id,
+    string ApplicationId,
+    string Name,
+    CategoryType Type,
+    string? Icon,
+    bool IsActive,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
 );
