@@ -85,7 +85,8 @@ public class MenuService(
                 Id = m.Id,
                 Name = m.Name,
                 UrlFront = m.UrlFront,
-                Icon = m.Icon
+                Icon = m.Icon,
+                Group = m.Group
             })
             .ToList();
 
@@ -167,7 +168,8 @@ public class MenuService(
                 Id = m.Id,
                 Name = m.Name,
                 UrlFront = m.UrlFront,
-                Icon = m.Icon
+                Icon = m.Icon,
+                Group = m.Group
             })
             .FirstOrDefault();
 

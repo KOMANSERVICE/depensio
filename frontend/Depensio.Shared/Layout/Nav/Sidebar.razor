@@ -6,22 +6,49 @@
                     <h2 class="text-primary-700 font-bold truncate uppercase">@boutique.Name</h2>
                 </div>
                 <ul class="pb-2 space-y-2">
-                    @foreach(var menu in menuUsers)
+                    @* Menus sans groupe (affichage normal) *@
+                    @foreach(var menu in UngroupedMenus)
                     {
                         <li>
-                            <NavLink href="@(menu.UrlFront.Contains("{boutiqueid}")
-                                                         ? menu.UrlFront.Replace("{boutiqueid}", boutique.Id.ToString())
-                                                         : $"{menu.UrlFront}/{boutique.Id}")" @onclick="OnClose" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700"
+                            <NavLink href="@GetMenuUrl(menu)" @onclick="OnClose" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700"
                                      activeClass="font-bold text-primary-700 dark:text-primary-500 dark:border-primary-500"
                                      match="NavLinkMatch.Prefix">
                                 <i class="@menu.Icon"></i>
                                 <span class="ml-3" sidebar-toggle-item>@menu.Name</span>
                             </NavLink>
                         </li>
-                    }                    
+                    }
+
+                    @* Menus groupes (menu deroulant) *@
+                    @foreach(var group in GroupedMenus)
+                    {
+                        <li>
+                            <button type="button" @onclick="() => ToggleGroup(group.Key)"
+                                    class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                <i class="fa-solid fa-folder"></i>
+                                <span class="flex-1 ml-3 text-left whitespace-nowrap" sidebar-toggle-item>@group.Key</span>
+                                <svg class="w-6 h-6 transition-transform duration-200 @(IsGroupExpanded(group.Key) ? "rotate-180" : "")" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <ul class="@(IsGroupExpanded(group.Key) ? "" : "hidden") py-2 space-y-2">
+                                @foreach(var menu in group.Value)
+                                {
+                                    <li>
+                                        <NavLink href="@GetMenuUrl(menu)" @onclick="OnClose" class="flex items-center w-full p-2 pl-11 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                                 activeClass="font-bold text-primary-700 dark:text-primary-500 dark:border-primary-500"
+                                                 match="NavLinkMatch.Prefix">
+                                            <i class="@menu.Icon"></i>
+                                            <span class="ml-3" sidebar-toggle-item>@menu.Name</span>
+                                        </NavLink>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
                 </ul>
                 <div class="pt-2 space-y-2">
-                    
+
                     <NavLink href="@($"/listboutique")" @onclick="OnClose" class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700"
                              activeClass="font-bold text-primary-700 dark:text-primary-500 dark:border-primary-500"
                              match="NavLinkMatch.Prefix">
@@ -33,7 +60,7 @@
 
                 </div>
             </div>
-        </div>    
+        </div>
     </div>
 </aside>
 
@@ -45,9 +72,39 @@
     [Parameter]
     public bool IsSidebarOpen { get; set; }
 
-    [Parameter] 
+    [Parameter]
     public EventCallback OnClose { get; set; }
 
     [Parameter]
     public List<MenuUser> menuUsers { get; set; } = new List<MenuUser>();
+
+    private HashSet<string> expandedGroups = new HashSet<string>();
+
+    private IEnumerable<MenuUser> UngroupedMenus => menuUsers.Where(m => string.IsNullOrEmpty(m.Group));
+
+    private Dictionary<string, List<MenuUser>> GroupedMenus => menuUsers
+        .Where(m => !string.IsNullOrEmpty(m.Group))
+        .GroupBy(m => m.Group!)
+        .ToDictionary(g => g.Key, g => g.ToList());
+
+    private bool IsGroupExpanded(string groupName) => expandedGroups.Contains(groupName);
+
+    private void ToggleGroup(string groupName)
+    {
+        if (expandedGroups.Contains(groupName))
+        {
+            expandedGroups.Remove(groupName);
+        }
+        else
+        {
+            expandedGroups.Add(groupName);
+        }
+    }
+
+    private string GetMenuUrl(MenuUser menu)
+    {
+        return menu.UrlFront.Contains("{boutiqueid}")
+            ? menu.UrlFront.Replace("{boutiqueid}", boutique.Id.ToString())
+            : $"{menu.UrlFront}/{boutique.Id}";
+    }
 }

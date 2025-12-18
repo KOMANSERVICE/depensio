@@ -12,4 +12,5 @@ public record MenuUserDTO
     public string Name { get; set; } = string.Empty;
     public string UrlFront { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    public string? Group { get; set; }
 }

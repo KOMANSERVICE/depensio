@@ -30,7 +30,8 @@ public record MenuUser(
     string Reference,
     string Name,
     string UrlFront,
-    string Icon
+    string Icon,
+    string? Group = null
 );
 
 public record GetMenuByUserBoutiqueResponse(IEnumerable<MenuUser> Menus);
