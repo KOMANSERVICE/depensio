@@ -1,5 +1,6 @@
 using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Infrastructure.Filters;
+using IDR.Library.BuildingBlocks.Exceptions;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -15,36 +16,27 @@ public class CreateAccount : ICarterModule
             ITresorerieService tresorerieService,
             ILogger<CreateAccount> logger) =>
         {
-            try
+            
+            var applicationId = "depensio";
+            var result = await tresorerieService.CreateAccountAsync(
+                applicationId,
+                boutiqueId.ToString(),
+                request);
+
+            if (!result.Success)
             {
-                var applicationId = "depensio";
-                var result = await tresorerieService.CreateAccountAsync(
-                    applicationId,
-                    boutiqueId.ToString(),
-                    request);
-
-                if (!result.Success)
-                {
-                    return Results.BadRequest(result);
-                }
-
-                var baseResponse = ResponseFactory.Success(
-                    result.Data,
-                    "Compte de tresorerie cree avec succes",
-                    StatusCodes.Status201Created);
-
-                return Results.Created($"/tresorerie/{boutiqueId}/accounts/{result.Data!.Account.Id}", baseResponse);
+                throw new BadRequestException(result.Message);
             }
-            catch (ApiException ex)
-            {
-                logger.LogError(ex, "Erreur lors de l'appel au microservice Tresorerie: {StatusCode} - {Content}", ex.StatusCode, ex.Content);
-                return Results.Problem(
-                    detail: ex.Content ?? "Erreur interne du service Tresorerie",
-                    statusCode: (int)ex.StatusCode,
-                    title: "Erreur du microservice Tresorerie");
-            }
+
+            var baseResponse = ResponseFactory.Success(
+                result.Data,
+                "Compte de tresorerie cree avec succes",
+                StatusCodes.Status201Created);
+
+            return Results.Created($"/tresorerie/{boutiqueId}/accounts/{result.Data!.Account.Id}", baseResponse);
+            
         })
-        .AddEndpointFilter<BoutiqueAuthorizationFilter>()
+        //.AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("CreateTresorerieAccount")
         .WithTags("Tresorerie")
         .Produces<BaseResponse<CreateAccountResponse>>(StatusCodes.Status201Created)

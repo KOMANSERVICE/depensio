@@ -1,5 +1,6 @@
 using depensio.Application.ApiExterne.Magasins;
 using depensio.Infrastructure.Filters;
+using IDR.Library.BuildingBlocks.Exceptions;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -13,28 +14,19 @@ public class GetStockLocationByBoutique : ICarterModule
     {
         app.MapGet("/stocklocation/{boutiqueId}", async (Guid boutiqueId, IMagasinService magasinService, ILogger<GetStockLocationByBoutique> logger) =>
         {
-            try
+
+            var result = await magasinService.GetMagasinsByBoutiqueAsync(boutiqueId);
+
+            if (!result.Success)
             {
-                var result = await magasinService.GetMagasinsByBoutiqueAsync(boutiqueId);
-
-                if (!result.Success)
-                {
-                    return Results.BadRequest(result);
-                }
-
-                var response = new GetStockLocationByBoutiqueResponse(result.Data!.StockLocations);
-                var baseResponse = ResponseFactory.Success(response, "Liste des magasins récuperés avec succès", StatusCodes.Status200OK);
-
-                return Results.Ok(baseResponse);
+                throw new BadRequestException(result.Message);
             }
-            catch (ApiException ex)
-            {
-                logger.LogError(ex, "Erreur lors de l'appel au microservice Magasin: {StatusCode} - {Content}", ex.StatusCode, ex.Content);
-                return Results.Problem(
-                    detail: ex.Content ?? "Erreur interne du service Magasin",
-                    statusCode: (int)ex.StatusCode,
-                    title: "Erreur du microservice Magasin");
-            }
+
+            var response = new GetStockLocationByBoutiqueResponse(result.Data!.StockLocations);
+            var baseResponse = ResponseFactory.Success(response, "Liste des magasins récuperés avec succès", StatusCodes.Status200OK);
+
+            return Results.Ok(baseResponse);
+
         })
        .AddEndpointFilter<BoutiqueAuthorizationFilter>()
        .WithName("GetStockLocationByBoutique")

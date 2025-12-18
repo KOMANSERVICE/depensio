@@ -1,4 +1,6 @@
-﻿using IDR.Library.BuildingBlocks.Exceptions.Handler;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using IDR.Library.BuildingBlocks.Exceptions.Handler;
 using IDR.Library.BuildingBlocks.Security.Authentication;
 using Microsoft.FeatureManagement.FeatureFilters;
 
@@ -11,6 +13,11 @@ public static class DependencyInjection
     private static string MyAllowSpecificOrigins = "AllowOrigin";
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.PropertyNameCaseInsensitive = true;
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        });
 
         var tempProvider = services.BuildServiceProvider();
         var vaultSecretProvider = tempProvider.GetRequiredService<ISecureSecretProvider>();

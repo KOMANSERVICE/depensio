@@ -1,5 +1,6 @@
 using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Infrastructure.Filters;
+using IDR.Library.BuildingBlocks.Exceptions;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -16,45 +17,27 @@ public class GetAccountDetail : ICarterModule
             ITresorerieService tresorerieService,
             ILogger<GetAccountDetail> logger) =>
         {
-            try
+            
+            var applicationId = "depensio";
+            var result = await tresorerieService.GetAccountDetailAsync(
+                accountId,
+                applicationId,
+                boutiqueId.ToString(),
+                queryParams.FromDate,
+                queryParams.ToDate);
+
+            if (!result.Success)
             {
-                var applicationId = "depensio";
-                var result = await tresorerieService.GetAccountDetailAsync(
-                    accountId,
-                    applicationId,
-                    boutiqueId.ToString(),
-                    queryParams.FromDate,
-                    queryParams.ToDate);
-
-                if (!result.Success)
-                {
-                    return Results.BadRequest(result);
-                }
-
-                var baseResponse = ResponseFactory.Success(
-                    result.Data,
-                    "Detail du compte de tresorerie recupere avec succes",
-                    StatusCodes.Status200OK);
-
-                return Results.Ok(baseResponse);
+                throw new BadRequestException(result.Message);
             }
-            catch (ApiException ex)
-            {
-                logger.LogError(ex, "Erreur lors de l'appel au microservice Tresorerie: {StatusCode} - {Content}", ex.StatusCode, ex.Content);
 
-                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return Results.Problem(
-                        detail: "Compte de tresorerie non trouve",
-                        statusCode: StatusCodes.Status404NotFound,
-                        title: "Compte non trouve");
-                }
+            var baseResponse = ResponseFactory.Success(
+                result.Data,
+                "Detail du compte de tresorerie recupere avec succes",
+                StatusCodes.Status200OK);
 
-                return Results.Problem(
-                    detail: ex.Content ?? "Erreur interne du service Tresorerie",
-                    statusCode: (int)ex.StatusCode,
-                    title: "Erreur du microservice Tresorerie");
-            }
+            return Results.Ok(baseResponse);
+            
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("GetTresorerieAccountDetail")

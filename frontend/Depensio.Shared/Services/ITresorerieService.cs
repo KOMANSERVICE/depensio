@@ -31,5 +31,5 @@ public interface ITresorerieService
     [Post("/tresorerie/{boutiqueId}/accounts")]
     Task<BaseResponse<CreateAccountResponse>> CreateAccountAsync(
         Guid boutiqueId,
-        [Body] CreateAccountRequest request);
+        CreateAccountRequest request);
 }

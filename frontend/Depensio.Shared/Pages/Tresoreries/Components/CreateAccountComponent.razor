@@ -139,17 +139,18 @@
         isLoad = true;
         try
         {
-            var request = new CreateAccountRequest(
-                localAccount.Name,
-                localAccount.Description,
-                localAccount.Type,
-                localAccount.InitialBalance,
-                localAccount.AlertThreshold,
-                localAccount.OverdraftLimit,
-                localAccount.AccountNumber,
-                localAccount.BankName,
-                localAccount.IsDefault
-            );
+            var request = new CreateAccountRequest
+            {
+                Name = localAccount.Name,
+                Description = localAccount.Description,
+                Type = localAccount.Type,
+                InitialBalance = localAccount.InitialBalance,
+                AlertThreshold = localAccount.AlertThreshold,
+                OverdraftLimit = localAccount.OverdraftLimit,
+                AccountNumber = localAccount.AccountNumber,
+                BankName = localAccount.BankName,
+                IsDefault = localAccount.IsDefault
+            };
 
             var result = await _tresorerieService.CreateAccountAsync(BoutiqueId, request);
 

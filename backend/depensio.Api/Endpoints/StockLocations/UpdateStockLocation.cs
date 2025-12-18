@@ -1,5 +1,6 @@
 using depensio.Application.ApiExterne.Magasins;
 using depensio.Infrastructure.Filters;
+using IDR.Library.BuildingBlocks.Exceptions;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -13,28 +14,18 @@ public class UpdateStockLocation : ICarterModule
     {
         app.MapPatch("/stocklocation/{boutiqueId}/{stockLocationId}", async (Guid boutiqueId, Guid stockLocationId, UpdateStockLocationRequest request, IMagasinService magasinService, ILogger<UpdateStockLocation> logger) =>
         {
-            try
+            
+            var result = await magasinService.UpdateMagasinAsync(boutiqueId, stockLocationId, request);
+
+            if (!result.Success)
             {
-                var result = await magasinService.UpdateMagasinAsync(boutiqueId, stockLocationId, request);
-
-                if (!result.Success)
-                {
-                    return Results.BadRequest(result);
-                }
-
-                var response = new UpdateStockLocationResponse(result.Data!.Id);
-                var baseResponse = ResponseFactory.Success(response, "Magasin modifié avec succès", StatusCodes.Status200OK);
-
-                return Results.Ok(baseResponse);
+                throw new BadRequestException(result.Message);
             }
-            catch (ApiException ex)
-            {
-                logger.LogError(ex, "Erreur lors de l'appel au microservice Magasin: {StatusCode} - {Content}", ex.StatusCode, ex.Content);
-                return Results.Problem(
-                    detail: ex.Content ?? "Erreur interne du service Magasin",
-                    statusCode: (int)ex.StatusCode,
-                    title: "Erreur du microservice Magasin");
-            }
+
+            var response = new UpdateStockLocationResponse(result.Data!.Id);
+            var baseResponse = ResponseFactory.Success(response, "Magasin modifié avec succès", StatusCodes.Status200OK);
+
+            return Results.Ok(baseResponse);
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("UpdateStockLocation")

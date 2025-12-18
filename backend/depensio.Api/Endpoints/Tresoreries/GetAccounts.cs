@@ -1,5 +1,6 @@
 using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Infrastructure.Filters;
+using IDR.Library.BuildingBlocks.Exceptions;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -15,35 +16,26 @@ public class GetAccounts : ICarterModule
             ITresorerieService tresorerieService,
             ILogger<GetAccounts> logger) =>
         {
-            try
+            
+            var applicationId = "depensio";
+            var result = await tresorerieService.GetAccountsAsync(
+                applicationId,
+                boutiqueId.ToString(),
+                queryParams.IncludeInactive,
+                queryParams.Type);
+
+            if (!result.Success)
             {
-                var applicationId = "depensio";
-                var result = await tresorerieService.GetAccountsAsync(
-                    applicationId,
-                    boutiqueId.ToString(),
-                    queryParams.IncludeInactive,
-                    queryParams.Type);
-
-                if (!result.Success)
-                {
-                    return Results.BadRequest(result);
-                }
-
-                var baseResponse = ResponseFactory.Success(
-                    result.Data,
-                    "Liste des comptes de tresorerie recuperee avec succes",
-                    StatusCodes.Status200OK);
-
-                return Results.Ok(baseResponse);
+                throw new BadRequestException(result.Message);
             }
-            catch (ApiException ex)
-            {
-                logger.LogError(ex, "Erreur lors de l'appel au microservice Tresorerie: {StatusCode} - {Content}", ex.StatusCode, ex.Content);
-                return Results.Problem(
-                    detail: ex.Content ?? "Erreur interne du service Tresorerie",
-                    statusCode: (int)ex.StatusCode,
-                    title: "Erreur du microservice Tresorerie");
-            }
+
+            var baseResponse = ResponseFactory.Success(
+                result.Data,
+                "Liste des comptes de tresorerie recuperee avec succes",
+                StatusCodes.Status200OK);
+
+            return Results.Ok(baseResponse);
+            
         })
         .AddEndpointFilter<BoutiqueAuthorizationFilter>()
         .WithName("GetTresorerieAccounts")

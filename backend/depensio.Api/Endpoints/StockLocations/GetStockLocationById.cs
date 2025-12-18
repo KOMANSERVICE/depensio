@@ -13,28 +13,19 @@ public class GetStockLocationById : ICarterModule
     {
         app.MapGet("/stocklocation/{boutiqueId}/{id}", async (Guid boutiqueId, Guid id, IMagasinService magasinService, ILogger<GetStockLocationById> logger) =>
         {
-            try
+           
+            var result = await magasinService.GetMagasinByIdAsync(boutiqueId, id);
+
+            if (!result.Success)
             {
-                var result = await magasinService.GetMagasinByIdAsync(boutiqueId, id);
-
-                if (!result.Success)
-                {
-                    return Results.BadRequest(result);
-                }
-
-                var response = new GetStockLocationByIdResponse(result.Data!.StockLocation);
-                var baseResponse = ResponseFactory.Success(response, "Magasin récupéré avec succès", StatusCodes.Status200OK);
-
-                return Results.Ok(baseResponse);
+                return Results.BadRequest(result);
             }
-            catch (ApiException ex)
-            {
-                logger.LogError(ex, "Erreur lors de l'appel au microservice Magasin: {StatusCode} - {Content}", ex.StatusCode, ex.Content);
-                return Results.Problem(
-                    detail: ex.Content ?? "Erreur interne du service Magasin",
-                    statusCode: (int)ex.StatusCode,
-                    title: "Erreur du microservice Magasin");
-            }
+
+            var response = new GetStockLocationByIdResponse(result.Data!.StockLocation);
+            var baseResponse = ResponseFactory.Success(response, "Magasin récupéré avec succès", StatusCodes.Status200OK);
+
+            return Results.Ok(baseResponse);
+           
         })
        .AddEndpointFilter<BoutiqueAuthorizationFilter>()
        .WithName("GetStockLocationById")
