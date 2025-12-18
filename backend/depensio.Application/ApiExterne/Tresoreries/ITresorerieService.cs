@@ -44,6 +44,13 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateCategoryRequest request);
+
+    [Get("/api/categories")]
+    Task<BaseResponse<GetCategoriesResponse>> GetCategoriesAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Query] CategoryType? type = null,
+        [Query] bool includeInactive = false);
 }
 
 public enum AccountType
@@ -210,4 +217,9 @@ public record CategoryDTO(
     bool IsActive,
     DateTime CreatedAt,
     DateTime UpdatedAt
+);
+
+public record GetCategoriesResponse(
+    IReadOnlyList<CategoryDTO> Categories,
+    int TotalCount
 );
