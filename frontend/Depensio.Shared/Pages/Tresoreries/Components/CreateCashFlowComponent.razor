@@ -169,6 +169,10 @@
         {
             categories = new List<CategoryDTO>();
         }
+        finally
+        {
+            StateHasChanged();
+        }
     }
 
     private void CancelSave()
