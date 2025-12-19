@@ -52,6 +52,9 @@
 
 @code {
     [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    [Parameter]
     public EventCallback<MouseEventArgs> OnAfterSave { get; set; }
 
     [Parameter]
@@ -92,7 +95,7 @@
                 localCategory.Icon
             );
 
-            var result = await _tresorerieService.CreateCategoryAsync(request);
+            var result = await _tresorerieService.CreateCategoryAsync(BoutiqueId, request);
 
             if (result.Success)
             {

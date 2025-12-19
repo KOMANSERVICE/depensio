@@ -1,4 +1,4 @@
-@page "/tresorerie/categories"
+@page "/tresorerie/{boutiqueId:guid}/categories"
 @using depensio.Shared.Pages.Tresoreries.Components
 @using depensio.Shared.Pages.Tresoreries.Models
 @inherits FlowbitePage
@@ -256,6 +256,7 @@
                 </button>
             </div>
             <CreateCategoryComponent
+                BoutiqueId="@boutiqueId"
                 OnAfterSave="HandleAfterCreate"
                 OnCancelSave="CloseCreateModal" />
         </div>
@@ -263,6 +264,9 @@
 }
 
 @code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
     private List<CategoryDTO> categories = new();
     private List<CategoryDTO> filteredCategories = new();
     private bool isLoading = true;
@@ -301,7 +305,7 @@
 
         try
         {
-            var response = await _tresorerieService.GetCategoriesAsync(selectedType, includeInactive);
+            var response = await _tresorerieService.GetCategoriesAsync(boutiqueId, selectedType, includeInactive);
             if (response.Success && response.Data != null)
             {
                 categories = response.Data.Categories.ToList();

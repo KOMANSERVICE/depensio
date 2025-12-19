@@ -1,7 +1,6 @@
 using depensio.Application.ApiExterne.Tresoreries;
 using IDR.Library.BuildingBlocks.Exceptions;
 using IDR.Library.Shared.Responses;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace depensio.Api.Endpoints.Tresoreries;
@@ -10,8 +9,8 @@ public class GetCategories : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/tresorerie/categories", async (
-            [FromHeader(Name = "X-Boutique-Id")] string boutiqueId,
+        app.MapGet("/tresorerie/{boutiqueId}/categories", async (
+            Guid boutiqueId,
             [AsParameters] GetCategoriesQueryParams queryParams,
             ITresorerieService tresorerieService,
             ILogger<GetCategories> logger) =>
@@ -19,7 +18,7 @@ public class GetCategories : ICarterModule
             var applicationId = "depensio";
             var result = await tresorerieService.GetCategoriesAsync(
                 applicationId,
-                boutiqueId,
+                boutiqueId.ToString(),
                 queryParams.Type,
                 queryParams.IncludeInactive);
 

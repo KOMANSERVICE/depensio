@@ -33,12 +33,14 @@ public interface ITresorerieService
         Guid boutiqueId,
         CreateAccountRequest request);
 
-    [Post("/tresorerie/categories")]
+    [Post("/tresorerie/{boutiqueId}/categories")]
     Task<BaseResponse<CreateCategoryResponse>> CreateCategoryAsync(
+        Guid boutiqueId,
         [Body] CreateCategoryRequest request);
 
-    [Get("/tresorerie/categories")]
+    [Get("/tresorerie/{boutiqueId}/categories")]
     Task<BaseResponse<GetCategoriesResponse>> GetCategoriesAsync(
+        Guid boutiqueId,
         CategoryType? type = null,
         bool includeInactive = false);
 }
