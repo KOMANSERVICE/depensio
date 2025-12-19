@@ -189,6 +189,7 @@ public enum ThirdPartyType
 }
 
 public record CreateCashFlowRequest(
+    CashFlowTypeExtended Type,
     string CategoryId,
     string Label,
     string? Description,
@@ -196,6 +197,7 @@ public record CreateCashFlowRequest(
     Guid AccountId,
     string PaymentMethod,
     DateTime Date,
+    string? CustomerName,
     string? SupplierName,
     string? AttachmentUrl
 );
@@ -239,6 +241,7 @@ public record CashFlowDTO(
 
 public class CashFlowCreateDTO
 {
+    public CashFlowTypeExtended Type { get; set; } = CashFlowTypeExtended.EXPENSE;
     public string CategoryId { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -246,6 +249,7 @@ public class CashFlowCreateDTO
     public Guid AccountId { get; set; }
     public string PaymentMethod { get; set; } = "CASH";
     public DateTime Date { get; set; } = DateTime.Today;
+    public string? CustomerName { get; set; }
     public string? SupplierName { get; set; }
     public string? AttachmentUrl { get; set; }
 }
