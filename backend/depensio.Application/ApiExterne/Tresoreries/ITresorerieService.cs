@@ -63,6 +63,19 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateTransferRequest request);
+
+    [Put("/api/cash-flows/{id}")]
+    Task<BaseResponse<UpdateCashFlowResponse>> UpdateCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] UpdateCashFlowRequest request);
+
+    [Get("/api/cash-flows/{id}")]
+    Task<BaseResponse<GetCashFlowResponse>> GetCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 public enum AccountType
@@ -341,3 +354,26 @@ public record TransferDto(
     decimal SourceAccountBalance,
     decimal DestinationAccountBalance
 );
+
+// UpdateCashFlow DTOs
+public record UpdateCashFlowRequest(
+    string? CategoryId,
+    string? Label,
+    string? Description,
+    decimal? Amount,
+    decimal? TaxAmount,
+    decimal? TaxRate,
+    string? Currency,
+    Guid? AccountId,
+    Guid? DestinationAccountId,
+    string? PaymentMethod,
+    DateTime? Date,
+    ThirdPartyType? ThirdPartyType,
+    string? ThirdPartyName,
+    string? ThirdPartyId,
+    string? AttachmentUrl
+);
+
+public record UpdateCashFlowResponse(CashFlowDTO CashFlow);
+
+public record GetCashFlowResponse(CashFlowDTO CashFlow);
