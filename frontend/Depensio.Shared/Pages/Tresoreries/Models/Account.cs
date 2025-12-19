@@ -317,6 +317,11 @@ public record UpdateCashFlowResponse(CashFlowDTO CashFlow);
 
 public record GetCashFlowResponse(CashFlowDTO CashFlow);
 
+public record SubmitCashFlowResponse(
+    CashFlowDTO CashFlow,
+    string? BudgetWarning
+);
+
 public class CashFlowEditDTO
 {
     public Guid Id { get; set; }

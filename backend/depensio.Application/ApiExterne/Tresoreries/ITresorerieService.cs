@@ -82,6 +82,12 @@ public interface ITresorerieService
         Guid id,
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Post("/api/cash-flows/{id}/submit")]
+    Task<BaseResponse<SubmitCashFlowResponse>> SubmitCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 public enum AccountType
@@ -383,3 +389,8 @@ public record UpdateCashFlowRequest(
 public record UpdateCashFlowResponse(CashFlowDTO CashFlow);
 
 public record GetCashFlowResponse(CashFlowDTO CashFlow);
+
+public record SubmitCashFlowResponse(
+    CashFlowDTO CashFlow,
+    string? BudgetWarning
+);
