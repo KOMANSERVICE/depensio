@@ -51,6 +51,12 @@ public interface ITresorerieService
         [Header("X-Boutique-Id")] string boutiqueId,
         [Query] CategoryType? type = null,
         [Query] bool includeInactive = false);
+
+    [Post("/api/cash-flows")]
+    Task<BaseResponse<CreateCashFlowResponse>> CreateCashFlowAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] CreateCashFlowRequest request);
 }
 
 public enum AccountType
@@ -222,4 +228,78 @@ public record CategoryDTO(
 public record GetCategoriesResponse(
     IReadOnlyList<CategoryDTO> Categories,
     int TotalCount
+);
+
+// CashFlow DTOs
+public enum CashFlowTypeExtended
+{
+    INCOME = 1,
+    EXPENSE = 2,
+    TRANSFER = 3
+}
+
+public enum CashFlowStatusExtended
+{
+    DRAFT = 1,
+    PENDING = 2,
+    APPROVED = 3,
+    REJECTED = 4,
+    CANCELLED = 5
+}
+
+public enum ThirdPartyType
+{
+    SUPPLIER = 1,
+    CUSTOMER = 2,
+    EMPLOYEE = 3,
+    OTHER = 4
+}
+
+public record CreateCashFlowRequest(
+    string CategoryId,
+    string Label,
+    string? Description,
+    decimal Amount,
+    Guid AccountId,
+    string PaymentMethod,
+    DateTime Date,
+    string? SupplierName,
+    string? AttachmentUrl
+);
+
+public record CreateCashFlowResponse(
+    CashFlowDTO CashFlow,
+    string? BudgetWarning
+);
+
+public record CashFlowDTO(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    CashFlowStatusExtended Status,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    string? Description,
+    decimal Amount,
+    decimal TaxAmount,
+    decimal TaxRate,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    ThirdPartyType? ThirdPartyType,
+    string? ThirdPartyName,
+    string? ThirdPartyId,
+    string? AttachmentUrl,
+    DateTime? SubmittedAt,
+    string? SubmittedBy,
+    DateTime? ValidatedAt,
+    string? ValidatedBy,
+    string? RejectionReason
 );

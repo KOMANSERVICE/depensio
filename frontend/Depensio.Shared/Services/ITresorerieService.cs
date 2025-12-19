@@ -43,4 +43,9 @@ public interface ITresorerieService
         Guid boutiqueId,
         CategoryType? type = null,
         bool includeInactive = false);
+
+    [Post("/tresorerie/{boutiqueId}/cash-flows")]
+    Task<BaseResponse<CreateCashFlowResponse>> CreateCashFlowAsync(
+        Guid boutiqueId,
+        [Body] CreateCashFlowRequest request);
 }
