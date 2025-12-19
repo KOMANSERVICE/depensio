@@ -1,0 +1,344 @@
+@using depensio.Shared.Pages.Tresoreries.Models
+@inject ITresorerieService _tresorerieService
+
+<LoadingComponent IsLoad="@isLoad" />
+
+<EditForm EditContext="@editContext" OnValidSubmit="HandleUpdate">
+    <DataAnnotationsValidator />
+    <ErrorsSummary editContext="@editContext" />
+
+    <div class="p-6">
+        <!-- Compte (pre-selectionne) -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Compte</label>
+            <div class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                @AccountName
+            </div>
+        </div>
+
+        <!-- Categorie -->
+        <div class="mb-4">
+            <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">Categorie *</label>
+            <InputSelect @bind-Value="localCashFlow.CategoryId" id="categoryId"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                <option value="">Selectionnez une categorie</option>
+                @foreach (var category in GetFilteredCategories())
+                {
+                    <option value="@category.Id.ToString()">@category.Name</option>
+                }
+            </InputSelect>
+            <div class="error-message">
+                <ValidationMessage For="@(() => localCashFlow.CategoryId)" />
+            </div>
+        </div>
+
+        <!-- Libelle -->
+        <div class="mb-4">
+            <label for="label" class="block text-sm font-medium text-gray-700 mb-1">Libelle *</label>
+            <InputText @bind-Value="localCashFlow.Label" id="label"
+                placeholder="@GetLabelPlaceholder()"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <div class="error-message">
+                <ValidationMessage For="@(() => localCashFlow.Label)" />
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <InputTextArea @bind-Value="localCashFlow.Description" id="description"
+                placeholder="Details supplementaires..."
+                rows="2"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+        </div>
+
+        <!-- Montant -->
+        <div class="mb-4">
+            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Montant *</label>
+            <InputNumber @bind-Value="localCashFlow.Amount" id="amount"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <p class="text-xs text-gray-500 mt-1">@GetAmountHelpText()</p>
+            <div class="error-message">
+                <ValidationMessage For="@(() => localCashFlow.Amount)" />
+            </div>
+        </div>
+
+        <!-- Mode de paiement -->
+        <div class="mb-4">
+            <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1">Mode de paiement *</label>
+            <InputSelect @bind-Value="localCashFlow.PaymentMethod" id="paymentMethod"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                <option value="CASH">Especes</option>
+                <option value="BANK_TRANSFER">Virement bancaire</option>
+                <option value="CHECK">Cheque</option>
+                <option value="MOBILE_MONEY">Mobile Money</option>
+                <option value="CARD">Carte bancaire</option>
+                <option value="OTHER">Autre</option>
+            </InputSelect>
+        </div>
+
+        <!-- Date -->
+        <div class="mb-4">
+            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+            <InputDate @bind-Value="localCashFlow.Date" id="date"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+        </div>
+
+        <!-- Nom du tiers (client ou fournisseur selon le type) -->
+        @if (CashFlow.Type == CashFlowTypeExtended.INCOME)
+        {
+            <div class="mb-4">
+                <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Client</label>
+                <InputText @bind-Value="localCashFlow.CustomerName" id="customerName"
+                    placeholder="Nom du client"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+        }
+        else if (CashFlow.Type == CashFlowTypeExtended.EXPENSE)
+        {
+            <div class="mb-4">
+                <label for="supplierName" class="block text-sm font-medium text-gray-700 mb-1">Fournisseur</label>
+                <InputText @bind-Value="localCashFlow.SupplierName" id="supplierName"
+                    placeholder="Nom du fournisseur"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+        }
+
+        <!-- URL piece jointe -->
+        <div class="mb-4">
+            <label for="attachmentUrl" class="block text-sm font-medium text-gray-700 mb-1">URL piece jointe</label>
+            <InputText @bind-Value="localCashFlow.AttachmentUrl" id="attachmentUrl"
+                placeholder="https://..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <p class="text-xs text-gray-500 mt-1">Lien vers la facture ou justificatif (optionnel)</p>
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button type="button" @onclick="CancelSave"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+            Annuler
+        </button>
+        <button type="submit"
+            class="px-4 py-2 @GetButtonColor() text-white rounded-lg">
+            <i class="@GetButtonIcon() mr-2"></i>@GetButtonText()
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    [Parameter]
+    public Guid AccountId { get; set; }
+
+    [Parameter]
+    public string AccountName { get; set; } = string.Empty;
+
+    [Parameter]
+    public CashFlowDTO CashFlow { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnAfterSave { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelSave { get; set; }
+
+    private bool isLoad = false;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+    private CashFlowEditDTO localCashFlow = new();
+    private List<CategoryDTO> categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoriesAsync();
+        InitializeEditContext();
+    }
+
+    private void InitializeEditContext()
+    {
+        localCashFlow = new CashFlowEditDTO
+        {
+            Id = CashFlow.Id,
+            Type = CashFlow.Type,
+            CategoryId = CashFlow.CategoryId,
+            Label = CashFlow.Label,
+            Description = CashFlow.Description,
+            Amount = CashFlow.Amount,
+            AccountId = CashFlow.AccountId,
+            PaymentMethod = CashFlow.PaymentMethod,
+            Date = CashFlow.Date,
+            CustomerName = CashFlow.Type == CashFlowTypeExtended.INCOME ? CashFlow.ThirdPartyName : null,
+            SupplierName = CashFlow.Type == CashFlowTypeExtended.EXPENSE ? CashFlow.ThirdPartyName : null,
+            AttachmentUrl = CashFlow.AttachmentUrl
+        };
+        editContext = new EditContext(localCashFlow);
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationRequested += (s, e) => messageStore?.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore?.Clear(e.FieldIdentifier);
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        try
+        {
+            var categoryType = CashFlow.Type == CashFlowTypeExtended.INCOME
+                ? CategoryType.Income
+                : CategoryType.Expense;
+            var response = await _tresorerieService.GetCategoriesAsync(BoutiqueId, categoryType, false);
+            if (response.Success && response.Data != null)
+            {
+                categories = response.Data.Categories.ToList();
+            }
+        }
+        catch
+        {
+            categories = new List<CategoryDTO>();
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private IEnumerable<CategoryDTO> GetFilteredCategories()
+    {
+        var categoryType = CashFlow.Type == CashFlowTypeExtended.INCOME
+            ? CategoryType.Income
+            : CategoryType.Expense;
+        return categories.Where(c => c.Type == categoryType);
+    }
+
+    private void CancelSave()
+    {
+        OnCancelSave.InvokeAsync(null);
+    }
+
+    private async Task HandleUpdate()
+    {
+        // Validation manuelle
+        if (string.IsNullOrWhiteSpace(localCashFlow.CategoryId))
+        {
+            messageStore?.Add(new FieldIdentifier(localCashFlow, nameof(localCashFlow.CategoryId)), "La categorie est obligatoire.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(localCashFlow.Label))
+        {
+            messageStore?.Add(new FieldIdentifier(localCashFlow, nameof(localCashFlow.Label)), "Le libelle est obligatoire.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (localCashFlow.Amount <= 0)
+        {
+            messageStore?.Add(new FieldIdentifier(localCashFlow, nameof(localCashFlow.Amount)), "Le montant doit etre superieur a 0.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        isLoad = true;
+        try
+        {
+            var thirdPartyName = CashFlow.Type == CashFlowTypeExtended.INCOME
+                ? localCashFlow.CustomerName
+                : localCashFlow.SupplierName;
+
+            var thirdPartyType = CashFlow.Type == CashFlowTypeExtended.INCOME
+                ? ThirdPartyType.CUSTOMER
+                : ThirdPartyType.SUPPLIER;
+
+            var request = new UpdateCashFlowRequest(
+                localCashFlow.CategoryId,
+                localCashFlow.Label,
+                localCashFlow.Description,
+                localCashFlow.Amount,
+                null, // TaxAmount
+                null, // TaxRate
+                null, // Currency
+                localCashFlow.AccountId,
+                null, // DestinationAccountId
+                localCashFlow.PaymentMethod,
+                localCashFlow.Date,
+                string.IsNullOrWhiteSpace(thirdPartyName) ? null : thirdPartyType,
+                thirdPartyName,
+                null, // ThirdPartyId
+                localCashFlow.AttachmentUrl
+            );
+
+            var result = await _tresorerieService.UpdateCashFlowAsync(BoutiqueId, CashFlow.Id, request);
+
+            if (result.Success)
+            {
+                messageStore?.Clear();
+                editContext?.NotifyValidationStateChanged();
+                await OnAfterSave.InvokeAsync(null);
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content!, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                messageStore?.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
+                {
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        var fieldIdentifier = new FieldIdentifier(localCashFlow, propertyName);
+                        messageStore?.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    var fieldIdentifier = new FieldIdentifier(localCashFlow, string.Empty);
+                    messageStore?.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                editContext?.NotifyValidationStateChanged();
+            }
+            catch
+            {
+                messageStore?.Add(new FieldIdentifier(localCashFlow, string.Empty), "Une erreur est survenue.");
+                editContext?.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            isLoad = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetLabelPlaceholder() => CashFlow.Type == CashFlowTypeExtended.INCOME
+        ? "Ex: Vente produits, Prestation de service"
+        : "Ex: Achat fournitures bureau";
+
+    private string GetAmountHelpText() => CashFlow.Type == CashFlowTypeExtended.INCOME
+        ? "Montant du revenu en FCFA"
+        : "Montant de la depense en FCFA";
+
+    private string GetButtonColor() => CashFlow.Type == CashFlowTypeExtended.INCOME
+        ? "bg-green-600 hover:bg-green-700"
+        : "bg-red-600 hover:bg-red-700";
+
+    private string GetButtonIcon() => CashFlow.Type == CashFlowTypeExtended.INCOME
+        ? "fas fa-save"
+        : "fas fa-save";
+
+    private string GetButtonText() => CashFlow.Type == CashFlowTypeExtended.INCOME
+        ? "Enregistrer le revenu"
+        : "Enregistrer la depense";
+}

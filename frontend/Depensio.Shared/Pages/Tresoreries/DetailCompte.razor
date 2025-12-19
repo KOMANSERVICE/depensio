@@ -224,6 +224,7 @@ else
                             <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiers</th>
                             <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
                             <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -254,6 +255,19 @@ else
                                 <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-right @(movement.Type == CashFlowType.Income ? "text-green-600" : "text-red-600")">
                                     @(movement.Type == CashFlowType.Income ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
                                 </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-center">
+                                    @if (IsDraftStatus(movement.Status))
+                                    {
+                                        <button @onclick="@(() => OpenEditCashFlowModal(movement.Id))"
+                                            class="text-primary-700 hover:text-amber-800" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-300">-</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -267,16 +281,25 @@ else
                     {
                         <div class="bg-gray-50 rounded-lg p-4 border-l-4 @(movement.Type == CashFlowType.Income ? "border-green-500" : "border-red-500")">
                             <div class="flex justify-between items-start mb-2">
-                                <div>
+                                <div class="flex-1">
                                     <p class="font-medium text-gray-900">@movement.Label</p>
                                     @if (!string.IsNullOrWhiteSpace(movement.Description))
                                     {
                                         <p class="text-xs text-gray-500">@movement.Description</p>
                                     }
                                 </div>
-                                <span class="text-sm font-bold @(movement.Type == CashFlowType.Income ? "text-green-600" : "text-red-600")">
-                                    @(movement.Type == CashFlowType.Income ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold @(movement.Type == CashFlowType.Income ? "text-green-600" : "text-red-600")">
+                                        @(movement.Type == CashFlowType.Income ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
+                                    </span>
+                                    @if (IsDraftStatus(movement.Status))
+                                    {
+                                        <button @onclick="@(() => OpenEditCashFlowModal(movement.Id))"
+                                            class="text-primary-700 hover:text-amber-800 ml-2" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    }
+                                </div>
                             </div>
                             <div class="flex justify-between items-center text-xs text-gray-500">
                                 <span>@movement.Date.ToString("dd/MM/yyyy")</span>
@@ -368,6 +391,48 @@ else
     </div>
 }
 
+<!-- Modal de modification de flux -->
+@if (showEditCashFlowModal && account != null && selectedCashFlow != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    @if (selectedCashFlow.Type == CashFlowTypeExtended.INCOME)
+                    {
+                        <i class="fas fa-plus-circle text-green-600 mr-2"></i>@("Modifier le revenu")
+                    }
+                    else
+                    {
+                        <i class="fas fa-minus-circle text-red-600 mr-2"></i>@("Modifier la depense")
+                    }
+                </h3>
+                <button @onclick="CloseEditCashFlowModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <EditCashFlowComponent
+                BoutiqueId="@boutiqueId"
+                AccountId="@accountId"
+                AccountName="@account.Name"
+                CashFlow="@selectedCashFlow"
+                OnAfterSave="HandleAfterEditCashFlow"
+                OnCancelSave="CloseEditCashFlowModal" />
+        </div>
+    </div>
+}
+
+<!-- Loading overlay for cash flow loading -->
+@if (isLoadingCashFlow)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 shadow-xl">
+            <LoadingComponent IsLoad="true" />
+            <p class="text-gray-600 mt-2">Chargement du flux...</p>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -382,6 +447,9 @@ else
     private bool showCreateCashFlowModal = false;
     private bool showCreateIncomeModal = false;
     private bool showCreateTransferModal = false;
+    private bool showEditCashFlowModal = false;
+    private CashFlowDTO? selectedCashFlow = null;
+    private bool isLoadingCashFlow = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -534,4 +602,52 @@ else
         CashFlowStatus.Cancelled => "bg-gray-100 text-gray-800",
         _ => "bg-gray-100 text-gray-800"
     };
+
+    private async Task OpenEditCashFlowModal(Guid cashFlowId)
+    {
+        isLoadingCashFlow = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetCashFlowAsync(boutiqueId, cashFlowId);
+            if (response.Success && response.Data != null)
+            {
+                selectedCashFlow = response.Data.CashFlow;
+                // Only allow editing DRAFT cash flows
+                if (selectedCashFlow.Status == CashFlowStatusExtended.DRAFT)
+                {
+                    showEditCashFlowModal = true;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            selectedCashFlow = null;
+        }
+        finally
+        {
+            isLoadingCashFlow = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseEditCashFlowModal()
+    {
+        showEditCashFlowModal = false;
+        selectedCashFlow = null;
+    }
+
+    private async Task HandleAfterEditCashFlow()
+    {
+        CloseEditCashFlowModal();
+        await LoadAccountDetailAsync();
+    }
+
+    private bool IsDraftStatus(CashFlowStatus status)
+    {
+        // CashFlowStatus.Pending (0) maps to DRAFT in CashFlowStatusExtended (1)
+        // Based on the API response, we check for Pending which is the first status
+        return status == CashFlowStatus.Pending;
+    }
 }

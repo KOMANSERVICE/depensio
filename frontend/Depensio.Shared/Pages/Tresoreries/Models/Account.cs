@@ -293,3 +293,42 @@ public class TransferCreateDTO
     public string Label { get; set; } = string.Empty;
     public string? Description { get; set; }
 }
+
+// UpdateCashFlow DTOs
+public record UpdateCashFlowRequest(
+    string? CategoryId,
+    string? Label,
+    string? Description,
+    decimal? Amount,
+    decimal? TaxAmount,
+    decimal? TaxRate,
+    string? Currency,
+    Guid? AccountId,
+    Guid? DestinationAccountId,
+    string? PaymentMethod,
+    DateTime? Date,
+    ThirdPartyType? ThirdPartyType,
+    string? ThirdPartyName,
+    string? ThirdPartyId,
+    string? AttachmentUrl
+);
+
+public record UpdateCashFlowResponse(CashFlowDTO CashFlow);
+
+public record GetCashFlowResponse(CashFlowDTO CashFlow);
+
+public class CashFlowEditDTO
+{
+    public Guid Id { get; set; }
+    public CashFlowTypeExtended Type { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public decimal Amount { get; set; }
+    public Guid AccountId { get; set; }
+    public string PaymentMethod { get; set; } = "CASH";
+    public DateTime Date { get; set; } = DateTime.Today;
+    public string? CustomerName { get; set; }
+    public string? SupplierName { get; set; }
+    public string? AttachmentUrl { get; set; }
+}
