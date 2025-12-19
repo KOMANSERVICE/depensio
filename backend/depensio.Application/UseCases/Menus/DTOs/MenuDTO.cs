@@ -13,4 +13,5 @@ public record MenuUserDTO
     public string UrlFront { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
     public string? Group { get; set; }
+    public int SortOrder { get; set; }
 }

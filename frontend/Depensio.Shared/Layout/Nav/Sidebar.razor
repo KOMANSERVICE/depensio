@@ -80,12 +80,15 @@
 
     private HashSet<string> expandedGroups = new HashSet<string>();
 
-    private IEnumerable<MenuUser> UngroupedMenus => menuUsers.Where(m => string.IsNullOrEmpty(m.Group));
+    private IEnumerable<MenuUser> UngroupedMenus => menuUsers
+        .Where(m => string.IsNullOrEmpty(m.Group))
+        .OrderBy(m => m.SortOrder);
 
     private Dictionary<string, List<MenuUser>> GroupedMenus => menuUsers
         .Where(m => !string.IsNullOrEmpty(m.Group))
+        .OrderBy(m => m.SortOrder)
         .GroupBy(m => m.Group!)
-        .ToDictionary(g => g.Key, g => g.ToList());
+        .ToDictionary(g => g.Key, g => g.OrderBy(m => m.SortOrder).ToList());
 
     private bool IsGroupExpanded(string groupName) => expandedGroups.Contains(groupName);
 
