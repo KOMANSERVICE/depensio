@@ -258,10 +258,16 @@ else
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
                                     @if (IsDraftStatus(movement.Status))
                                     {
-                                        <button @onclick="@(() => OpenEditCashFlowModal(movement.Id))"
-                                            class="text-primary-700 hover:text-amber-800" title="Modifier">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button @onclick="@(() => OpenEditCashFlowModal(movement.Id))"
+                                                class="text-primary-700 hover:text-amber-800" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button @onclick="@(() => OpenDeleteConfirmationModal(movement.Id, movement.Label))"
+                                                class="text-red-600 hover:text-red-800" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     }
                                     else
                                     {
@@ -297,6 +303,10 @@ else
                                         <button @onclick="@(() => OpenEditCashFlowModal(movement.Id))"
                                             class="text-primary-700 hover:text-amber-800 ml-2" title="Modifier">
                                             <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button @onclick="@(() => OpenDeleteConfirmationModal(movement.Id, movement.Label))"
+                                            class="text-red-600 hover:text-red-800" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     }
                                 </div>
@@ -422,6 +432,45 @@ else
     </div>
 }
 
+<!-- Modal de confirmation de suppression -->
+@if (showDeleteConfirmationModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>Confirmer la suppression
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Etes-vous sur de vouloir supprimer le flux "<span class="font-semibold">@cashFlowToDeleteLabel</span>" ?
+                </p>
+                <p class="text-sm text-red-600">
+                    <i class="fas fa-info-circle mr-1"></i>Cette action est irreversible.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseDeleteConfirmationModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleDeleteCashFlow" disabled="@isDeletingCashFlow"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+                    @if (isDeletingCashFlow)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Suppression...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-trash mr-2"></i>@("Supprimer")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Loading overlay for cash flow loading -->
 @if (isLoadingCashFlow)
 {
@@ -450,6 +499,10 @@ else
     private bool showEditCashFlowModal = false;
     private CashFlowDTO? selectedCashFlow = null;
     private bool isLoadingCashFlow = false;
+    private bool showDeleteConfirmationModal = false;
+    private Guid? cashFlowToDeleteId = null;
+    private string cashFlowToDeleteLabel = string.Empty;
+    private bool isDeletingCashFlow = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -649,5 +702,47 @@ else
         // CashFlowStatus.Pending (0) maps to DRAFT in CashFlowStatusExtended (1)
         // Based on the API response, we check for Pending which is the first status
         return status == CashFlowStatus.Pending;
+    }
+
+    private void OpenDeleteConfirmationModal(Guid cashFlowId, string label)
+    {
+        cashFlowToDeleteId = cashFlowId;
+        cashFlowToDeleteLabel = label;
+        showDeleteConfirmationModal = true;
+    }
+
+    private void CloseDeleteConfirmationModal()
+    {
+        showDeleteConfirmationModal = false;
+        cashFlowToDeleteId = null;
+        cashFlowToDeleteLabel = string.Empty;
+    }
+
+    private async Task HandleDeleteCashFlow()
+    {
+        if (!cashFlowToDeleteId.HasValue)
+            return;
+
+        isDeletingCashFlow = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.DeleteCashFlowAsync(boutiqueId, cashFlowToDeleteId.Value);
+            if (response.IsSuccessStatusCode)
+            {
+                CloseDeleteConfirmationModal();
+                await LoadAccountDetailAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Silently handle error - could add toast notification here
+        }
+        finally
+        {
+            isDeletingCashFlow = false;
+            StateHasChanged();
+        }
     }
 }

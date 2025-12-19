@@ -64,4 +64,9 @@ public interface ITresorerieService
     Task<BaseResponse<GetCashFlowResponse>> GetCashFlowAsync(
         Guid boutiqueId,
         Guid cashFlowId);
+
+    [Delete("/tresorerie/{boutiqueId}/cash-flows/{cashFlowId}")]
+    Task<IApiResponse> DeleteCashFlowAsync(
+        Guid boutiqueId,
+        Guid cashFlowId);
 }
