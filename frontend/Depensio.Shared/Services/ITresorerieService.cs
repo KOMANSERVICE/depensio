@@ -48,4 +48,9 @@ public interface ITresorerieService
     Task<BaseResponse<CreateCashFlowResponse>> CreateCashFlowAsync(
         Guid boutiqueId,
         [Body] CreateCashFlowRequest request);
+
+    [Post("/tresorerie/{boutiqueId}/cash-flows/transfer")]
+    Task<BaseResponse<CreateTransferResponse>> CreateTransferAsync(
+        Guid boutiqueId,
+        [Body] CreateTransferRequest request);
 }

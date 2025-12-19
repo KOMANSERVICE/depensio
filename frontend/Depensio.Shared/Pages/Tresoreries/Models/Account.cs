@@ -253,3 +253,43 @@ public class CashFlowCreateDTO
     public string? SupplierName { get; set; }
     public string? AttachmentUrl { get; set; }
 }
+
+// Transfer DTOs
+public record CreateTransferRequest(
+    Guid AccountId,
+    Guid DestinationAccountId,
+    decimal Amount,
+    DateTime Date,
+    string Label,
+    string? Description
+);
+
+public record CreateTransferResponse(
+    TransferDto Transfer
+);
+
+public record TransferDto(
+    Guid Id,
+    string Type,
+    string Status,
+    Guid AccountId,
+    string AccountName,
+    Guid DestinationAccountId,
+    string DestinationAccountName,
+    decimal Amount,
+    DateTime Date,
+    string Label,
+    string? Description,
+    decimal SourceAccountBalance,
+    decimal DestinationAccountBalance
+);
+
+public class TransferCreateDTO
+{
+    public Guid AccountId { get; set; }
+    public Guid DestinationAccountId { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime Date { get; set; } = DateTime.Today;
+    public string Label { get; set; } = string.Empty;
+    public string? Description { get; set; }
+}
