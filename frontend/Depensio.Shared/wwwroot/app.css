@@ -3290,6 +3290,10 @@ video {
   padding-left: 2.5rem;
 }
 
+.pl-11 {
+  padding-left: 2.75rem;
+}
+
 .pl-3 {
   padding-left: 0.75rem;
 }
@@ -3346,8 +3350,8 @@ video {
   padding-top: 2rem;
 }
 
-.pl-11 {
-  padding-left: 2.75rem;
+.pl-8 {
+  padding-left: 2rem;
 }
 
 .text-left {
