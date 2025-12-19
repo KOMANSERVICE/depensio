@@ -256,6 +256,7 @@ public enum ThirdPartyType
 }
 
 public record CreateCashFlowRequest(
+    CashFlowTypeExtended Type,
     string CategoryId,
     string Label,
     string? Description,
@@ -263,6 +264,7 @@ public record CreateCashFlowRequest(
     Guid AccountId,
     string PaymentMethod,
     DateTime Date,
+    string? CustomerName,
     string? SupplierName,
     string? AttachmentUrl
 );
