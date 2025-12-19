@@ -76,6 +76,12 @@ public interface ITresorerieService
         Guid id,
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Delete("/api/cash-flows/{id}")]
+    Task<IApiResponse> DeleteCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 public enum AccountType
