@@ -259,6 +259,10 @@ else
                                     @if (IsDraftStatus(movement.Status))
                                     {
                                         <div class="flex items-center justify-center gap-2">
+                                            <button @onclick="@(() => OpenSubmitConfirmationModal(movement.Id, movement.Label))"
+                                                class="text-blue-600 hover:text-blue-800" title="Soumettre pour validation">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
                                             <button @onclick="@(() => OpenEditCashFlowModal(movement.Id))"
                                                 class="text-primary-700 hover:text-amber-800" title="Modifier">
                                                 <i class="fas fa-edit"></i>
@@ -300,8 +304,12 @@ else
                                     </span>
                                     @if (IsDraftStatus(movement.Status))
                                     {
+                                        <button @onclick="@(() => OpenSubmitConfirmationModal(movement.Id, movement.Label))"
+                                            class="text-blue-600 hover:text-blue-800 ml-2" title="Soumettre pour validation">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
                                         <button @onclick="@(() => OpenEditCashFlowModal(movement.Id))"
-                                            class="text-primary-700 hover:text-amber-800 ml-2" title="Modifier">
+                                            class="text-primary-700 hover:text-amber-800" title="Modifier">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button @onclick="@(() => OpenDeleteConfirmationModal(movement.Id, movement.Label))"
@@ -471,6 +479,45 @@ else
     </div>
 }
 
+<!-- Modal de confirmation de soumission -->
+@if (showSubmitConfirmationModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-paper-plane text-blue-600 mr-2"></i>Confirmer la soumission
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Etes-vous sur de vouloir soumettre le flux "<span class="font-semibold">@cashFlowToSubmitLabel</span>" pour validation ?
+                </p>
+                <p class="text-sm text-blue-600">
+                    <i class="fas fa-info-circle mr-1"></i>Une fois soumis, le flux ne pourra plus etre modifie.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseSubmitConfirmationModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleSubmitCashFlow" disabled="@isSubmittingCashFlow"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                    @if (isSubmittingCashFlow)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Soumission...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-paper-plane mr-2"></i>@("Soumettre")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Loading overlay for cash flow loading -->
 @if (isLoadingCashFlow)
 {
@@ -503,6 +550,10 @@ else
     private Guid? cashFlowToDeleteId = null;
     private string cashFlowToDeleteLabel = string.Empty;
     private bool isDeletingCashFlow = false;
+    private bool showSubmitConfirmationModal = false;
+    private Guid? cashFlowToSubmitId = null;
+    private string cashFlowToSubmitLabel = string.Empty;
+    private bool isSubmittingCashFlow = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -742,6 +793,48 @@ else
         finally
         {
             isDeletingCashFlow = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OpenSubmitConfirmationModal(Guid cashFlowId, string label)
+    {
+        cashFlowToSubmitId = cashFlowId;
+        cashFlowToSubmitLabel = label;
+        showSubmitConfirmationModal = true;
+    }
+
+    private void CloseSubmitConfirmationModal()
+    {
+        showSubmitConfirmationModal = false;
+        cashFlowToSubmitId = null;
+        cashFlowToSubmitLabel = string.Empty;
+    }
+
+    private async Task HandleSubmitCashFlow()
+    {
+        if (!cashFlowToSubmitId.HasValue)
+            return;
+
+        isSubmittingCashFlow = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.SubmitCashFlowAsync(boutiqueId, cashFlowToSubmitId.Value);
+            if (response.Success)
+            {
+                CloseSubmitConfirmationModal();
+                await LoadAccountDetailAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Silently handle error - could add toast notification here
+        }
+        finally
+        {
+            isSubmittingCashFlow = false;
             StateHasChanged();
         }
     }
