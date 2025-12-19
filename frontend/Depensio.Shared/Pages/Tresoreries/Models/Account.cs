@@ -162,3 +162,90 @@ public class AccountCreateDTO
     public string? BankName { get; set; }
     public bool IsDefault { get; set; }
 }
+
+// CashFlow DTOs
+public enum CashFlowTypeExtended
+{
+    INCOME = 1,
+    EXPENSE = 2,
+    TRANSFER = 3
+}
+
+public enum CashFlowStatusExtended
+{
+    DRAFT = 1,
+    PENDING = 2,
+    APPROVED = 3,
+    REJECTED = 4,
+    CANCELLED = 5
+}
+
+public enum ThirdPartyType
+{
+    SUPPLIER = 1,
+    CUSTOMER = 2,
+    EMPLOYEE = 3,
+    OTHER = 4
+}
+
+public record CreateCashFlowRequest(
+    string CategoryId,
+    string Label,
+    string? Description,
+    decimal Amount,
+    Guid AccountId,
+    string PaymentMethod,
+    DateTime Date,
+    string? SupplierName,
+    string? AttachmentUrl
+);
+
+public record CreateCashFlowResponse(
+    CashFlowDTO CashFlow,
+    string? BudgetWarning
+);
+
+public record CashFlowDTO(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    CashFlowStatusExtended Status,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    string? Description,
+    decimal Amount,
+    decimal TaxAmount,
+    decimal TaxRate,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    ThirdPartyType? ThirdPartyType,
+    string? ThirdPartyName,
+    string? ThirdPartyId,
+    string? AttachmentUrl,
+    DateTime? SubmittedAt,
+    string? SubmittedBy,
+    DateTime? ValidatedAt,
+    string? ValidatedBy,
+    string? RejectionReason
+);
+
+public class CashFlowCreateDTO
+{
+    public string CategoryId { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public decimal Amount { get; set; }
+    public Guid AccountId { get; set; }
+    public string PaymentMethod { get; set; } = "CASH";
+    public DateTime Date { get; set; } = DateTime.Today;
+    public string? SupplierName { get; set; }
+    public string? AttachmentUrl { get; set; }
+}

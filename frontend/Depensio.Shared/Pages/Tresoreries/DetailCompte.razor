@@ -1,5 +1,6 @@
 @page "/tresorerie/{boutiqueId:guid}/comptes/{accountId:guid}"
 @using depensio.Shared.Pages.Tresoreries.Models
+@using depensio.Shared.Pages.Tresoreries.Components
 @inherits FlowbitePage
 @layout MainLayout
 @inject ITresorerieService _tresorerieService
@@ -27,15 +28,21 @@ else if (account == null)
 }
 else
 {
-    <!-- Bouton Retour et Action rapide -->
-    <div class="mb-4 flex justify-between items-center">
+    <!-- Bouton Retour et Actions rapides -->
+    <div class="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <button @onclick="GoBack" class="text-primary-700 hover:text-amber-800 flex items-center">
             <i class="fas fa-arrow-left mr-2"></i>Retour a la liste des comptes
         </button>
-        <a href="/tresorerie/@boutiqueId/comptes/@accountId/solde"
-           class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 flex items-center">
-            <i class="fas fa-sync-alt mr-2"></i>Solde en temps reel
-        </a>
+        <div class="flex gap-3">
+            <button @onclick="OpenCreateCashFlowModal"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center">
+                <i class="fas fa-minus-circle mr-2"></i>Nouvelle depense
+            </button>
+            <a href="/tresorerie/@boutiqueId/comptes/@accountId/solde"
+               class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 flex items-center">
+                <i class="fas fa-sync-alt mr-2"></i>Solde en temps reel
+            </a>
+        </div>
     </div>
 
     <!-- Informations du compte -->
@@ -284,6 +291,29 @@ else
     </div>
 }
 
+<!-- Modal de creation de depense -->
+@if (showCreateCashFlowModal && account != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-minus-circle text-red-600 mr-2"></i>Nouvelle depense
+                </h3>
+                <button @onclick="CloseCreateCashFlowModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <CreateCashFlowComponent
+                BoutiqueId="@boutiqueId"
+                AccountId="@accountId"
+                AccountName="@account.Name"
+                OnAfterSave="HandleAfterCreateCashFlow"
+                OnCancelSave="CloseCreateCashFlowModal" />
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -295,6 +325,7 @@ else
     private bool isLoading = true;
     private DateTime? fromDate;
     private DateTime? toDate;
+    private bool showCreateCashFlowModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -344,6 +375,22 @@ else
     private void GoBack()
     {
         NavigationManager.NavigateTo($"/tresorerie/{boutiqueId}/comptes");
+    }
+
+    private void OpenCreateCashFlowModal()
+    {
+        showCreateCashFlowModal = true;
+    }
+
+    private void CloseCreateCashFlowModal()
+    {
+        showCreateCashFlowModal = false;
+    }
+
+    private async Task HandleAfterCreateCashFlow()
+    {
+        CloseCreateCashFlowModal();
+        await LoadAccountDetailAsync();
     }
 
     private string GetTypeLabel(AccountType type) => type switch
