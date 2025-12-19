@@ -31,7 +31,8 @@ public record MenuUser(
     string Name,
     string UrlFront,
     string Icon,
-    string? Group = null
+    string? Group = null,
+    int SortOrder = 0
 );
 
 public record GetMenuByUserBoutiqueResponse(IEnumerable<MenuUser> Menus);

@@ -86,7 +86,8 @@ public class MenuService(
                 Name = m.Name,
                 UrlFront = m.UrlFront,
                 Icon = m.Icon,
-                Group = m.Group
+                Group = m.Group,
+                SortOrder = m.SortOrder
             })
             .ToList();
 
@@ -169,7 +170,8 @@ public class MenuService(
                 Name = m.Name,
                 UrlFront = m.UrlFront,
                 Icon = m.Icon,
-                Group = m.Group
+                Group = m.Group,
+                SortOrder = m.SortOrder
             })
             .FirstOrDefault();
 
