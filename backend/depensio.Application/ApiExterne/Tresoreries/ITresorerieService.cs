@@ -57,6 +57,12 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateCashFlowRequest request);
+
+    [Post("/api/cash-flows/transfer")]
+    Task<BaseResponse<CreateTransferResponse>> CreateTransferAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] CreateTransferRequest request);
 }
 
 public enum AccountType
@@ -304,4 +310,34 @@ public record CashFlowDTO(
     DateTime? ValidatedAt,
     string? ValidatedBy,
     string? RejectionReason
+);
+
+// Transfer DTOs
+public record CreateTransferRequest(
+    Guid AccountId,
+    Guid DestinationAccountId,
+    decimal Amount,
+    DateTime Date,
+    string Label,
+    string? Description
+);
+
+public record CreateTransferResponse(
+    TransferDto Transfer
+);
+
+public record TransferDto(
+    Guid Id,
+    string Type,
+    string Status,
+    Guid AccountId,
+    string AccountName,
+    Guid DestinationAccountId,
+    string DestinationAccountName,
+    decimal Amount,
+    DateTime Date,
+    string Label,
+    string? Description,
+    decimal SourceAccountBalance,
+    decimal DestinationAccountBalance
 );

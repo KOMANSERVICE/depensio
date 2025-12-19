@@ -1,0 +1,252 @@
+@using depensio.Shared.Pages.Tresoreries.Models
+@inject ITresorerieService _tresorerieService
+
+<LoadingComponent IsLoad="@isLoad" />
+
+<EditForm EditContext="@editContext" OnValidSubmit="HandleCreate">
+    <DataAnnotationsValidator />
+    <ErrorsSummary editContext="@editContext" />
+
+    <div class="p-6">
+        <!-- Compte source (pre-selectionne) -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Compte source</label>
+            <div class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                @AccountName
+            </div>
+        </div>
+
+        <!-- Compte destination -->
+        <div class="mb-4">
+            <label for="destinationAccountId" class="block text-sm font-medium text-gray-700 mb-1">Compte destination *</label>
+            <InputSelect @bind-Value="localTransfer.DestinationAccountId" id="destinationAccountId"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                <option value="@Guid.Empty">Selectionnez un compte</option>
+                @foreach (var account in accounts.Where(a => a.Id != AccountId && a.IsActive))
+                {
+                    <option value="@account.Id">@account.Name (@GetAccountTypeLabel(account.Type)) - @account.CurrentBalance.ToString("N0") @account.Currency</option>
+                }
+            </InputSelect>
+            <div class="error-message">
+                <ValidationMessage For="@(() => localTransfer.DestinationAccountId)" />
+            </div>
+        </div>
+
+        <!-- Libelle -->
+        <div class="mb-4">
+            <label for="label" class="block text-sm font-medium text-gray-700 mb-1">Libelle *</label>
+            <InputText @bind-Value="localTransfer.Label" id="label"
+                placeholder="Ex: Transfert vers compte bancaire"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <div class="error-message">
+                <ValidationMessage For="@(() => localTransfer.Label)" />
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <InputTextArea @bind-Value="localTransfer.Description" id="description"
+                placeholder="Details supplementaires..."
+                rows="2"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+        </div>
+
+        <!-- Montant -->
+        <div class="mb-4">
+            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Montant *</label>
+            <InputNumber @bind-Value="localTransfer.Amount" id="amount"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <p class="text-xs text-gray-500 mt-1">Montant du transfert en FCFA</p>
+            <div class="error-message">
+                <ValidationMessage For="@(() => localTransfer.Amount)" />
+            </div>
+        </div>
+
+        <!-- Date -->
+        <div class="mb-4">
+            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+            <InputDate @bind-Value="localTransfer.Date" id="date"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button type="button" @onclick="CancelSave"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+            Annuler
+        </button>
+        <button type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+            <i class="fas fa-exchange-alt mr-2"></i>Effectuer le transfert
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    [Parameter]
+    public Guid AccountId { get; set; }
+
+    [Parameter]
+    public string AccountName { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnAfterSave { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelSave { get; set; }
+
+    private bool isLoad = false;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+    private TransferCreateDTO localTransfer = new();
+    private List<AccountListDto> accounts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        InitializeEditContext();
+        await LoadAccountsAsync();
+    }
+
+    private void InitializeEditContext()
+    {
+        localTransfer = new TransferCreateDTO
+        {
+            AccountId = AccountId,
+            Date = DateTime.Today
+        };
+        editContext = new EditContext(localTransfer);
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationRequested += (s, e) => messageStore?.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore?.Clear(e.FieldIdentifier);
+    }
+
+    private async Task LoadAccountsAsync()
+    {
+        try
+        {
+            var response = await _tresorerieService.GetAccountsAsync(BoutiqueId, false, null);
+            if (response.Success && response.Data != null)
+            {
+                accounts = response.Data.Accounts.ToList();
+            }
+        }
+        catch
+        {
+            accounts = new List<AccountListDto>();
+        }
+    }
+
+    private void CancelSave()
+    {
+        OnCancelSave.InvokeAsync(null);
+    }
+
+    private async Task HandleCreate()
+    {
+        // Validation manuelle
+        if (localTransfer.DestinationAccountId == Guid.Empty)
+        {
+            messageStore?.Add(new FieldIdentifier(localTransfer, nameof(localTransfer.DestinationAccountId)), "Le compte destination est obligatoire.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (localTransfer.DestinationAccountId == AccountId)
+        {
+            messageStore?.Add(new FieldIdentifier(localTransfer, nameof(localTransfer.DestinationAccountId)), "Le compte destination doit etre different du compte source.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(localTransfer.Label))
+        {
+            messageStore?.Add(new FieldIdentifier(localTransfer, nameof(localTransfer.Label)), "Le libelle est obligatoire.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (localTransfer.Amount <= 0)
+        {
+            messageStore?.Add(new FieldIdentifier(localTransfer, nameof(localTransfer.Amount)), "Le montant doit etre superieur a 0.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        isLoad = true;
+        try
+        {
+            var request = new CreateTransferRequest(
+                AccountId,
+                localTransfer.DestinationAccountId,
+                localTransfer.Amount,
+                localTransfer.Date,
+                localTransfer.Label,
+                localTransfer.Description
+            );
+
+            var result = await _tresorerieService.CreateTransferAsync(BoutiqueId, request);
+
+            if (result.Success)
+            {
+                messageStore?.Clear();
+                editContext?.NotifyValidationStateChanged();
+                await OnAfterSave.InvokeAsync(null);
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content!, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                messageStore?.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
+                {
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        var fieldIdentifier = new FieldIdentifier(localTransfer, propertyName);
+                        messageStore?.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    var fieldIdentifier = new FieldIdentifier(localTransfer, string.Empty);
+                    messageStore?.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                editContext?.NotifyValidationStateChanged();
+            }
+            catch
+            {
+                messageStore?.Add(new FieldIdentifier(localTransfer, string.Empty), "Une erreur est survenue.");
+                editContext?.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            isLoad = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetAccountTypeLabel(AccountType type) => type switch
+    {
+        AccountType.Cash => "Especes",
+        AccountType.Bank => "Banque",
+        AccountType.MobileMoney => "Mobile Money",
+        AccountType.Other => "Autre",
+        _ => "Inconnu"
+    };
+}

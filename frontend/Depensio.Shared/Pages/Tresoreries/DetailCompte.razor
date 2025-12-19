@@ -42,6 +42,10 @@ else
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center">
                 <i class="fas fa-minus-circle mr-2"></i>Nouvelle depense
             </button>
+            <button @onclick="OpenCreateTransferModal"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center">
+                <i class="fas fa-exchange-alt mr-2"></i>Transfert
+            </button>
             <a href="/tresorerie/@boutiqueId/comptes/@accountId/solde"
                class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 flex items-center">
                 <i class="fas fa-sync-alt mr-2"></i>Solde en temps reel
@@ -341,6 +345,29 @@ else
     </div>
 }
 
+<!-- Modal de creation de transfert -->
+@if (showCreateTransferModal && account != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-exchange-alt text-blue-600 mr-2"></i>Transfert entre comptes
+                </h3>
+                <button @onclick="CloseCreateTransferModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <CreateTransferComponent
+                BoutiqueId="@boutiqueId"
+                AccountId="@accountId"
+                AccountName="@account.Name"
+                OnAfterSave="HandleAfterCreateTransfer"
+                OnCancelSave="CloseCreateTransferModal" />
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -354,6 +381,7 @@ else
     private DateTime? toDate;
     private bool showCreateCashFlowModal = false;
     private bool showCreateIncomeModal = false;
+    private bool showCreateTransferModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -434,6 +462,22 @@ else
     private async Task HandleAfterCreateIncome()
     {
         CloseCreateIncomeModal();
+        await LoadAccountDetailAsync();
+    }
+
+    private void OpenCreateTransferModal()
+    {
+        showCreateTransferModal = true;
+    }
+
+    private void CloseCreateTransferModal()
+    {
+        showCreateTransferModal = false;
+    }
+
+    private async Task HandleAfterCreateTransfer()
+    {
+        CloseCreateTransferModal();
         await LoadAccountDetailAsync();
     }
 
