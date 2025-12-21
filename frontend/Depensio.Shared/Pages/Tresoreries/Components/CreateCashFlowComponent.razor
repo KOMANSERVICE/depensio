@@ -135,11 +135,20 @@
     private ValidationMessageStore? messageStore;
     private CashFlowCreateDTO localCashFlow = new();
     private List<CategoryDTO> categories = new();
+    private bool _categoriesLoaded = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         InitializeEditContext();
-        await LoadCategoriesAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_categoriesLoaded && BoutiqueId != Guid.Empty)
+        {
+            await LoadCategoriesAsync();
+            _categoriesLoaded = true;
+        }
     }
 
     private void InitializeEditContext()
