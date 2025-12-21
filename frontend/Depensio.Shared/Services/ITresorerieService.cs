@@ -74,4 +74,9 @@ public interface ITresorerieService
     Task<BaseResponse<SubmitCashFlowResponse>> SubmitCashFlowAsync(
         Guid boutiqueId,
         Guid cashFlowId);
+
+    [Post("/tresorerie/{boutiqueId}/cash-flows/{cashFlowId}/approve")]
+    Task<BaseResponse<ApproveCashFlowResponse>> ApproveCashFlowAsync(
+        Guid boutiqueId,
+        Guid cashFlowId);
 }

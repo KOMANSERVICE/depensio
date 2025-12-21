@@ -273,6 +273,15 @@ else
                                             </button>
                                         </div>
                                     }
+                                    else if (IsPendingValidationStatus(movement.Status))
+                                    {
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button @onclick="@(() => OpenApproveConfirmationModal(movement.Id, movement.Label))"
+                                                class="text-green-600 hover:text-green-800" title="Approuver">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    }
                                     else
                                     {
                                         <span class="text-gray-300">-</span>
@@ -315,6 +324,13 @@ else
                                         <button @onclick="@(() => OpenDeleteConfirmationModal(movement.Id, movement.Label))"
                                             class="text-red-600 hover:text-red-800" title="Supprimer">
                                             <i class="fas fa-trash"></i>
+                                        </button>
+                                    }
+                                    else if (IsPendingValidationStatus(movement.Status))
+                                    {
+                                        <button @onclick="@(() => OpenApproveConfirmationModal(movement.Id, movement.Label))"
+                                            class="text-green-600 hover:text-green-800 ml-2" title="Approuver">
+                                            <i class="fas fa-check-circle"></i>
                                         </button>
                                     }
                                 </div>
@@ -518,6 +534,45 @@ else
     </div>
 }
 
+<!-- Modal de confirmation d'approbation -->
+@if (showApproveConfirmationModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-check-circle text-green-600 mr-2"></i>Confirmer l'approbation
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Etes-vous sur de vouloir approuver le flux "<span class="font-semibold">@cashFlowToApproveLabel</span>" ?
+                </p>
+                <p class="text-sm text-green-600">
+                    <i class="fas fa-info-circle mr-1"></i>Une fois approuve, le flux sera comptabilise et le solde du compte sera mis a jour.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseApproveConfirmationModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleApproveCashFlow" disabled="@isApprovingCashFlow"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+                    @if (isApprovingCashFlow)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Approbation...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-check-circle mr-2"></i>@("Approuver")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Loading overlay for cash flow loading -->
 @if (isLoadingCashFlow)
 {
@@ -554,6 +609,10 @@ else
     private Guid? cashFlowToSubmitId = null;
     private string cashFlowToSubmitLabel = string.Empty;
     private bool isSubmittingCashFlow = false;
+    private bool showApproveConfirmationModal = false;
+    private Guid? cashFlowToApproveId = null;
+    private string cashFlowToApproveLabel = string.Empty;
+    private bool isApprovingCashFlow = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -689,21 +748,23 @@ else
         _ => "fas fa-wallet"
     };
 
-    private string GetStatusLabel(CashFlowStatus status) => status switch
+    private string GetStatusLabel(CashFlowStatusExtended status) => status switch
     {
-        CashFlowStatus.Pending => "En attente",
-        CashFlowStatus.Approved => "Approuve",
-        CashFlowStatus.Rejected => "Rejete",
-        CashFlowStatus.Cancelled => "Annule",
+        CashFlowStatusExtended.DRAFT => "Brouillon",
+        CashFlowStatusExtended.PENDING => "En attente",
+        CashFlowStatusExtended.APPROVED => "Approuve",
+        CashFlowStatusExtended.REJECTED => "Rejete",
+        CashFlowStatusExtended.CANCELLED => "Annule",
         _ => "Inconnu"
     };
 
-    private string GetStatusColor(CashFlowStatus status) => status switch
+    private string GetStatusColor(CashFlowStatusExtended status) => status switch
     {
-        CashFlowStatus.Pending => "bg-yellow-100 text-yellow-800",
-        CashFlowStatus.Approved => "bg-green-100 text-green-800",
-        CashFlowStatus.Rejected => "bg-red-100 text-red-800",
-        CashFlowStatus.Cancelled => "bg-gray-100 text-gray-800",
+        CashFlowStatusExtended.DRAFT => "bg-blue-100 text-blue-800",
+        CashFlowStatusExtended.PENDING => "bg-yellow-100 text-yellow-800",
+        CashFlowStatusExtended.APPROVED => "bg-green-100 text-green-800",
+        CashFlowStatusExtended.REJECTED => "bg-red-100 text-red-800",
+        CashFlowStatusExtended.CANCELLED => "bg-gray-100 text-gray-800",
         _ => "bg-gray-100 text-gray-800"
     };
 
@@ -748,11 +809,14 @@ else
         await LoadAccountDetailAsync();
     }
 
-    private bool IsDraftStatus(CashFlowStatus status)
+    private bool IsDraftStatus(CashFlowStatusExtended status)
     {
-        // CashFlowStatus.Pending (0) maps to DRAFT in CashFlowStatusExtended (1)
-        // Based on the API response, we check for Pending which is the first status
-        return status == CashFlowStatus.Pending;
+        return status == CashFlowStatusExtended.DRAFT;
+    }
+
+    private bool IsPendingValidationStatus(CashFlowStatusExtended status)
+    {
+        return status == CashFlowStatusExtended.PENDING;
     }
 
     private void OpenDeleteConfirmationModal(Guid cashFlowId, string label)
@@ -835,6 +899,48 @@ else
         finally
         {
             isSubmittingCashFlow = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OpenApproveConfirmationModal(Guid cashFlowId, string label)
+    {
+        cashFlowToApproveId = cashFlowId;
+        cashFlowToApproveLabel = label;
+        showApproveConfirmationModal = true;
+    }
+
+    private void CloseApproveConfirmationModal()
+    {
+        showApproveConfirmationModal = false;
+        cashFlowToApproveId = null;
+        cashFlowToApproveLabel = string.Empty;
+    }
+
+    private async Task HandleApproveCashFlow()
+    {
+        if (!cashFlowToApproveId.HasValue)
+            return;
+
+        isApprovingCashFlow = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.ApproveCashFlowAsync(boutiqueId, cashFlowToApproveId.Value);
+            if (response.Success)
+            {
+                CloseApproveConfirmationModal();
+                await LoadAccountDetailAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Silently handle error - could add toast notification here
+        }
+        finally
+        {
+            isApprovingCashFlow = false;
             StateHasChanged();
         }
     }
