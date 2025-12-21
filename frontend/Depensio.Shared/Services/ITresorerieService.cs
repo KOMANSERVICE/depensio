@@ -133,4 +133,10 @@ public interface ITresorerieService
     Task<BaseResponse<ToggleRecurringCashFlowResponse>> ToggleRecurringCashFlowAsync(
         Guid boutiqueId,
         Guid recurringCashFlowId);
+
+    [Post("/tresorerie/{boutiqueId}/cash-flows/{cashFlowId}/reconcile")]
+    Task<BaseResponse<ReconcileCashFlowResponse>> ReconcileCashFlowAsync(
+        Guid boutiqueId,
+        Guid cashFlowId,
+        [Body] ReconcileCashFlowRequest? request = null);
 }
