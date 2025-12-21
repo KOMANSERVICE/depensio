@@ -1,0 +1,389 @@
+@page "/tresorerie/{boutiqueId:guid}/flux/non-reconcilies"
+@using depensio.Shared.Pages.Tresoreries.Models
+@inherits FlowbitePage
+@layout MainLayout
+@inject ITresorerieService _tresorerieService
+@inject NavigationManager _navigationManager
+
+<PageTitleComponent Title="Flux non reconcilies" />
+
+<HeaderPage
+    Title="Tresorerie"
+    SubTitle="Liste des flux non reconcilies"/>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <!-- Filtres -->
+    <div class="flex flex-wrap gap-3 items-center mb-4 pb-4 border-b border-gray-200">
+        <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">Compte:</label>
+            <select @bind="selectedAccountId" @bind:after="GetUnreconciledCashFlowsAsync" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                <option value="">Tous les comptes</option>
+                @foreach (var account in accounts)
+                {
+                    <option value="@account.Id">@account.Name</option>
+                }
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">Du:</label>
+            <input type="date" @bind="startDate" @bind:after="GetUnreconciledCashFlowsAsync" class="border border-gray-300 rounded px-2 py-1 text-sm">
+        </div>
+        <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">Au:</label>
+            <input type="date" @bind="endDate" @bind:after="GetUnreconciledCashFlowsAsync" class="border border-gray-300 rounded px-2 py-1 text-sm">
+        </div>
+        <button @onclick="ResetFilters" class="text-sm text-gray-500 hover:text-gray-700 underline">
+            Reinitialiser
+        </button>
+        <div class="ml-auto">
+            <a href="/tresorerie/@boutiqueId/flux"
+                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+                <span class="hidden md:inline">Retour aux flux</span>
+            </a>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingDataComponent />
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gradient-to-r from-orange-500 to-orange-400 rounded-lg p-4 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-80">Flux non reconcilies</p>
+                        <p class="text-2xl font-bold">@unreconciledCount</p>
+                    </div>
+                    <i class="fas fa-clock text-3xl opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Montant total entrees</p>
+                        <p class="text-2xl font-bold text-green-600">@totalIncomeAmount.ToString("N0") FCFA</p>
+                    </div>
+                    <i class="fas fa-arrow-down text-3xl text-green-300"></i>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Montant total sorties</p>
+                        <p class="text-2xl font-bold text-red-600">@totalExpenseAmount.ToString("N0") FCFA</p>
+                    </div>
+                    <i class="fas fa-arrow-up text-3xl text-red-300"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-orange-500 text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Reference</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Libelle</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Categorie</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Montant</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Compte</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Valide par</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if (cashFlows.Any())
+                    {
+                        @foreach(var cashFlow in cashFlows)
+                        {
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @(cashFlow.Reference ?? "-")
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @cashFlow.Date.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @GetTypeColor(cashFlow.Type)">
+                                        @GetTypeLabel(cashFlow.Type)
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @cashFlow.Label
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @cashFlow.CategoryName
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium @GetAmountColor(cashFlow.Type)">
+                                    @(cashFlow.Type == CashFlowTypeExtended.EXPENSE ? "-" : "+")@cashFlow.Amount.ToString("N0") @cashFlow.Currency
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @cashFlow.AccountName
+                                    @if (cashFlow.Type == CashFlowTypeExtended.TRANSFER && !string.IsNullOrEmpty(cashFlow.DestinationAccountName))
+                                    {
+                                        <span class="text-gray-400"> -> @cashFlow.DestinationAccountName</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @if (cashFlow.ValidatedAt.HasValue)
+                                    {
+                                        <div>
+                                            <span class="font-medium">@(cashFlow.ValidatedBy ?? "-")</span>
+                                            <br/>
+                                            <span class="text-xs text-gray-400">@cashFlow.ValidatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <a href="/tresorerie/@boutiqueId/flux/@cashFlow.Id"
+                                        class="text-blue-600 hover:text-blue-800 mr-3" title="Voir le detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button @onclick="() => ReconcileCashFlow(cashFlow.Id)"
+                                        class="text-green-600 hover:text-green-800" title="Marquer comme reconcilie">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="px-6 py-12 text-center">
+                                <i class="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
+                                <p class="text-gray-500 text-lg">Aucun flux non reconcilie</p>
+                                <p class="text-gray-400 text-sm mt-2">Tous les flux ont ete reconcilies</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-view">
+            <div class="grid grid-cols-1 gap-4">
+                @if (cashFlows.Any())
+                {
+                    @foreach (var cashFlow in cashFlows)
+                    {
+                        <div class="bg-white rounded-lg shadow-md p-4 border-l-4 @GetBorderColor(cashFlow.Type)">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">@cashFlow.Label</h3>
+                                    <span class="text-xs text-gray-500">@(cashFlow.Reference ?? "Sans reference")</span>
+                                </div>
+                                <span class="px-2 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                    Non reconcilie
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center mt-3">
+                                <div>
+                                    <span class="text-lg font-bold @GetAmountColor(cashFlow.Type)">
+                                        @(cashFlow.Type == CashFlowTypeExtended.EXPENSE ? "-" : "+")@cashFlow.Amount.ToString("N0") @cashFlow.Currency
+                                    </span>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <span>@cashFlow.Date.ToString("dd/MM/yyyy")</span> -
+                                        <span>@cashFlow.AccountName</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 text-xs rounded-full @GetTypeColor(cashFlow.Type)">
+                                        @GetTypeLabel(cashFlow.Type)
+                                    </span>
+                                    <a href="/tresorerie/@boutiqueId/flux/@cashFlow.Id"
+                                        class="text-blue-600 hover:text-blue-800 p-2" title="Voir le detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button @onclick="() => ReconcileCashFlow(cashFlow.Id)"
+                                        class="text-green-600 hover:text-green-800 p-2" title="Reconcilier">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-12">
+                        <i class="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">Aucun flux non reconcilie</p>
+                        <p class="text-gray-400 text-sm mt-2">Tous les flux ont ete reconcilies</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+            <div class="mb-4 md:mb-0">
+                <span class="text-sm text-gray-600">@unreconciledCount flux non reconcilies</span>
+            </div>
+            <div class="text-sm text-gray-600">
+                Montant total non reconcilie: <span class="font-bold">@totalUnreconciledAmount.ToString("N0") FCFA</span>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    private List<UnreconciledCashFlowDto> cashFlows = new();
+    private List<AccountListDto> accounts = new();
+    private bool isLoading = true;
+
+    // Filters
+    private Guid? selectedAccountId = null;
+    private DateTime? startDate = null;
+    private DateTime? endDate = null;
+
+    // Summary
+    private int unreconciledCount = 0;
+    private decimal totalUnreconciledAmount = 0;
+    private decimal totalIncomeAmount = 0;
+    private decimal totalExpenseAmount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountsAsync();
+        await GetUnreconciledCashFlowsAsync();
+    }
+
+    private async Task LoadAccountsAsync()
+    {
+        try
+        {
+            var response = await _tresorerieService.GetAccountsAsync(boutiqueId, false, null);
+            if (response.Success && response.Data != null)
+            {
+                accounts = response.Data.Accounts.ToList();
+            }
+        }
+        catch (Exception)
+        {
+            accounts = new List<AccountListDto>();
+        }
+    }
+
+    private async Task GetUnreconciledCashFlowsAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetUnreconciledCashFlowsAsync(
+                boutiqueId,
+                selectedAccountId,
+                startDate,
+                endDate);
+
+            if (response.Success && response.Data != null)
+            {
+                cashFlows = response.Data.CashFlows.ToList();
+                unreconciledCount = response.Data.UnreconciledCount;
+                totalUnreconciledAmount = response.Data.TotalUnreconciledAmount;
+
+                // Calculate income and expense totals
+                totalIncomeAmount = cashFlows
+                    .Where(c => c.Type == CashFlowTypeExtended.INCOME)
+                    .Sum(c => c.Amount);
+                totalExpenseAmount = cashFlows
+                    .Where(c => c.Type == CashFlowTypeExtended.EXPENSE)
+                    .Sum(c => c.Amount);
+            }
+        }
+        catch (Exception)
+        {
+            cashFlows = new List<UnreconciledCashFlowDto>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReconcileCashFlow(Guid cashFlowId)
+    {
+        try
+        {
+            var response = await _tresorerieService.ReconcileCashFlowAsync(
+                boutiqueId,
+                cashFlowId,
+                null);
+
+            if (response.Success)
+            {
+                await GetUnreconciledCashFlowsAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Handle error silently or show toast
+        }
+    }
+
+    private async Task ResetFilters()
+    {
+        selectedAccountId = null;
+        startDate = null;
+        endDate = null;
+        await GetUnreconciledCashFlowsAsync();
+    }
+
+    private string GetTypeLabel(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "Entree",
+        CashFlowTypeExtended.EXPENSE => "Sortie",
+        CashFlowTypeExtended.TRANSFER => "Transfert",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "bg-green-100 text-green-800",
+        CashFlowTypeExtended.EXPENSE => "bg-red-100 text-red-800",
+        CashFlowTypeExtended.TRANSFER => "bg-blue-100 text-blue-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+
+    private string GetBorderColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "border-green-500",
+        CashFlowTypeExtended.EXPENSE => "border-red-500",
+        CashFlowTypeExtended.TRANSFER => "border-blue-500",
+        _ => "border-gray-500"
+    };
+
+    private string GetAmountColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "text-green-600",
+        CashFlowTypeExtended.EXPENSE => "text-red-600",
+        CashFlowTypeExtended.TRANSFER => "text-blue-600",
+        _ => "text-gray-600"
+    };
+}

@@ -612,3 +612,31 @@ public record CashFlowDetailDto(
     string? BudgetName,
     decimal? BudgetImpact
 );
+
+// GetUnreconciledCashFlows DTOs
+public record GetUnreconciledCashFlowsResponse(
+    IReadOnlyList<UnreconciledCashFlowDto> CashFlows,
+    int UnreconciledCount,
+    decimal TotalUnreconciledAmount
+);
+
+public record UnreconciledCashFlowDto(
+    Guid Id,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    decimal Amount,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    ThirdPartyType? ThirdPartyType,
+    string? ThirdPartyName,
+    DateTime? ValidatedAt,
+    string? ValidatedBy
+);
