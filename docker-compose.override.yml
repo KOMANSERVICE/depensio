@@ -86,6 +86,7 @@ services:
       - LOCALDOMAIN=${LOCALDOMAIN}
       - Service__Magasin=${SERVICE_MAGASIN_URI}
       - Service__Tresorerie=${SERVICE_TRESORERIE_URI}
+      - Frontend__BaseUrl=${FRONTEND_BASEURL}
     ports:
       - "9101:8080"
       - "9102:8081"

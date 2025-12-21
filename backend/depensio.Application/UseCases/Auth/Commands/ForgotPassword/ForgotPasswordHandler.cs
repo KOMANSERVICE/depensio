@@ -3,12 +3,16 @@
 public class ForgotPasswordHandler(
     UserManager<ApplicationUser> _userManager,
     IEmailService _mailService,
-    IConfiguration _configuration
+    IConfiguration _configuration,
+    ISecureSecretProvider _secureSecretProvider
     )
     : ICommandHandler<ForgotPasswordCommand, ForgotPasswordResult>
 {
     public async Task<ForgotPasswordResult> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
+
+        var Frontend_BaseUrl = _configuration["Frontend:BaseUrl"]!;
+        var BaseUrl = await _secureSecretProvider.GetSecretAsync(Frontend_BaseUrl);
 
         var requestModel = request.ForgotPassword;
         var user = await _userManager.FindByEmailAsync(requestModel.Email);
@@ -22,7 +26,7 @@ public class ForgotPasswordHandler(
             {
                 { "email", user.Email },
                 { "date", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm") },
-                { "link", $"{_configuration["JWT:ValidIssuer"]}/reset-password/{user.Id}?code={encodedToken}" }
+                { "link", $"{BaseUrl}/reset-password/{user.Id}?code={encodedToken}" }
             };
 
         var mailContent = await _mailService.RenderHtmlTemplateAsync("ResetPassword.html", values);

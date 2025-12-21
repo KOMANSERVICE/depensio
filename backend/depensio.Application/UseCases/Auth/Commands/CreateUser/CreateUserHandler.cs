@@ -1,5 +1,7 @@
 ﻿
 using depensio.Application.UseCases.Auth.Services;
+using IDR.Library.BuildingBlocks.Security.Interfaces;
+using System.Buffers.Text;
 
 namespace depensio.Application.UseCases.Auth.Commands.CreateUser;
 
@@ -12,7 +14,8 @@ public class CreateUserHandler(
     IGenericRepository<UsersBoutique> _usersBoutiqueRepo,
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
-    IUserService _userService)
+    IUserService _userService,
+    ISecureSecretProvider _secureSecretProvider)
     : ICommandHandler<CreateUserCommand, CreateUserResult>
 {
     public async Task<CreateUserResult> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -77,13 +80,16 @@ public class CreateUserHandler(
 
     private async Task SendMailAsync(ApplicationUser user, string template)
     {
+        var Frontend_BaseUrl = _configuration["Frontend:BaseUrl"]!;
+        var BaseUrl = await _secureSecretProvider.GetSecretAsync(Frontend_BaseUrl);
+
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var encodedToken = System.Web.HttpUtility.UrlEncode(token);
         var values = new Dictionary<string, string>
             {
                 { "email", user.Email },
                 { "date", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm") },
-                { "link", $"{_configuration["JWT:ValidIssuer"]}/reset-password/{user.Id}?code={encodedToken}" }
+                { "link", $"{BaseUrl}/reset-password/{user.Id}?code={encodedToken}" }
             };
         var mailContent = await _mailService.RenderHtmlTemplateAsync(template, values);
         var mail = new EmailModel

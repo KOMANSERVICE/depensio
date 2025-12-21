@@ -1,5 +1,6 @@
 ﻿
 using depensio.Application.Interfaces;
+using IDR.Library.BuildingBlocks.Security.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace depensio.Application.UseCases.Auth.Commands.ResetPassword;
@@ -7,7 +8,8 @@ namespace depensio.Application.UseCases.Auth.Commands.ResetPassword;
 public class ResetPasswordHandler(
     UserManager<ApplicationUser> _userManager,
     IEmailService _mailService,
-    IConfiguration _configuration
+    IConfiguration _configuration,
+    ISecureSecretProvider _secureSecretProvider
     )
     : ICommandHandler<ResetPasswordCommand, ResetPasswordResult>
 {
@@ -34,9 +36,12 @@ public class ResetPasswordHandler(
 
     private async Task SendMailAsync(ApplicationUser user)
     {
+
+        var Frontend_BaseUrl = _configuration["Frontend:BaseUrl"]!;
+        var BaseUrl = await _secureSecretProvider.GetSecretAsync(Frontend_BaseUrl);
         var values = new Dictionary<string, string>
             {
-                { "loginLink", $"{_configuration["JWT:ValidIssuer"]}/login" }
+                { "loginLink", $"{BaseUrl}/login" }
             };
 
         var mailContent = await _mailService.RenderHtmlTemplateAsync("ResetPasswordSucces.html", values);
