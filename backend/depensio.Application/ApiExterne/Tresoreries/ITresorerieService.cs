@@ -88,6 +88,12 @@ public interface ITresorerieService
         Guid id,
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Post("/api/cash-flows/{id}/approve")]
+    Task<BaseResponse<ApproveCashFlowResponse>> ApproveCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 public enum AccountType
@@ -207,7 +213,7 @@ public record CashFlowMovementDto(
     decimal Amount,
     string Currency,
     DateTime Date,
-    CashFlowStatus Status,
+    CashFlowStatusExtended Status,
     string? ThirdPartyName
 );
 
@@ -393,4 +399,9 @@ public record GetCashFlowResponse(CashFlowDTO CashFlow);
 public record SubmitCashFlowResponse(
     CashFlowDTO CashFlow,
     string? BudgetWarning
+);
+
+public record ApproveCashFlowResponse(
+    CashFlowDTO CashFlow,
+    decimal NewAccountBalance
 );

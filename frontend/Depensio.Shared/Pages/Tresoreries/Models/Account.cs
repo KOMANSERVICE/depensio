@@ -92,7 +92,7 @@ public record CashFlowMovementDto(
     decimal Amount,
     string Currency,
     DateTime Date,
-    CashFlowStatus Status,
+    CashFlowStatusExtended Status,
     string? ThirdPartyName
 );
 
@@ -320,6 +320,11 @@ public record GetCashFlowResponse(CashFlowDTO CashFlow);
 public record SubmitCashFlowResponse(
     CashFlowDTO CashFlow,
     string? BudgetWarning
+);
+
+public record ApproveCashFlowResponse(
+    CashFlowDTO CashFlow,
+    decimal NewAccountBalance
 );
 
 public class CashFlowEditDTO
