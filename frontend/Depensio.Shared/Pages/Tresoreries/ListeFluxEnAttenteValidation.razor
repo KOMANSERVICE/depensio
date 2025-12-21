@@ -1,0 +1,517 @@
+@page "/tresorerie/{boutiqueId:guid}/flux-en-attente"
+@using depensio.Shared.Pages.Tresoreries.Models
+@inherits FlowbitePage
+@layout MainLayout
+@inject ITresorerieService _tresorerieService
+@inject NavigationManager _navigationManager
+
+<PageTitleComponent Title="Flux en attente de validation" />
+
+<HeaderPage
+    Title="Tresorerie"
+    SubTitle="Liste des flux en attente de validation"/>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <!-- Filtres -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex flex-wrap gap-3 items-center">
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-600">Type:</label>
+                <select @bind="selectedType" @bind:after="GetPendingCashFlowsAsync" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                    <option value="">Tous</option>
+                    <option value="@CashFlowTypeExtended.INCOME">Entree</option>
+                    <option value="@CashFlowTypeExtended.EXPENSE">Sortie</option>
+                    <option value="@CashFlowTypeExtended.TRANSFER">Transfert</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-600">Compte:</label>
+                <select @bind="selectedAccountId" @bind:after="GetPendingCashFlowsAsync" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                    <option value="">Tous</option>
+                    @foreach (var account in accounts)
+                    {
+                        <option value="@account.Id">@account.Name</option>
+                    }
+                </select>
+            </div>
+            <button @onclick="ResetFilters" class="text-sm text-gray-500 hover:text-gray-700 underline">
+                Reinitialiser
+            </button>
+        </div>
+        <div class="flex gap-2">
+            <a href="/tresorerie/@boutiqueId/flux"
+                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                <i class="fas fa-list"></i>
+                <span class="hidden md:inline">Tous les flux</span>
+            </a>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingDataComponent />
+    }
+    else
+    {
+        <!-- Summary Card -->
+        <div class="mb-6">
+            <div class="bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg p-4 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-80">Flux en attente de validation</p>
+                        <p class="text-2xl font-bold">@pendingCount</p>
+                    </div>
+                    <i class="fas fa-clock text-3xl opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-primary-700 text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Reference</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Libelle</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Categorie</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Montant</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Compte</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Soumis par</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if (cashFlows.Any())
+                    {
+                        @foreach(var cashFlow in cashFlows)
+                        {
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @(cashFlow.Reference ?? "-")
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @cashFlow.Date.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @GetTypeColor(cashFlow.Type)">
+                                        @GetTypeLabel(cashFlow.Type)
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @cashFlow.Label
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @cashFlow.CategoryName
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium @GetAmountColor(cashFlow.Type)">
+                                    @(cashFlow.Type == CashFlowTypeExtended.EXPENSE ? "-" : "+")@cashFlow.Amount.ToString("N0") @cashFlow.Currency
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @cashFlow.AccountName
+                                    @if (cashFlow.Type == CashFlowTypeExtended.TRANSFER && !string.IsNullOrEmpty(cashFlow.DestinationAccountName))
+                                    {
+                                        <span class="text-gray-400"> → @cashFlow.DestinationAccountName</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div>@(cashFlow.SubmittedBy ?? "-")</div>
+                                    @if (cashFlow.SubmittedAt.HasValue)
+                                    {
+                                        <div class="text-xs text-gray-400">@cashFlow.SubmittedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <button @onclick="@(() => OpenApproveConfirmationModal(cashFlow.Id, cashFlow.Label))"
+                                            class="text-green-600 hover:text-green-800 p-1" title="Approuver">
+                                            <i class="fas fa-check-circle"></i>
+                                        </button>
+                                        <button @onclick="@(() => OpenRejectConfirmationModal(cashFlow.Id, cashFlow.Label))"
+                                            class="text-red-600 hover:text-red-800 p-1" title="Rejeter">
+                                            <i class="fas fa-times-circle"></i>
+                                        </button>
+                                        <a href="/tresorerie/@boutiqueId/flux/@cashFlow.Id"
+                                            class="text-blue-600 hover:text-blue-800 p-1" title="Voir le detail">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="px-6 py-12 text-center">
+                                <i class="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
+                                <p class="text-gray-500 text-lg">Aucun flux en attente de validation</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-view">
+            <div class="grid grid-cols-1 gap-4">
+                @if (cashFlows.Any())
+                {
+                    @foreach (var cashFlow in cashFlows)
+                    {
+                        <div class="bg-white rounded-lg shadow-md p-4 border-l-4 @GetBorderColor(cashFlow.Type)">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">@cashFlow.Label</h3>
+                                    <span class="text-xs text-gray-500">@(cashFlow.Reference ?? "Sans reference")</span>
+                                </div>
+                                <span class="px-2 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    En attente
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center mt-3">
+                                <div>
+                                    <span class="text-lg font-bold @GetAmountColor(cashFlow.Type)">
+                                        @(cashFlow.Type == CashFlowTypeExtended.EXPENSE ? "-" : "+")@cashFlow.Amount.ToString("N0") @cashFlow.Currency
+                                    </span>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <span>@cashFlow.Date.ToString("dd/MM/yyyy")</span> ·
+                                        <span>@cashFlow.AccountName</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(cashFlow.SubmittedBy))
+                                    {
+                                        <div class="text-xs text-gray-400 mt-1">
+                                            Soumis par @cashFlow.SubmittedBy
+                                        </div>
+                                    }
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 text-xs rounded-full @GetTypeColor(cashFlow.Type)">
+                                        @GetTypeLabel(cashFlow.Type)
+                                    </span>
+                                    <button @onclick="@(() => OpenApproveConfirmationModal(cashFlow.Id, cashFlow.Label))"
+                                        class="text-green-600 hover:text-green-800 p-2" title="Approuver">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                    <button @onclick="@(() => OpenRejectConfirmationModal(cashFlow.Id, cashFlow.Label))"
+                                        class="text-red-600 hover:text-red-800 p-2" title="Rejeter">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-12">
+                        <i class="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">Aucun flux en attente de validation</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal de confirmation d'approbation -->
+@if (showApproveConfirmationModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-check-circle text-green-600 mr-2"></i>Confirmer l'approbation
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Etes-vous sur de vouloir approuver le flux "<span class="font-semibold">@cashFlowToApproveLabel</span>" ?
+                </p>
+                <p class="text-sm text-green-600">
+                    <i class="fas fa-info-circle mr-1"></i>Une fois approuve, le flux sera comptabilise et le solde du compte sera mis a jour.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseApproveConfirmationModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleApproveCashFlow" disabled="@isApprovingCashFlow"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+                    @if (isApprovingCashFlow)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Approbation...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-check-circle mr-2"></i>@("Approuver")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal de confirmation de rejet -->
+@if (showRejectConfirmationModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-times-circle text-red-600 mr-2"></i>Confirmer le rejet
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Etes-vous sur de vouloir rejeter le flux "<span class="font-semibold">@cashFlowToRejectLabel</span>" ?
+                </p>
+                <div class="mb-4">
+                    <label for="rejectionReason" class="block text-sm font-medium text-gray-700 mb-1">
+                        Motif du rejet <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="rejectionReason" @bind="rejectionReason" rows="3"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-red-500 focus:border-red-500"
+                        placeholder="Veuillez indiquer le motif du rejet..."></textarea>
+                </div>
+                <p class="text-sm text-red-600">
+                    <i class="fas fa-info-circle mr-1"></i>Une fois rejete, le flux ne pourra plus etre approuve.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseRejectConfirmationModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleRejectCashFlow" disabled="@(isRejectingCashFlow || string.IsNullOrWhiteSpace(rejectionReason))"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+                    @if (isRejectingCashFlow)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Rejet...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-times-circle mr-2"></i>@("Rejeter")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    private List<PendingCashFlowDto> cashFlows = new();
+    private List<AccountListDto> accounts = new();
+    private bool isLoading = true;
+    private int pendingCount = 0;
+
+    // Filters
+    private CashFlowTypeExtended? selectedType = null;
+    private Guid? selectedAccountId = null;
+
+    // Approve modal
+    private bool showApproveConfirmationModal = false;
+    private Guid? cashFlowToApproveId = null;
+    private string cashFlowToApproveLabel = string.Empty;
+    private bool isApprovingCashFlow = false;
+
+    // Reject modal
+    private bool showRejectConfirmationModal = false;
+    private Guid? cashFlowToRejectId = null;
+    private string cashFlowToRejectLabel = string.Empty;
+    private bool isRejectingCashFlow = false;
+    private string rejectionReason = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountsAsync();
+        await GetPendingCashFlowsAsync();
+    }
+
+    private async Task LoadAccountsAsync()
+    {
+        try
+        {
+            var response = await _tresorerieService.GetAccountsAsync(boutiqueId);
+            if (response.Success && response.Data != null)
+            {
+                accounts = response.Data.Accounts.Where(a => a.IsActive).ToList();
+            }
+        }
+        catch (Exception)
+        {
+            accounts = new List<AccountListDto>();
+        }
+    }
+
+    private async Task GetPendingCashFlowsAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetPendingCashFlowsAsync(
+                boutiqueId,
+                selectedType,
+                selectedAccountId);
+
+            if (response.Success && response.Data != null)
+            {
+                cashFlows = response.Data.CashFlows.ToList();
+                pendingCount = response.Data.PendingCount;
+            }
+        }
+        catch (Exception)
+        {
+            cashFlows = new List<PendingCashFlowDto>();
+            pendingCount = 0;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResetFilters()
+    {
+        selectedType = null;
+        selectedAccountId = null;
+        await GetPendingCashFlowsAsync();
+    }
+
+    private string GetTypeLabel(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "Entree",
+        CashFlowTypeExtended.EXPENSE => "Sortie",
+        CashFlowTypeExtended.TRANSFER => "Transfert",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "bg-green-100 text-green-800",
+        CashFlowTypeExtended.EXPENSE => "bg-red-100 text-red-800",
+        CashFlowTypeExtended.TRANSFER => "bg-blue-100 text-blue-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+
+    private string GetBorderColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "border-green-500",
+        CashFlowTypeExtended.EXPENSE => "border-red-500",
+        CashFlowTypeExtended.TRANSFER => "border-blue-500",
+        _ => "border-gray-500"
+    };
+
+    private string GetAmountColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "text-green-600",
+        CashFlowTypeExtended.EXPENSE => "text-red-600",
+        CashFlowTypeExtended.TRANSFER => "text-blue-600",
+        _ => "text-gray-600"
+    };
+
+    private void OpenApproveConfirmationModal(Guid cashFlowId, string label)
+    {
+        cashFlowToApproveId = cashFlowId;
+        cashFlowToApproveLabel = label;
+        showApproveConfirmationModal = true;
+    }
+
+    private void CloseApproveConfirmationModal()
+    {
+        showApproveConfirmationModal = false;
+        cashFlowToApproveId = null;
+        cashFlowToApproveLabel = string.Empty;
+    }
+
+    private async Task HandleApproveCashFlow()
+    {
+        if (!cashFlowToApproveId.HasValue)
+            return;
+
+        isApprovingCashFlow = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.ApproveCashFlowAsync(boutiqueId, cashFlowToApproveId.Value);
+            if (response.Success)
+            {
+                CloseApproveConfirmationModal();
+                await GetPendingCashFlowsAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Silently handle error
+        }
+        finally
+        {
+            isApprovingCashFlow = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OpenRejectConfirmationModal(Guid cashFlowId, string label)
+    {
+        cashFlowToRejectId = cashFlowId;
+        cashFlowToRejectLabel = label;
+        rejectionReason = string.Empty;
+        showRejectConfirmationModal = true;
+    }
+
+    private void CloseRejectConfirmationModal()
+    {
+        showRejectConfirmationModal = false;
+        cashFlowToRejectId = null;
+        cashFlowToRejectLabel = string.Empty;
+        rejectionReason = string.Empty;
+    }
+
+    private async Task HandleRejectCashFlow()
+    {
+        if (!cashFlowToRejectId.HasValue || string.IsNullOrWhiteSpace(rejectionReason))
+            return;
+
+        isRejectingCashFlow = true;
+        StateHasChanged();
+
+        try
+        {
+            var request = new RejectCashFlowRequest(rejectionReason);
+            var response = await _tresorerieService.RejectCashFlowAsync(boutiqueId, cashFlowToRejectId.Value, request);
+            if (response.Success)
+            {
+                CloseRejectConfirmationModal();
+                await GetPendingCashFlowsAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Silently handle error
+        }
+        finally
+        {
+            isRejectingCashFlow = false;
+            StateHasChanged();
+        }
+    }
+}
