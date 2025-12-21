@@ -402,3 +402,21 @@ public record PendingCashFlowDto(
     DateTime? SubmittedAt,
     string? SubmittedBy
 );
+
+// CreateCashFlowFromPurchase DTOs
+public record CreateCashFlowFromPurchaseRequest(
+    Guid PurchaseId,
+    string PurchaseReference,
+    decimal Amount,
+    Guid AccountId,
+    string PaymentMethod,
+    DateTime PurchaseDate,
+    string? SupplierName,
+    string? SupplierId,
+    string CategoryId
+);
+
+public record CreateCashFlowFromPurchaseResponse(
+    CashFlowDTO CashFlow,
+    decimal NewAccountBalance
+);

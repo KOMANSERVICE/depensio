@@ -130,6 +130,12 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateCashFlowFromSaleRequest request);
+
+    [Post("/api/cash-flows/from-purchase")]
+    Task<BaseResponse<CreateCashFlowFromPurchaseResponse>> CreateCashFlowFromPurchaseAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] CreateCashFlowFromPurchaseRequest request);
 }
 
 public enum AccountType
@@ -516,6 +522,24 @@ public record CreateCashFlowFromSaleRequest(
 );
 
 public record CreateCashFlowFromSaleResponse(
+    CashFlowDTO CashFlow,
+    decimal NewAccountBalance
+);
+
+// CreateCashFlowFromPurchase DTOs
+public record CreateCashFlowFromPurchaseRequest(
+    Guid PurchaseId,
+    string PurchaseReference,
+    decimal Amount,
+    Guid AccountId,
+    string PaymentMethod,
+    DateTime PurchaseDate,
+    string? SupplierName,
+    string? SupplierId,
+    string CategoryId
+);
+
+public record CreateCashFlowFromPurchaseResponse(
     CashFlowDTO CashFlow,
     decimal NewAccountBalance
 );
