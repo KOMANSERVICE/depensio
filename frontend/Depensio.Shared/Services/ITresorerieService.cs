@@ -100,4 +100,10 @@ public interface ITresorerieService
         int pageSize = 20,
         string sortBy = "date",
         string sortOrder = "desc");
+
+    [Get("/tresorerie/{boutiqueId}/cash-flows/pending")]
+    Task<BaseResponse<GetPendingCashFlowsResponse>> GetPendingCashFlowsAsync(
+        Guid boutiqueId,
+        CashFlowTypeExtended? type = null,
+        Guid? accountId = null);
 }

@@ -376,3 +376,29 @@ public record CashFlowListDto(
     DateTime Date,
     string? ThirdPartyName
 );
+
+// GetPendingCashFlows DTOs
+public record GetPendingCashFlowsResponse(
+    IReadOnlyList<PendingCashFlowDto> CashFlows,
+    int PendingCount
+);
+
+public record PendingCashFlowDto(
+    Guid Id,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    decimal Amount,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    string? ThirdPartyName,
+    DateTime? SubmittedAt,
+    string? SubmittedBy
+);
