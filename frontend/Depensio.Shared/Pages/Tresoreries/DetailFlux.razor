@@ -1,0 +1,412 @@
+@page "/tresorerie/{boutiqueId:guid}/flux/{cashFlowId:guid}"
+@using depensio.Shared.Pages.Tresoreries.Models
+@inherits FlowbitePage
+@layout MainLayout
+@inject ITresorerieService _tresorerieService
+@inject NavigationManager _navigationManager
+
+<PageTitleComponent Title="Detail du flux" />
+
+<HeaderPage
+    Title="Tresorerie"
+    SubTitle="Detail du flux de tresorerie"/>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    @if (isLoading)
+    {
+        <LoadingDataComponent />
+    }
+    else if (cashFlow == null)
+    {
+        <div class="text-center py-12">
+            <i class="fas fa-exclamation-triangle text-6xl text-yellow-400 mb-4"></i>
+            <p class="text-gray-500 text-lg">Flux non trouve</p>
+            <a href="/tresorerie/@boutiqueId/flux" class="text-primary-700 hover:underline mt-4 inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Retour a la liste
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Header avec statut et actions -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">@cashFlow.Label</h2>
+                <p class="text-sm text-gray-500">@(cashFlow.Reference ?? "Sans reference")</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 text-sm font-semibold rounded-full @GetStatusColor(cashFlow.Status)">
+                    @GetStatusLabel(cashFlow.Status)
+                </span>
+                <span class="px-3 py-1 text-sm font-semibold rounded-full @GetTypeColor(cashFlow.Type)">
+                    @GetTypeLabel(cashFlow.Type)
+                </span>
+                @if (cashFlow.IsReconciled)
+                {
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                        <i class="fas fa-check-double mr-1"></i>Reconcilie
+                    </span>
+                }
+            </div>
+        </div>
+
+        <!-- Montant principal -->
+        <div class="bg-gradient-to-r @GetGradientColor(cashFlow.Type) rounded-lg p-6 mb-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm opacity-80">Montant</p>
+                    <p class="text-3xl font-bold">
+                        @(cashFlow.Type == CashFlowTypeExtended.EXPENSE ? "-" : "+")@cashFlow.Amount.ToString("N0") @cashFlow.Currency
+                    </p>
+                </div>
+                <i class="@GetTypeIcon(cashFlow.Type) text-5xl opacity-50"></i>
+            </div>
+        </div>
+
+        <!-- Informations detaillees -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Colonne gauche -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Informations generales</h3>
+
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Date</span>
+                    <span class="font-medium">@cashFlow.Date.ToString("dd/MM/yyyy")</span>
+                </div>
+
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Categorie</span>
+                    <span class="font-medium">@cashFlow.CategoryName</span>
+                </div>
+
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Compte</span>
+                    <span class="font-medium">@cashFlow.AccountName</span>
+                </div>
+
+                @if (cashFlow.Type == CashFlowTypeExtended.TRANSFER && !string.IsNullOrEmpty(cashFlow.DestinationAccountName))
+                {
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-500">Compte destination</span>
+                        <span class="font-medium">@cashFlow.DestinationAccountName</span>
+                    </div>
+                }
+
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Mode de paiement</span>
+                    <span class="font-medium">@cashFlow.PaymentMethod</span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(cashFlow.ThirdPartyName))
+                {
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-500">Tiers</span>
+                        <span class="font-medium">@cashFlow.ThirdPartyName</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(cashFlow.Description))
+                {
+                    <div class="py-2">
+                        <span class="text-gray-500 block mb-1">Description</span>
+                        <p class="text-gray-800">@cashFlow.Description</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Colonne droite -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Reconciliation bancaire</h3>
+
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Statut</span>
+                    <span class="font-medium @(cashFlow.IsReconciled ? "text-blue-600" : "text-gray-400")">
+                        @(cashFlow.IsReconciled ? "Reconcilie" : "Non reconcilie")
+                    </span>
+                </div>
+
+                @if (cashFlow.IsReconciled)
+                {
+                    @if (cashFlow.ReconciledAt.HasValue)
+                    {
+                        <div class="flex justify-between py-2 border-b border-gray-100">
+                            <span class="text-gray-500">Date de reconciliation</span>
+                            <span class="font-medium">@cashFlow.ReconciledAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(cashFlow.ReconciledBy))
+                    {
+                        <div class="flex justify-between py-2 border-b border-gray-100">
+                            <span class="text-gray-500">Reconcilie par</span>
+                            <span class="font-medium">@cashFlow.ReconciledBy</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(cashFlow.BankStatementReference))
+                    {
+                        <div class="flex justify-between py-2 border-b border-gray-100">
+                            <span class="text-gray-500">Reference releve bancaire</span>
+                            <span class="font-medium">@cashFlow.BankStatementReference</span>
+                        </div>
+                    }
+                }
+                else if (cashFlow.Status == CashFlowStatusExtended.APPROVED)
+                {
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                        <p class="text-blue-800 text-sm mb-3">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Marquez ce flux comme reconcilie une fois qu'il apparait sur votre releve bancaire.
+                        </p>
+                        <button @onclick="OpenReconcileModal"
+                            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-check-double"></i>
+                            Marquer comme reconcilie
+                        </button>
+                    </div>
+                }
+
+                <h3 class="text-lg font-semibold text-gray-800 border-b pb-2 mt-6">Audit</h3>
+
+                @if (cashFlow.SubmittedAt.HasValue)
+                {
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-500">Soumis le</span>
+                        <span class="font-medium">@cashFlow.SubmittedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(cashFlow.SubmittedBy))
+                    {
+                        <div class="flex justify-between py-2 border-b border-gray-100">
+                            <span class="text-gray-500">Soumis par</span>
+                            <span class="font-medium">@cashFlow.SubmittedBy</span>
+                        </div>
+                    }
+                }
+
+                @if (cashFlow.ValidatedAt.HasValue)
+                {
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-500">Valide le</span>
+                        <span class="font-medium">@cashFlow.ValidatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(cashFlow.ValidatedBy))
+                    {
+                        <div class="flex justify-between py-2 border-b border-gray-100">
+                            <span class="text-gray-500">Valide par</span>
+                            <span class="font-medium">@cashFlow.ValidatedBy</span>
+                        </div>
+                    }
+                }
+
+                @if (!string.IsNullOrEmpty(cashFlow.RejectionReason))
+                {
+                    <div class="py-2">
+                        <span class="text-gray-500 block mb-1">Motif de rejet</span>
+                        <p class="text-red-600">@cashFlow.RejectionReason</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap gap-3 pt-4 border-t">
+            <a href="/tresorerie/@boutiqueId/flux"
+                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+                Retour a la liste
+            </a>
+            @if (cashFlow.Status == CashFlowStatusExtended.DRAFT)
+            {
+                <a href="/tresorerie/@boutiqueId/flux/@cashFlowId/modifier"
+                    class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 flex items-center gap-2">
+                    <i class="fas fa-edit"></i>
+                    Modifier
+                </a>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal de reconciliation -->
+@if (showReconcileModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-check-double text-blue-600 mr-2"></i>Marquer comme reconcilie
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Confirmez que ce flux apparait sur votre releve bancaire.
+                </p>
+                <div class="mb-4">
+                    <label for="bankStatementReference" class="block text-sm font-medium text-gray-700 mb-1">
+                        Reference du releve bancaire (optionnel)
+                    </label>
+                    <input type="text" id="bankStatementReference" @bind="bankStatementReference"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Ex: RELEVE-2024-12-001" />
+                </div>
+                <p class="text-sm text-blue-600">
+                    <i class="fas fa-info-circle mr-1"></i>Cette action permet de rapprocher vos flux avec vos releves bancaires.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseReconcileModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleReconcileCashFlow" disabled="@isReconciling"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                    @if (isReconciling)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Reconciliation...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-check-double mr-2"></i>@("Confirmer")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    [Parameter]
+    public Guid cashFlowId { get; set; }
+
+    private CashFlowDTO? cashFlow;
+    private bool isLoading = true;
+
+    // Reconcile modal
+    private bool showReconcileModal = false;
+    private string bankStatementReference = string.Empty;
+    private bool isReconciling = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCashFlowAsync();
+    }
+
+    private async Task LoadCashFlowAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetCashFlowAsync(boutiqueId, cashFlowId);
+            if (response.Success && response.Data != null)
+            {
+                cashFlow = response.Data.CashFlow;
+            }
+        }
+        catch (Exception)
+        {
+            cashFlow = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetTypeLabel(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "Entree",
+        CashFlowTypeExtended.EXPENSE => "Sortie",
+        CashFlowTypeExtended.TRANSFER => "Transfert",
+        _ => "Inconnu"
+    };
+
+    private string GetTypeColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "bg-green-100 text-green-800",
+        CashFlowTypeExtended.EXPENSE => "bg-red-100 text-red-800",
+        CashFlowTypeExtended.TRANSFER => "bg-blue-100 text-blue-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+
+    private string GetGradientColor(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "from-green-500 to-emerald-600",
+        CashFlowTypeExtended.EXPENSE => "from-red-500 to-rose-600",
+        CashFlowTypeExtended.TRANSFER => "from-blue-500 to-indigo-600",
+        _ => "from-gray-500 to-slate-600"
+    };
+
+    private string GetTypeIcon(CashFlowTypeExtended type) => type switch
+    {
+        CashFlowTypeExtended.INCOME => "fas fa-arrow-down",
+        CashFlowTypeExtended.EXPENSE => "fas fa-arrow-up",
+        CashFlowTypeExtended.TRANSFER => "fas fa-exchange-alt",
+        _ => "fas fa-question"
+    };
+
+    private string GetStatusLabel(CashFlowStatusExtended status) => status switch
+    {
+        CashFlowStatusExtended.DRAFT => "Brouillon",
+        CashFlowStatusExtended.PENDING => "En attente",
+        CashFlowStatusExtended.APPROVED => "Valide",
+        CashFlowStatusExtended.REJECTED => "Rejete",
+        CashFlowStatusExtended.CANCELLED => "Annule",
+        _ => "Inconnu"
+    };
+
+    private string GetStatusColor(CashFlowStatusExtended status) => status switch
+    {
+        CashFlowStatusExtended.DRAFT => "bg-gray-100 text-gray-800",
+        CashFlowStatusExtended.PENDING => "bg-yellow-100 text-yellow-800",
+        CashFlowStatusExtended.APPROVED => "bg-green-100 text-green-800",
+        CashFlowStatusExtended.REJECTED => "bg-red-100 text-red-800",
+        CashFlowStatusExtended.CANCELLED => "bg-gray-100 text-gray-600",
+        _ => "bg-gray-100 text-gray-800"
+    };
+
+    private void OpenReconcileModal()
+    {
+        bankStatementReference = string.Empty;
+        showReconcileModal = true;
+    }
+
+    private void CloseReconcileModal()
+    {
+        showReconcileModal = false;
+        bankStatementReference = string.Empty;
+    }
+
+    private async Task HandleReconcileCashFlow()
+    {
+        isReconciling = true;
+        StateHasChanged();
+
+        try
+        {
+            var request = string.IsNullOrWhiteSpace(bankStatementReference)
+                ? null
+                : new ReconcileCashFlowRequest(bankStatementReference);
+            var response = await _tresorerieService.ReconcileCashFlowAsync(boutiqueId, cashFlowId, request);
+            if (response.Success)
+            {
+                CloseReconcileModal();
+                await LoadCashFlowAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Silently handle error
+        }
+        finally
+        {
+            isReconciling = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -162,6 +162,13 @@ public interface ITresorerieService
         Guid id,
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Post("/api/cash-flows/{id}/reconcile")]
+    Task<BaseResponse<ReconcileCashFlowResponse>> ReconcileCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] ReconcileCashFlowRequest? request = null);
 }
 
 public enum AccountType
@@ -662,4 +669,58 @@ public record UpdateRecurringCashFlowResponse(
 public record ToggleRecurringCashFlowResponse(
     Guid Id,
     bool IsActive
+);
+
+// ReconcileCashFlow DTOs
+public record ReconcileCashFlowRequest(
+    string? BankStatementReference
+);
+
+public record ReconcileCashFlowResponse(
+    CashFlowDetailDto CashFlow
+);
+
+public record CashFlowDetailDto(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    CashFlowStatusExtended Status,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    string? Description,
+    decimal Amount,
+    decimal TaxAmount,
+    decimal TaxRate,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    ThirdPartyType? ThirdPartyType,
+    string? ThirdPartyName,
+    string? ThirdPartyId,
+    string? AttachmentUrl,
+    string? RelatedType,
+    string? RelatedId,
+    bool IsRecurring,
+    string? RecurringCashFlowId,
+    bool IsSystemGenerated,
+    bool AutoApproved,
+    bool IsReconciled,
+    DateTime? ReconciledAt,
+    string? ReconciledBy,
+    string? BankStatementReference,
+    DateTime? SubmittedAt,
+    string? SubmittedBy,
+    DateTime? ValidatedAt,
+    string? ValidatedBy,
+    string? RejectionReason,
+    string? BudgetId,
+    string? BudgetName,
+    decimal? BudgetImpact
 );
