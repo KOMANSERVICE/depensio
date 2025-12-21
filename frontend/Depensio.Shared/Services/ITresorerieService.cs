@@ -85,4 +85,19 @@ public interface ITresorerieService
         Guid boutiqueId,
         Guid cashFlowId,
         [Body] RejectCashFlowRequest request);
+
+    [Get("/tresorerie/{boutiqueId}/cash-flows")]
+    Task<BaseResponse<GetCashFlowsResponse>> GetCashFlowsAsync(
+        Guid boutiqueId,
+        CashFlowTypeExtended? type = null,
+        CashFlowStatusExtended? status = null,
+        Guid? accountId = null,
+        Guid? categoryId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? search = null,
+        int page = 1,
+        int pageSize = 20,
+        string sortBy = "date",
+        string sortOrder = "desc");
 }
