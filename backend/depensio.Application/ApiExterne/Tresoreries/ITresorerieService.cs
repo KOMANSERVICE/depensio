@@ -169,6 +169,14 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] ReconcileCashFlowRequest? request = null);
+
+    [Get("/api/cash-flows/unreconciled")]
+    Task<BaseResponse<GetUnreconciledCashFlowsResponse>> GetUnreconciledCashFlowsAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Query] Guid? accountId = null,
+        [Query] DateTime? startDate = null,
+        [Query] DateTime? endDate = null);
 }
 
 public enum AccountType
@@ -723,4 +731,32 @@ public record CashFlowDetailDto(
     string? BudgetId,
     string? BudgetName,
     decimal? BudgetImpact
+);
+
+// GetUnreconciledCashFlows DTOs
+public record GetUnreconciledCashFlowsResponse(
+    IReadOnlyList<UnreconciledCashFlowDto> CashFlows,
+    int UnreconciledCount,
+    decimal TotalUnreconciledAmount
+);
+
+public record UnreconciledCashFlowDto(
+    Guid Id,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    decimal Amount,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    ThirdPartyType? ThirdPartyType,
+    string? ThirdPartyName,
+    DateTime? ValidatedAt,
+    string? ValidatedBy
 );

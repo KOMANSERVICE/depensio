@@ -139,4 +139,11 @@ public interface ITresorerieService
         Guid boutiqueId,
         Guid cashFlowId,
         [Body] ReconcileCashFlowRequest? request = null);
+
+    [Get("/tresorerie/{boutiqueId}/cash-flows/unreconciled")]
+    Task<BaseResponse<GetUnreconciledCashFlowsResponse>> GetUnreconciledCashFlowsAsync(
+        Guid boutiqueId,
+        Guid? accountId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null);
 }
