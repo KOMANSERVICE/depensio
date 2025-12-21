@@ -101,6 +101,22 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] RejectCashFlowRequest request);
+
+    [Get("/api/cash-flows")]
+    Task<BaseResponse<GetCashFlowsResponse>> GetCashFlowsAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Query] CashFlowTypeExtended? type = null,
+        [Query] CashFlowStatusExtended? status = null,
+        [Query] Guid? accountId = null,
+        [Query] Guid? categoryId = null,
+        [Query] DateTime? startDate = null,
+        [Query] DateTime? endDate = null,
+        [Query] string? search = null,
+        [Query] int page = 1,
+        [Query] int pageSize = 20,
+        [Query] string sortBy = "date",
+        [Query] string sortOrder = "desc");
 }
 
 public enum AccountType
@@ -416,3 +432,33 @@ public record ApproveCashFlowResponse(
 public record RejectCashFlowRequest(string RejectionReason);
 
 public record RejectCashFlowResponse(CashFlowDTO CashFlow);
+
+// GetCashFlows DTOs
+public record GetCashFlowsResponse(
+    IReadOnlyList<CashFlowListDto> CashFlows,
+    int TotalCount,
+    int Page,
+    int PageSize,
+    int TotalPages,
+    bool HasPrevious,
+    bool HasNext
+);
+
+public record CashFlowListDto(
+    Guid Id,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    CashFlowStatusExtended Status,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    decimal Amount,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    string? ThirdPartyName
+);

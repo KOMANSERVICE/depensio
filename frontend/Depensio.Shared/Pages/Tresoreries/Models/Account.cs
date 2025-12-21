@@ -346,3 +346,33 @@ public class CashFlowEditDTO
     public string? SupplierName { get; set; }
     public string? AttachmentUrl { get; set; }
 }
+
+// GetCashFlows DTOs
+public record GetCashFlowsResponse(
+    IReadOnlyList<CashFlowListDto> CashFlows,
+    int TotalCount,
+    int Page,
+    int PageSize,
+    int TotalPages,
+    bool HasPrevious,
+    bool HasNext
+);
+
+public record CashFlowListDto(
+    Guid Id,
+    string? Reference,
+    CashFlowTypeExtended Type,
+    CashFlowStatusExtended Status,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    decimal Amount,
+    string Currency,
+    Guid AccountId,
+    string AccountName,
+    Guid? DestinationAccountId,
+    string? DestinationAccountName,
+    string PaymentMethod,
+    DateTime Date,
+    string? ThirdPartyName
+);
