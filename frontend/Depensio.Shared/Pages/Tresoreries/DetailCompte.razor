@@ -46,9 +46,13 @@ else
                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center">
                 <i class="fas fa-exchange-alt mr-2"></i>Transfert
             </button>
+            <button @onclick="OpenCreateRecurringCashFlowModal"
+                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center">
+                <i class="fas fa-sync-alt mr-2"></i>Flux recurrent
+            </button>
             <a href="/tresorerie/@boutiqueId/comptes/@accountId/solde"
                class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 flex items-center">
-                <i class="fas fa-sync-alt mr-2"></i>Solde en temps reel
+                <i class="fas fa-clock mr-2"></i>Solde en temps reel
             </a>
         </div>
     </div>
@@ -433,6 +437,29 @@ else
     </div>
 }
 
+<!-- Modal de creation de flux recurrent -->
+@if (showCreateRecurringCashFlowModal && account != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-sync-alt text-purple-600 mr-2"></i>Nouveau flux recurrent
+                </h3>
+                <button @onclick="CloseCreateRecurringCashFlowModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <CreateRecurringCashFlowComponent
+                BoutiqueId="@boutiqueId"
+                AccountId="@accountId"
+                AccountName="@account.Name"
+                OnAfterSave="HandleAfterCreateRecurringCashFlow"
+                OnCancelSave="CloseCreateRecurringCashFlowModal" />
+        </div>
+    </div>
+}
+
 <!-- Modal de modification de flux -->
 @if (showEditCashFlowModal && account != null && selectedCashFlow != null)
 {
@@ -653,6 +680,7 @@ else
     private bool showCreateCashFlowModal = false;
     private bool showCreateIncomeModal = false;
     private bool showCreateTransferModal = false;
+    private bool showCreateRecurringCashFlowModal = false;
     private bool showEditCashFlowModal = false;
     private CashFlowDTO? selectedCashFlow = null;
     private bool isLoadingCashFlow = false;
@@ -769,6 +797,22 @@ else
     private async Task HandleAfterCreateTransfer()
     {
         CloseCreateTransferModal();
+        await LoadAccountDetailAsync();
+    }
+
+    private void OpenCreateRecurringCashFlowModal()
+    {
+        showCreateRecurringCashFlowModal = true;
+    }
+
+    private void CloseCreateRecurringCashFlowModal()
+    {
+        showCreateRecurringCashFlowModal = false;
+    }
+
+    private async Task HandleAfterCreateRecurringCashFlow()
+    {
+        CloseCreateRecurringCashFlowModal();
         await LoadAccountDetailAsync();
     }
 
