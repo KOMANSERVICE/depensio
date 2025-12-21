@@ -280,6 +280,10 @@ else
                                                 class="text-green-600 hover:text-green-800" title="Approuver">
                                                 <i class="fas fa-check-circle"></i>
                                             </button>
+                                            <button @onclick="@(() => OpenRejectConfirmationModal(movement.Id, movement.Label))"
+                                                class="text-red-600 hover:text-red-800" title="Rejeter">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
                                         </div>
                                     }
                                     else
@@ -331,6 +335,10 @@ else
                                         <button @onclick="@(() => OpenApproveConfirmationModal(movement.Id, movement.Label))"
                                             class="text-green-600 hover:text-green-800 ml-2" title="Approuver">
                                             <i class="fas fa-check-circle"></i>
+                                        </button>
+                                        <button @onclick="@(() => OpenRejectConfirmationModal(movement.Id, movement.Label))"
+                                            class="text-red-600 hover:text-red-800 ml-2" title="Rejeter">
+                                            <i class="fas fa-times-circle"></i>
                                         </button>
                                     }
                                 </div>
@@ -573,6 +581,53 @@ else
     </div>
 }
 
+<!-- Modal de confirmation de rejet -->
+@if (showRejectConfirmationModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-times-circle text-red-600 mr-2"></i>Confirmer le rejet
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Etes-vous sur de vouloir rejeter le flux "<span class="font-semibold">@cashFlowToRejectLabel</span>" ?
+                </p>
+                <div class="mb-4">
+                    <label for="rejectionReason" class="block text-sm font-medium text-gray-700 mb-1">
+                        Motif du rejet <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="rejectionReason" @bind="rejectionReason" rows="3"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-red-500 focus:border-red-500"
+                        placeholder="Veuillez indiquer le motif du rejet..."></textarea>
+                </div>
+                <p class="text-sm text-red-600">
+                    <i class="fas fa-info-circle mr-1"></i>Une fois rejete, le flux ne pourra plus etre approuve.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseRejectConfirmationModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleRejectCashFlow" disabled="@(isRejectingCashFlow || string.IsNullOrWhiteSpace(rejectionReason))"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+                    @if (isRejectingCashFlow)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Rejet...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-times-circle mr-2"></i>@("Rejeter")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Loading overlay for cash flow loading -->
 @if (isLoadingCashFlow)
 {
@@ -613,6 +668,11 @@ else
     private Guid? cashFlowToApproveId = null;
     private string cashFlowToApproveLabel = string.Empty;
     private bool isApprovingCashFlow = false;
+    private bool showRejectConfirmationModal = false;
+    private Guid? cashFlowToRejectId = null;
+    private string cashFlowToRejectLabel = string.Empty;
+    private bool isRejectingCashFlow = false;
+    private string rejectionReason = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -941,6 +1001,51 @@ else
         finally
         {
             isApprovingCashFlow = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OpenRejectConfirmationModal(Guid cashFlowId, string label)
+    {
+        cashFlowToRejectId = cashFlowId;
+        cashFlowToRejectLabel = label;
+        rejectionReason = string.Empty;
+        showRejectConfirmationModal = true;
+    }
+
+    private void CloseRejectConfirmationModal()
+    {
+        showRejectConfirmationModal = false;
+        cashFlowToRejectId = null;
+        cashFlowToRejectLabel = string.Empty;
+        rejectionReason = string.Empty;
+    }
+
+    private async Task HandleRejectCashFlow()
+    {
+        if (!cashFlowToRejectId.HasValue || string.IsNullOrWhiteSpace(rejectionReason))
+            return;
+
+        isRejectingCashFlow = true;
+        StateHasChanged();
+
+        try
+        {
+            var request = new RejectCashFlowRequest(rejectionReason);
+            var response = await _tresorerieService.RejectCashFlowAsync(boutiqueId, cashFlowToRejectId.Value, request);
+            if (response.Success)
+            {
+                CloseRejectConfirmationModal();
+                await LoadAccountDetailAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Silently handle error - could add toast notification here
+        }
+        finally
+        {
+            isRejectingCashFlow = false;
             StateHasChanged();
         }
     }
