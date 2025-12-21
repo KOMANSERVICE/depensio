@@ -48,8 +48,8 @@ public class AccountEditDTO
 
 public enum CashFlowType
 {
-    Income = 0,
-    Expense = 1
+    INCOME = 1,
+    EXPENSE = 2
 }
 
 public enum CashFlowStatus

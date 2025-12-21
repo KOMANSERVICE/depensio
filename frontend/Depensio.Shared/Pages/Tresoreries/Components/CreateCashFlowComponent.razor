@@ -22,7 +22,7 @@
             <InputSelect @bind-Value="localCashFlow.CategoryId" id="categoryId"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
                 <option value="">Selectionnez une categorie</option>
-                @foreach (var category in categories.Where(c => c.Type == CategoryType.Expense))
+                @foreach (var category in categories.Where(c => c.Type == CategoryType.EXPENSE))
                 {
                     <option value="@category.Id.ToString()">@category.Name</option>
                 }
@@ -168,7 +168,7 @@
     {
         try
         {
-            var response = await _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.Expense, false);
+            var response = await _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.EXPENSE, false);
             if (response.Success && response.Data != null)
             {
                 categories = response.Data.Categories.ToList();

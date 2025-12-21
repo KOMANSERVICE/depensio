@@ -2,8 +2,8 @@ namespace depensio.Shared.Pages.Tresoreries.Models;
 
 public enum CategoryType
 {
-    Income = 0,
-    Expense = 1
+    INCOME = 1,   // Catégorie de revenus
+    EXPENSE = 2   // Catégorie de dépenses
 }
 
 public record CreateCategoryRequest(
@@ -28,7 +28,7 @@ public record CategoryDTO(
 public class CategoryCreateDTO
 {
     public string Name { get; set; } = string.Empty;
-    public CategoryType Type { get; set; } = CategoryType.Expense;
+    public CategoryType Type { get; set; } = CategoryType.EXPENSE;
     public string? Icon { get; set; }
 }
 

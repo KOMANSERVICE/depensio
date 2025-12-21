@@ -190,8 +190,8 @@
         try
         {
             var categoryType = CashFlow.Type == CashFlowTypeExtended.INCOME
-                ? CategoryType.Income
-                : CategoryType.Expense;
+                ? CategoryType.INCOME
+                : CategoryType.EXPENSE;
             var response = await _tresorerieService.GetCategoriesAsync(BoutiqueId, categoryType, false);
             if (response.Success && response.Data != null)
             {
@@ -211,8 +211,8 @@
     private IEnumerable<CategoryDTO> GetFilteredCategories()
     {
         var categoryType = CashFlow.Type == CashFlowTypeExtended.INCOME
-            ? CategoryType.Income
-            : CategoryType.Expense;
+            ? CategoryType.INCOME
+            : CategoryType.EXPENSE;
         return categories.Where(c => c.Type == categoryType);
     }
 

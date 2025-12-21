@@ -163,8 +163,8 @@ public record UpdateAccountResponse(Guid Id);
 
 public enum CashFlowType
 {
-    Income = 0,
-    Expense = 1
+    INCOME = 1,
+    EXPENSE = 2
 }
 
 public enum CashFlowStatus
@@ -233,8 +233,8 @@ public record AccountBalanceDto(
 // Category DTOs
 public enum CategoryType
 {
-    Income = 0,
-    Expense = 1
+    INCOME = 1,
+    EXPENSE = 2
 }
 
 public record CreateCategoryRequest(

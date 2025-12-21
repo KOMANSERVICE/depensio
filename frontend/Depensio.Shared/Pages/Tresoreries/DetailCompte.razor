@@ -252,8 +252,8 @@ else
                                         @GetStatusLabel(movement.Status)
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-right @(movement.Type == CashFlowType.Income ? "text-green-600" : "text-red-600")">
-                                    @(movement.Type == CashFlowType.Income ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-right @(movement.Type == CashFlowType.INCOME ? "text-green-600" : "text-red-600")">
+                                    @(movement.Type == CashFlowType.INCOME ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
                                     @if (IsDraftStatus(movement.Status))
@@ -289,7 +289,7 @@ else
                 <div class="space-y-3">
                     @foreach (var movement in account.RecentMovements)
                     {
-                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 @(movement.Type == CashFlowType.Income ? "border-green-500" : "border-red-500")">
+                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 @(movement.Type == CashFlowType.INCOME ? "border-green-500" : "border-red-500")">
                             <div class="flex justify-between items-start mb-2">
                                 <div class="flex-1">
                                     <p class="font-medium text-gray-900">@movement.Label</p>
@@ -299,8 +299,8 @@ else
                                     }
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm font-bold @(movement.Type == CashFlowType.Income ? "text-green-600" : "text-red-600")">
-                                        @(movement.Type == CashFlowType.Income ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
+                                    <span class="text-sm font-bold @(movement.Type == CashFlowType.INCOME ? "text-green-600" : "text-red-600")">
+                                        @(movement.Type == CashFlowType.INCOME ? "+" : "-")@movement.Amount.ToString("N0") @movement.Currency
                                     </span>
                                     @if (IsDraftStatus(movement.Status))
                                     {

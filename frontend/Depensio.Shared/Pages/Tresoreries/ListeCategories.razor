@@ -35,8 +35,8 @@
             <select @bind="selectedType" @bind:after="GetCategoriesAsync"
                 class="border border-gray-300 rounded px-3 py-2 text-sm">
                 <option value="">Tous les types</option>
-                <option value="@CategoryType.Income">Revenus</option>
-                <option value="@CategoryType.Expense">Depenses</option>
+                <option value="@CategoryType.INCOME">Revenus</option>
+                <option value="@CategoryType.EXPENSE">Depenses</option>
             </select>
             <div class="flex items-center">
                 <input type="checkbox" id="includeInactive" @bind="includeInactive" @bind:after="GetCategoriesAsync"
@@ -310,8 +310,8 @@
             {
                 categories = response.Data.Categories.ToList();
                 totalCount = response.Data.TotalCount;
-                incomeCount = categories.Count(c => c.Type == CategoryType.Income);
-                expenseCount = categories.Count(c => c.Type == CategoryType.Expense);
+                incomeCount = categories.Count(c => c.Type == CategoryType.INCOME);
+                expenseCount = categories.Count(c => c.Type == CategoryType.EXPENSE);
                 ApplyFilter();
             }
         }
@@ -375,15 +375,15 @@
 
     private string GetTypeLabel(CategoryType type) => type switch
     {
-        CategoryType.Income => "Revenu",
-        CategoryType.Expense => "Depense",
+        CategoryType.INCOME => "Revenu",
+        CategoryType.EXPENSE => "Depense",
         _ => "Inconnu"
     };
 
     private string GetTypeColor(CategoryType type) => type switch
     {
-        CategoryType.Income => "bg-green-100 text-green-800",
-        CategoryType.Expense => "bg-red-100 text-red-800",
+        CategoryType.INCOME => "bg-green-100 text-green-800",
+        CategoryType.EXPENSE => "bg-red-100 text-red-800",
         _ => "bg-gray-100 text-gray-800"
     };
 
