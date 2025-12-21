@@ -124,6 +124,12 @@ public interface ITresorerieService
         [Header("X-Boutique-Id")] string boutiqueId,
         [Query] CashFlowTypeExtended? type = null,
         [Query] Guid? accountId = null);
+
+    [Post("/api/cash-flows/from-sale")]
+    Task<BaseResponse<CreateCashFlowFromSaleResponse>> CreateCashFlowFromSaleAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] CreateCashFlowFromSaleRequest request);
 }
 
 public enum AccountType
@@ -494,4 +500,22 @@ public record PendingCashFlowDto(
     string? ThirdPartyName,
     DateTime? SubmittedAt,
     string? SubmittedBy
+);
+
+// CreateCashFlowFromSale DTOs
+public record CreateCashFlowFromSaleRequest(
+    Guid SaleId,
+    string SaleReference,
+    decimal Amount,
+    Guid AccountId,
+    string PaymentMethod,
+    DateTime SaleDate,
+    string? CustomerName,
+    string? CustomerId,
+    string CategoryId
+);
+
+public record CreateCashFlowFromSaleResponse(
+    CashFlowDTO CashFlow,
+    decimal NewAccountBalance
 );
