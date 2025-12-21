@@ -96,6 +96,7 @@ jobs:
             LOCALDOMAIN=${{ vars.LOCALDOMAIN }}
             SERVICE_MAGASIN_URI=${{ secrets.SERVICE_MAGASIN_URI }}      
             SERVICE_TRESORERIE_URI=${{ secrets.SERVICE_TRESORERIE_URI }}
+            FRONTEND_BASEURL=${{ secrets.FRONTEND_BASEURL }}
             EOF
 
             chmod 644 $ENV_PATH
