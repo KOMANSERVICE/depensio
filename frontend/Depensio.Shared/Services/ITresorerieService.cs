@@ -122,4 +122,10 @@ public interface ITresorerieService
         Guid boutiqueId,
         bool? isActive = true,
         CashFlowTypeExtended? type = null);
+
+    [Put("/tresorerie/{boutiqueId}/recurring-cash-flows/{recurringCashFlowId}")]
+    Task<BaseResponse<UpdateRecurringCashFlowResponse>> UpdateRecurringCashFlowAsync(
+        Guid boutiqueId,
+        Guid recurringCashFlowId,
+        [Body] UpdateRecurringCashFlowRequest request);
 }

@@ -149,6 +149,13 @@ public interface ITresorerieService
         [Header("X-Boutique-Id")] string boutiqueId,
         [Query] bool? isActive = true,
         [Query] CashFlowTypeExtended? type = null);
+
+    [Put("/api/recurring-cash-flows/{id}")]
+    Task<BaseResponse<UpdateRecurringCashFlowResponse>> UpdateRecurringCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] UpdateRecurringCashFlowRequest request);
 }
 
 public enum AccountType
@@ -619,4 +626,28 @@ public record GetRecurringCashFlowsResponse(
     IReadOnlyList<RecurringCashFlowDTO> RecurringCashFlows,
     int TotalCount,
     decimal EstimatedMonthlyTotal
+);
+
+// UpdateRecurringCashFlow DTOs
+public record UpdateRecurringCashFlowRequest(
+    CashFlowTypeExtended? Type,
+    string? CategoryId,
+    string? Label,
+    string? Description,
+    decimal? Amount,
+    Guid? AccountId,
+    string? PaymentMethod,
+    string? ThirdPartyName,
+    RecurringFrequency? Frequency,
+    int? Interval,
+    int? DayOfMonth,
+    int? DayOfWeek,
+    DateTime? StartDate,
+    DateTime? EndDate,
+    bool? AutoValidate,
+    bool? IsActive
+);
+
+public record UpdateRecurringCashFlowResponse(
+    RecurringCashFlowDTO RecurringCashFlow
 );

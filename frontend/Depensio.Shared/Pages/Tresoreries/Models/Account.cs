@@ -503,3 +503,48 @@ public record GetRecurringCashFlowsResponse(
     int TotalCount,
     decimal EstimatedMonthlyTotal
 );
+
+// UpdateRecurringCashFlow DTOs
+public record UpdateRecurringCashFlowRequest(
+    CashFlowTypeExtended? Type,
+    string? CategoryId,
+    string? Label,
+    string? Description,
+    decimal? Amount,
+    Guid? AccountId,
+    string? PaymentMethod,
+    string? ThirdPartyName,
+    RecurringFrequency? Frequency,
+    int? Interval,
+    int? DayOfMonth,
+    int? DayOfWeek,
+    DateTime? StartDate,
+    DateTime? EndDate,
+    bool? AutoValidate,
+    bool? IsActive
+);
+
+public record UpdateRecurringCashFlowResponse(
+    RecurringCashFlowDTO RecurringCashFlow
+);
+
+public class RecurringCashFlowEditDTO
+{
+    public Guid Id { get; set; }
+    public CashFlowTypeExtended Type { get; set; } = CashFlowTypeExtended.EXPENSE;
+    public string CategoryId { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public decimal Amount { get; set; }
+    public Guid AccountId { get; set; }
+    public string PaymentMethod { get; set; } = "CASH";
+    public string? ThirdPartyName { get; set; }
+    public RecurringFrequency Frequency { get; set; } = RecurringFrequency.MONTHLY;
+    public int Interval { get; set; } = 1;
+    public int? DayOfMonth { get; set; }
+    public int? DayOfWeek { get; set; }
+    public DateTime StartDate { get; set; } = DateTime.Today;
+    public DateTime? EndDate { get; set; }
+    public bool AutoValidate { get; set; }
+    public bool IsActive { get; set; } = true;
+}
