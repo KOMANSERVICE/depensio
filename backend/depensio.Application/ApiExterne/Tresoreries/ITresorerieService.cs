@@ -156,6 +156,12 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] UpdateRecurringCashFlowRequest request);
+
+    [Patch("/api/recurring-cash-flows/{id}/toggle")]
+    Task<BaseResponse<ToggleRecurringCashFlowResponse>> ToggleRecurringCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 public enum AccountType
@@ -650,4 +656,10 @@ public record UpdateRecurringCashFlowRequest(
 
 public record UpdateRecurringCashFlowResponse(
     RecurringCashFlowDTO RecurringCashFlow
+);
+
+// ToggleRecurringCashFlow DTOs
+public record ToggleRecurringCashFlowResponse(
+    Guid Id,
+    bool IsActive
 );

@@ -528,6 +528,12 @@ public record UpdateRecurringCashFlowResponse(
     RecurringCashFlowDTO RecurringCashFlow
 );
 
+// ToggleRecurringCashFlow DTOs
+public record ToggleRecurringCashFlowResponse(
+    Guid Id,
+    bool IsActive
+);
+
 public class RecurringCashFlowEditDTO
 {
     public Guid Id { get; set; }

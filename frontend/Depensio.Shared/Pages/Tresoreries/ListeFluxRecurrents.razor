@@ -141,9 +141,16 @@
                                     @flow.NextOccurrence.ToString("dd/MM/yyyy")
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @GetStatusColor(flow.IsActive)">
+                                    <button @onclick="() => ToggleRecurringCashFlowAsync(flow)"
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-colors duration-200 @GetStatusColor(flow.IsActive) hover:opacity-80"
+                                        title="@(flow.IsActive ? "Cliquer pour desactiver" : "Cliquer pour activer")"
+                                        disabled="@isTogglingId.HasValue">
+                                        @if (isTogglingId == flow.Id)
+                                        {
+                                            <i class="fas fa-spinner fa-spin mr-1"></i>
+                                        }
                                         @(flow.IsActive ? "Actif" : "Inactif")
-                                    </span>
+                                    </button>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     <button @onclick="() => OpenEditModal(flow)"
@@ -189,9 +196,16 @@
                                     }
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="px-2 text-xs font-semibold rounded-full @GetStatusColor(flow.IsActive)">
+                                    <button @onclick="() => ToggleRecurringCashFlowAsync(flow)"
+                                        class="px-2 text-xs font-semibold rounded-full cursor-pointer transition-colors duration-200 @GetStatusColor(flow.IsActive) hover:opacity-80"
+                                        title="@(flow.IsActive ? "Cliquer pour desactiver" : "Cliquer pour activer")"
+                                        disabled="@isTogglingId.HasValue">
+                                        @if (isTogglingId == flow.Id)
+                                        {
+                                            <i class="fas fa-spinner fa-spin mr-1"></i>
+                                        }
                                         @(flow.IsActive ? "Actif" : "Inactif")
-                                    </span>
+                                    </button>
                                     <button @onclick="() => OpenEditModal(flow)"
                                         class="text-primary-700 hover:text-amber-800"
                                         title="Modifier">
@@ -279,6 +293,9 @@
     private bool showEditModal = false;
     private RecurringCashFlowDTO? selectedRecurringCashFlow = null;
 
+    // Toggle
+    private Guid? isTogglingId = null;
+
     protected override async Task OnInitializedAsync()
     {
         await GetRecurringCashFlowsAsync();
@@ -302,6 +319,37 @@
     {
         CloseEditModal();
         await GetRecurringCashFlowsAsync();
+    }
+
+    private async Task ToggleRecurringCashFlowAsync(RecurringCashFlowDTO recurringCashFlow)
+    {
+        if (isTogglingId.HasValue)
+            return;
+
+        isTogglingId = recurringCashFlow.Id;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.ToggleRecurringCashFlowAsync(
+                boutiqueId,
+                recurringCashFlow.Id);
+
+            if (response.Success)
+            {
+                // Refresh the list to get the updated data
+                await GetRecurringCashFlowsAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // Error handling - the list will remain unchanged
+        }
+        finally
+        {
+            isTogglingId = null;
+            StateHasChanged();
+        }
     }
 
     private async Task GetRecurringCashFlowsAsync()

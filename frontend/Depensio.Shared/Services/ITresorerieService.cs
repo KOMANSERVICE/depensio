@@ -128,4 +128,9 @@ public interface ITresorerieService
         Guid boutiqueId,
         Guid recurringCashFlowId,
         [Body] UpdateRecurringCashFlowRequest request);
+
+    [Patch("/tresorerie/{boutiqueId}/recurring-cash-flows/{recurringCashFlowId}/toggle")]
+    Task<BaseResponse<ToggleRecurringCashFlowResponse>> ToggleRecurringCashFlowAsync(
+        Guid boutiqueId,
+        Guid recurringCashFlowId);
 }
