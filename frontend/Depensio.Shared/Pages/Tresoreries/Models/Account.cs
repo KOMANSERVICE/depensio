@@ -327,6 +327,10 @@ public record ApproveCashFlowResponse(
     decimal NewAccountBalance
 );
 
+public record RejectCashFlowRequest(string RejectionReason);
+
+public record RejectCashFlowResponse(CashFlowDTO CashFlow);
+
 public class CashFlowEditDTO
 {
     public Guid Id { get; set; }

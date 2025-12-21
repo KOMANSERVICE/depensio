@@ -94,6 +94,13 @@ public interface ITresorerieService
         Guid id,
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Post("/api/cash-flows/{id}/reject")]
+    Task<BaseResponse<RejectCashFlowResponse>> RejectCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] RejectCashFlowRequest request);
 }
 
 public enum AccountType
@@ -405,3 +412,7 @@ public record ApproveCashFlowResponse(
     CashFlowDTO CashFlow,
     decimal NewAccountBalance
 );
+
+public record RejectCashFlowRequest(string RejectionReason);
+
+public record RejectCashFlowResponse(CashFlowDTO CashFlow);
