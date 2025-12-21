@@ -252,7 +252,7 @@ public class CashFlowCreateDTO
     public decimal Amount { get; set; }
     public Guid AccountId { get; set; }
     public string PaymentMethod { get; set; } = "CASH";
-    public DateTime Date { get; set; } = DateTime.Today;
+    public DateTime Date { get; set; } = DateTime.UtcNow;
     public string? CustomerName { get; set; }
     public string? SupplierName { get; set; }
     public string? AttachmentUrl { get; set; }
@@ -293,7 +293,7 @@ public class TransferCreateDTO
     public Guid AccountId { get; set; }
     public Guid DestinationAccountId { get; set; }
     public decimal Amount { get; set; }
-    public DateTime Date { get; set; } = DateTime.Today;
+    public DateTime Date { get; set; } = DateTime.UtcNow;
     public string Label { get; set; } = string.Empty;
     public string? Description { get; set; }
 }
@@ -345,7 +345,7 @@ public class CashFlowEditDTO
     public decimal Amount { get; set; }
     public Guid AccountId { get; set; }
     public string PaymentMethod { get; set; } = "CASH";
-    public DateTime Date { get; set; } = DateTime.Today;
+    public DateTime Date { get; set; } = DateTime.UtcNow;
     public string? CustomerName { get; set; }
     public string? SupplierName { get; set; }
     public string? AttachmentUrl { get; set; }
@@ -496,7 +496,7 @@ public class RecurringCashFlowCreateDTO
     public int Interval { get; set; } = 1;
     public int? DayOfMonth { get; set; }
     public int? DayOfWeek { get; set; }
-    public DateTime StartDate { get; set; } = DateTime.Today;
+    public DateTime StartDate { get; set; } = DateTime.UtcNow;
     public DateTime? EndDate { get; set; }
     public bool AutoValidate { get; set; }
 }
@@ -553,7 +553,7 @@ public class RecurringCashFlowEditDTO
     public int Interval { get; set; } = 1;
     public int? DayOfMonth { get; set; }
     public int? DayOfWeek { get; set; }
-    public DateTime StartDate { get; set; } = DateTime.Today;
+    public DateTime StartDate { get; set; } = DateTime.UtcNow;
     public DateTime? EndDate { get; set; }
     public bool AutoValidate { get; set; }
     public bool IsActive { get; set; } = true;

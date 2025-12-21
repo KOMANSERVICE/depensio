@@ -156,7 +156,7 @@
         localCashFlow = new CashFlowCreateDTO
         {
             AccountId = AccountId,
-            Date = DateTime.Today,
+            Date = DateTime.UtcNow,
             Type = CashFlowTypeExtended.INCOME
         };
         editContext = new EditContext(localCashFlow);

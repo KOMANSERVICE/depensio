@@ -238,7 +238,7 @@
         localRecurringCashFlow = new RecurringCashFlowCreateDTO
         {
             AccountId = AccountId,
-            StartDate = DateTime.Today,
+            StartDate = DateTime.UtcNow,
             Frequency = RecurringFrequency.MONTHLY,
             Interval = 1,
             Type = CashFlowTypeExtended.EXPENSE

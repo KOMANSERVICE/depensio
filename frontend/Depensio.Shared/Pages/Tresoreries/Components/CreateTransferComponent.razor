@@ -116,7 +116,7 @@
         localTransfer = new TransferCreateDTO
         {
             AccountId = AccountId,
-            Date = DateTime.Today
+            Date = DateTime.UtcNow
         };
         editContext = new EditContext(localTransfer);
         messageStore = new ValidationMessageStore(editContext);
