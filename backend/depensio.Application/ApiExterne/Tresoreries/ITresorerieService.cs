@@ -136,6 +136,12 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateCashFlowFromPurchaseRequest request);
+
+    [Post("/api/recurring-cash-flows")]
+    Task<BaseResponse<CreateRecurringCashFlowResponse>> CreateRecurringCashFlowAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] CreateRecurringCashFlowRequest request);
 }
 
 public enum AccountType
@@ -542,4 +548,61 @@ public record CreateCashFlowFromPurchaseRequest(
 public record CreateCashFlowFromPurchaseResponse(
     CashFlowDTO CashFlow,
     decimal NewAccountBalance
+);
+
+// RecurringCashFlow DTOs
+public enum RecurringFrequency
+{
+    DAILY = 1,
+    WEEKLY = 2,
+    MONTHLY = 3,
+    YEARLY = 4
+}
+
+public record CreateRecurringCashFlowRequest(
+    CashFlowTypeExtended Type,
+    string CategoryId,
+    string Label,
+    string? Description,
+    decimal Amount,
+    Guid AccountId,
+    string PaymentMethod,
+    string? ThirdPartyName,
+    RecurringFrequency Frequency,
+    int Interval,
+    int? DayOfMonth,
+    int? DayOfWeek,
+    DateTime StartDate,
+    DateTime? EndDate,
+    bool AutoValidate
+);
+
+public record CreateRecurringCashFlowResponse(
+    RecurringCashFlowDTO RecurringCashFlow
+);
+
+public record RecurringCashFlowDTO(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    CashFlowTypeExtended Type,
+    string CategoryId,
+    string CategoryName,
+    string Label,
+    string? Description,
+    decimal Amount,
+    Guid AccountId,
+    string AccountName,
+    string PaymentMethod,
+    string? ThirdPartyName,
+    RecurringFrequency Frequency,
+    int Interval,
+    int? DayOfMonth,
+    int? DayOfWeek,
+    DateTime StartDate,
+    DateTime? EndDate,
+    DateTime NextOccurrence,
+    bool AutoValidate,
+    bool IsActive,
+    DateTime? LastGeneratedAt
 );

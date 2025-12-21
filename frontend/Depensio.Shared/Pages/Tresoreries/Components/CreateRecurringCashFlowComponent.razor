@@ -1,0 +1,421 @@
+@using depensio.Shared.Pages.Tresoreries.Models
+@inject ITresorerieService _tresorerieService
+
+<LoadingComponent IsLoad="@isLoad" />
+
+<EditForm EditContext="@editContext" OnValidSubmit="HandleCreate">
+    <DataAnnotationsValidator />
+    <ErrorsSummary editContext="@editContext" />
+
+    <div class="p-6">
+        <!-- Compte (pre-selectionne) -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Compte</label>
+            <div class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                @AccountName
+            </div>
+        </div>
+
+        <!-- Type de flux -->
+        <div class="mb-4">
+            <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type de flux *</label>
+            <InputSelect @bind-Value="localRecurringCashFlow.Type" id="type"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700"
+                @onchange="OnTypeChanged">
+                <option value="@CashFlowTypeExtended.EXPENSE">Depense</option>
+                <option value="@CashFlowTypeExtended.INCOME">Revenu</option>
+            </InputSelect>
+        </div>
+
+        <!-- Categorie -->
+        <div class="mb-4">
+            <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">Categorie *</label>
+            <InputSelect @bind-Value="localRecurringCashFlow.CategoryId" id="categoryId"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                <option value="">Selectionnez une categorie</option>
+                @foreach (var category in GetFilteredCategories())
+                {
+                    <option value="@category.Id.ToString()">@category.Name</option>
+                }
+            </InputSelect>
+            <div class="error-message">
+                <ValidationMessage For="@(() => localRecurringCashFlow.CategoryId)" />
+            </div>
+        </div>
+
+        <!-- Libelle -->
+        <div class="mb-4">
+            <label for="label" class="block text-sm font-medium text-gray-700 mb-1">Libelle *</label>
+            <InputText @bind-Value="localRecurringCashFlow.Label" id="label"
+                placeholder="Ex: Loyer mensuel, Abonnement internet"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <div class="error-message">
+                <ValidationMessage For="@(() => localRecurringCashFlow.Label)" />
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <InputTextArea @bind-Value="localRecurringCashFlow.Description" id="description"
+                placeholder="Details supplementaires..."
+                rows="2"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+        </div>
+
+        <!-- Montant -->
+        <div class="mb-4">
+            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Montant *</label>
+            <InputNumber @bind-Value="localRecurringCashFlow.Amount" id="amount"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <p class="text-xs text-gray-500 mt-1">Montant du flux recurrent en FCFA</p>
+            <div class="error-message">
+                <ValidationMessage For="@(() => localRecurringCashFlow.Amount)" />
+            </div>
+        </div>
+
+        <!-- Mode de paiement -->
+        <div class="mb-4">
+            <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1">Mode de paiement *</label>
+            <InputSelect @bind-Value="localRecurringCashFlow.PaymentMethod" id="paymentMethod"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                <option value="CASH">Especes</option>
+                <option value="BANK_TRANSFER">Virement bancaire</option>
+                <option value="CHECK">Cheque</option>
+                <option value="MOBILE_MONEY">Mobile Money</option>
+                <option value="CARD">Carte bancaire</option>
+                <option value="OTHER">Autre</option>
+            </InputSelect>
+        </div>
+
+        <!-- Tiers (Fournisseur/Client) -->
+        <div class="mb-4">
+            <label for="thirdPartyName" class="block text-sm font-medium text-gray-700 mb-1">
+                @(localRecurringCashFlow.Type == CashFlowTypeExtended.EXPENSE ? "Fournisseur" : "Client")
+            </label>
+            <InputText @bind-Value="localRecurringCashFlow.ThirdPartyName" id="thirdPartyName"
+                placeholder="@(localRecurringCashFlow.Type == CashFlowTypeExtended.EXPENSE ? "Nom du fournisseur" : "Nom du client")"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+        </div>
+
+        <!-- Section Recurrence -->
+        <div class="border-t pt-4 mt-4">
+            <h4 class="text-sm font-semibold text-gray-800 mb-3">Parametres de recurrence</h4>
+
+            <!-- Frequence -->
+            <div class="mb-4">
+                <label for="frequency" class="block text-sm font-medium text-gray-700 mb-1">Frequence *</label>
+                <InputSelect @bind-Value="localRecurringCashFlow.Frequency" id="frequency"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                    <option value="@RecurringFrequency.DAILY">Quotidien</option>
+                    <option value="@RecurringFrequency.WEEKLY">Hebdomadaire</option>
+                    <option value="@RecurringFrequency.MONTHLY">Mensuel</option>
+                    <option value="@RecurringFrequency.YEARLY">Annuel</option>
+                </InputSelect>
+            </div>
+
+            <!-- Intervalle -->
+            <div class="mb-4">
+                <label for="interval" class="block text-sm font-medium text-gray-700 mb-1">Intervalle *</label>
+                <InputNumber @bind-Value="localRecurringCashFlow.Interval" id="interval" min="1"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+                <p class="text-xs text-gray-500 mt-1">
+                    @GetIntervalDescription()
+                </p>
+            </div>
+
+            <!-- Jour du mois (pour frequence mensuelle/annuelle) -->
+            @if (localRecurringCashFlow.Frequency == RecurringFrequency.MONTHLY || localRecurringCashFlow.Frequency == RecurringFrequency.YEARLY)
+            {
+                <div class="mb-4">
+                    <label for="dayOfMonth" class="block text-sm font-medium text-gray-700 mb-1">Jour du mois</label>
+                    <InputNumber @bind-Value="localRecurringCashFlow.DayOfMonth" id="dayOfMonth" min="1" max="31"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+                    <p class="text-xs text-gray-500 mt-1">Entre 1 et 31 (laissez vide pour utiliser la date de debut)</p>
+                </div>
+            }
+
+            <!-- Jour de la semaine (pour frequence hebdomadaire) -->
+            @if (localRecurringCashFlow.Frequency == RecurringFrequency.WEEKLY)
+            {
+                <div class="mb-4">
+                    <label for="dayOfWeek" class="block text-sm font-medium text-gray-700 mb-1">Jour de la semaine</label>
+                    <InputSelect @bind-Value="dayOfWeekString" id="dayOfWeek"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                        <option value="">Selectionnez un jour</option>
+                        <option value="0">Dimanche</option>
+                        <option value="1">Lundi</option>
+                        <option value="2">Mardi</option>
+                        <option value="3">Mercredi</option>
+                        <option value="4">Jeudi</option>
+                        <option value="5">Vendredi</option>
+                        <option value="6">Samedi</option>
+                    </InputSelect>
+                </div>
+            }
+
+            <!-- Date de debut -->
+            <div class="mb-4">
+                <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">Date de debut *</label>
+                <InputDate @bind-Value="localRecurringCashFlow.StartDate" id="startDate"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+
+            <!-- Date de fin -->
+            <div class="mb-4">
+                <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">Date de fin (optionnel)</label>
+                <InputDate @bind-Value="localRecurringCashFlow.EndDate" id="endDate"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+                <p class="text-xs text-gray-500 mt-1">Laissez vide pour une recurrence sans fin</p>
+            </div>
+
+            <!-- Auto-validation -->
+            <div class="mb-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <InputCheckbox @bind-Value="localRecurringCashFlow.AutoValidate"
+                        class="w-4 h-4 text-primary-700 border-gray-300 rounded focus:ring-primary-700" />
+                    <span class="text-sm text-gray-700">Valider automatiquement les flux generes</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1 ml-6">
+                    Si active, les flux seront automatiquement approuves sans validation manuelle
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button type="button" @onclick="CancelSave"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+            Annuler
+        </button>
+        <button type="submit"
+            class="px-4 py-2 bg-primary-700 hover:bg-primary-800 text-white rounded-lg">
+            <i class="fas fa-sync-alt mr-2"></i>Creer le flux recurrent
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    [Parameter]
+    public Guid AccountId { get; set; }
+
+    [Parameter]
+    public string AccountName { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnAfterSave { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelSave { get; set; }
+
+    private bool isLoad = false;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+    private RecurringCashFlowCreateDTO localRecurringCashFlow = new();
+    private List<CategoryDTO> categories = new();
+    private bool _categoriesLoaded = false;
+    private string dayOfWeekString = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        InitializeEditContext();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_categoriesLoaded && BoutiqueId != Guid.Empty)
+        {
+            await LoadCategoriesAsync();
+            _categoriesLoaded = true;
+        }
+    }
+
+    private void InitializeEditContext()
+    {
+        localRecurringCashFlow = new RecurringCashFlowCreateDTO
+        {
+            AccountId = AccountId,
+            StartDate = DateTime.Today,
+            Frequency = RecurringFrequency.MONTHLY,
+            Interval = 1,
+            Type = CashFlowTypeExtended.EXPENSE
+        };
+        editContext = new EditContext(localRecurringCashFlow);
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationRequested += (s, e) => messageStore?.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore?.Clear(e.FieldIdentifier);
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        try
+        {
+            var expenseResponse = await _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.EXPENSE, false);
+            var incomeResponse = await _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.INCOME, false);
+
+            categories = new List<CategoryDTO>();
+
+            if (expenseResponse.Success && expenseResponse.Data != null)
+            {
+                categories.AddRange(expenseResponse.Data.Categories);
+            }
+
+            if (incomeResponse.Success && incomeResponse.Data != null)
+            {
+                categories.AddRange(incomeResponse.Data.Categories);
+            }
+        }
+        catch
+        {
+            categories = new List<CategoryDTO>();
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private IEnumerable<CategoryDTO> GetFilteredCategories()
+    {
+        var categoryType = localRecurringCashFlow.Type == CashFlowTypeExtended.EXPENSE
+            ? CategoryType.EXPENSE
+            : CategoryType.INCOME;
+        return categories.Where(c => c.Type == categoryType);
+    }
+
+    private void OnTypeChanged(ChangeEventArgs e)
+    {
+        localRecurringCashFlow.CategoryId = string.Empty;
+        StateHasChanged();
+    }
+
+    private string GetIntervalDescription()
+    {
+        return localRecurringCashFlow.Frequency switch
+        {
+            RecurringFrequency.DAILY => $"Tous les {localRecurringCashFlow.Interval} jour(s)",
+            RecurringFrequency.WEEKLY => $"Toutes les {localRecurringCashFlow.Interval} semaine(s)",
+            RecurringFrequency.MONTHLY => $"Tous les {localRecurringCashFlow.Interval} mois",
+            RecurringFrequency.YEARLY => $"Tous les {localRecurringCashFlow.Interval} an(s)",
+            _ => string.Empty
+        };
+    }
+
+    private void CancelSave()
+    {
+        OnCancelSave.InvokeAsync(null);
+    }
+
+    private async Task HandleCreate()
+    {
+        if (string.IsNullOrWhiteSpace(localRecurringCashFlow.CategoryId))
+        {
+            messageStore?.Add(new FieldIdentifier(localRecurringCashFlow, nameof(localRecurringCashFlow.CategoryId)), "La categorie est obligatoire.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(localRecurringCashFlow.Label))
+        {
+            messageStore?.Add(new FieldIdentifier(localRecurringCashFlow, nameof(localRecurringCashFlow.Label)), "Le libelle est obligatoire.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (localRecurringCashFlow.Amount <= 0)
+        {
+            messageStore?.Add(new FieldIdentifier(localRecurringCashFlow, nameof(localRecurringCashFlow.Amount)), "Le montant doit etre superieur a 0.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (localRecurringCashFlow.Interval < 1)
+        {
+            messageStore?.Add(new FieldIdentifier(localRecurringCashFlow, nameof(localRecurringCashFlow.Interval)), "L'intervalle doit etre au moins 1.");
+            editContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        int? dayOfWeek = null;
+        if (!string.IsNullOrEmpty(dayOfWeekString) && int.TryParse(dayOfWeekString, out var dow))
+        {
+            dayOfWeek = dow;
+        }
+
+        isLoad = true;
+        try
+        {
+            var request = new CreateRecurringCashFlowRequest(
+                localRecurringCashFlow.Type,
+                localRecurringCashFlow.CategoryId,
+                localRecurringCashFlow.Label,
+                localRecurringCashFlow.Description,
+                localRecurringCashFlow.Amount,
+                AccountId,
+                localRecurringCashFlow.PaymentMethod,
+                localRecurringCashFlow.ThirdPartyName,
+                localRecurringCashFlow.Frequency,
+                localRecurringCashFlow.Interval,
+                localRecurringCashFlow.DayOfMonth,
+                dayOfWeek,
+                localRecurringCashFlow.StartDate,
+                localRecurringCashFlow.EndDate,
+                localRecurringCashFlow.AutoValidate
+            );
+
+            var result = await _tresorerieService.CreateRecurringCashFlowAsync(BoutiqueId, request);
+
+            if (result.Success)
+            {
+                messageStore?.Clear();
+                editContext?.NotifyValidationStateChanged();
+                await OnAfterSave.InvokeAsync(null);
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content!, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                messageStore?.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
+                {
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        var fieldIdentifier = new FieldIdentifier(localRecurringCashFlow, propertyName);
+                        messageStore?.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    var fieldIdentifier = new FieldIdentifier(localRecurringCashFlow, string.Empty);
+                    messageStore?.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                editContext?.NotifyValidationStateChanged();
+            }
+            catch
+            {
+                messageStore?.Add(new FieldIdentifier(localRecurringCashFlow, string.Empty), "Une erreur est survenue.");
+                editContext?.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            isLoad = false;
+            StateHasChanged();
+        }
+    }
+}
