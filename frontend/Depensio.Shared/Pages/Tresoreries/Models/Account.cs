@@ -496,3 +496,10 @@ public class RecurringCashFlowCreateDTO
     public DateTime? EndDate { get; set; }
     public bool AutoValidate { get; set; }
 }
+
+// GetRecurringCashFlows DTOs
+public record GetRecurringCashFlowsResponse(
+    IReadOnlyList<RecurringCashFlowDTO> RecurringCashFlows,
+    int TotalCount,
+    decimal EstimatedMonthlyTotal
+);

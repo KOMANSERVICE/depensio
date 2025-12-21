@@ -116,4 +116,10 @@ public interface ITresorerieService
     Task<BaseResponse<CreateRecurringCashFlowResponse>> CreateRecurringCashFlowAsync(
         Guid boutiqueId,
         [Body] CreateRecurringCashFlowRequest request);
+
+    [Get("/tresorerie/{boutiqueId}/recurring-cash-flows")]
+    Task<BaseResponse<GetRecurringCashFlowsResponse>> GetRecurringCashFlowsAsync(
+        Guid boutiqueId,
+        bool? isActive = true,
+        CashFlowTypeExtended? type = null);
 }
