@@ -1,10 +1,6 @@
-﻿using depensio.Application.UseCases.Purchases.DTOs;
+using depensio.Application.UseCases.Purchases.DTOs;
+using depensio.Domain.Enums;
 using depensio.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace depensio.Application.UseCases.Purchases.Queries.GetPurchaseByBoutique;
 public class GetPurchaseByBoutiqueHandler(
@@ -30,6 +26,11 @@ public class GetPurchaseByBoutiqueHandler(
                 Title = p.Title,
                 Description = p.Description,
                 DateAchat = p.DateAchat,
+                // Map int status back to string for frontend
+                Status = p.Status == (int)PurchaseStatus.Draft ? "draft" : null,
+                PaymentMethodId = p.PaymentMethodId,
+                AccountId = p.AccountId,
+                ExpenseCategoryId = p.CategoryId,
                 Items = p.PurchaseItems.Select(pi => new PurchaseItemDTO(
                     pi.Id.Value,pi.ProductId.Value, pi.Price, pi.Quantity
                 )).ToList()

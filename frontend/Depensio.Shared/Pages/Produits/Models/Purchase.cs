@@ -1,4 +1,4 @@
-﻿namespace depensio.Shared.Pages.Produits.Models;
+namespace depensio.Shared.Pages.Produits.Models;
 
 public record GetPurchaseByBoutiqueResponse(IEnumerable<Purchase> Purchases);
 public record CreatePurchaseRequest(Purchase Purchase);
@@ -14,6 +14,26 @@ public record Purchase
     public decimal TotalAmount { get; set; }
     public decimal TotalQuantity { get; set; }
     public List<PurchaseItem> Items { get; set; } = new List<PurchaseItem>();
+
+    /// <summary>
+    /// Status of the purchase: "draft" for draft, null/empty for approved (default)
+    /// </summary>
+    public string? Status { get; set; }
+
+    /// <summary>
+    /// Optional payment method ID
+    /// </summary>
+    public Guid? PaymentMethodId { get; set; }
+
+    /// <summary>
+    /// Optional account ID
+    /// </summary>
+    public Guid? AccountId { get; set; }
+
+    /// <summary>
+    /// Optional expense category ID
+    /// </summary>
+    public Guid? ExpenseCategoryId { get; set; }
 }
 
 public record PurchaseItem
