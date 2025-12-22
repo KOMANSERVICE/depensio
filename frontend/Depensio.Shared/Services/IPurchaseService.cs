@@ -14,7 +14,7 @@ public interface IPurchaseService
     Task<BaseResponse<UpdatePurchaseResponse>> UpdatePurchaseAsync(Guid id, UpdatePurchaseRequest request);
 
     [Get("/purchase/{boutiqueId}")]
-    Task<BaseResponse<GetPurchaseByBoutiqueResponse>> GetPurchaseByBoutiqueAsync(Guid boutiqueId);
+    Task<BaseResponse<GetPurchaseByBoutiqueResponse>> GetPurchaseByBoutiqueAsync(Guid boutiqueId, [Query] string? status = null);
 
     [Post("/purchase/{id}/submit")]
     Task<BaseResponse<SubmitPurchaseResponse>> SubmitPurchaseAsync(Guid id, SubmitPurchaseRequest request);

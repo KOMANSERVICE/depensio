@@ -12,12 +12,23 @@ public class GetPurchaseByBoutiqueHandler(
     {
         var userId = _userContextService.GetUserId();
 
-        var purchases = await dbContext.Boutiques
+        // Parse status filter
+        var statusFilters = ParseStatusFilter(request.Status);
+
+        var query = dbContext.Boutiques
             .Where(b => b.Id == BoutiqueId.Of(request.BoutiqueId)
                         && b.UsersBoutiques.Any(ub => ub.UserId == userId))
             .Include(b => b.Purchases)
             .ThenInclude(p => p.PurchaseItems)
-            .SelectMany(b => b.Purchases)
+            .SelectMany(b => b.Purchases);
+
+        // Apply status filter if not "all" or empty
+        if (statusFilters.Count > 0)
+        {
+            query = query.Where(p => statusFilters.Contains(p.Status));
+        }
+
+        var purchases = await query
             .Select(p => new PurchaseDTO
             {
                 Id = p.Id.Value,
@@ -29,7 +40,9 @@ public class GetPurchaseByBoutiqueHandler(
                 // Map int status back to string for frontend
                 Status = p.Status == (int)PurchaseStatus.Draft ? "draft" :
                          p.Status == (int)PurchaseStatus.PendingApproval ? "pending_approval" :
-                         p.Status == (int)PurchaseStatus.Rejected ? "rejected" : null,
+                         p.Status == (int)PurchaseStatus.Approved ? "approved" :
+                         p.Status == (int)PurchaseStatus.Rejected ? "rejected" :
+                         p.Status == (int)PurchaseStatus.Cancelled ? "cancelled" : null,
                 PaymentMethod = p.PaymentMethod,
                 AccountId = p.AccountId,
                 CategoryId = p.CategoryId,
@@ -38,9 +51,51 @@ public class GetPurchaseByBoutiqueHandler(
                 )).ToList()
             })
             .OrderByDescending(p => p.DateAchat)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
 
         return new GetPurchaseByBoutiqueResult(purchases);
+    }
+
+    /// <summary>
+    /// Parse the status filter string to a list of integer status values
+    /// </summary>
+    /// <param name="status">Comma-separated status string (draft,pending,approved,rejected,cancelled,all)</param>
+    /// <returns>List of integer status values, empty list means no filter (all)</returns>
+    private static List<int> ParseStatusFilter(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status) || status.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<int>(); // No filter, return all
+        }
+
+        var statusValues = new List<int>();
+        var statusStrings = status.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var s in statusStrings)
+        {
+            var statusInt = s.ToLowerInvariant() switch
+            {
+                "draft" => (int)PurchaseStatus.Draft,
+                "pending" => (int)PurchaseStatus.PendingApproval,
+                "approved" => (int)PurchaseStatus.Approved,
+                "rejected" => (int)PurchaseStatus.Rejected,
+                "cancelled" => (int)PurchaseStatus.Cancelled,
+                "all" => -1, // Special case: if "all" is in the list, return no filter
+                _ => (int?)null
+            };
+
+            if (statusInt == -1)
+            {
+                return new List<int>(); // "all" found, return no filter
+            }
+
+            if (statusInt.HasValue)
+            {
+                statusValues.Add(statusInt.Value);
+            }
+        }
+
+        return statusValues;
     }
 }
