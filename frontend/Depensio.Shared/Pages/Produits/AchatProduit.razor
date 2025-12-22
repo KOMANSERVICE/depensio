@@ -115,6 +115,12 @@
                                         <i class="fas fa-edit mr-1"></i> Brouillon
                                     </span>
                                 }
+                                else if (purchase.Status == "pending_approval")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-clock mr-1"></i> En attente
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -137,6 +143,15 @@
                                             class="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-2 rounded-full transition-colors"
                                             title="Modifier">
                                             <i class="fas fa-edit"></i>
+                                        </button>
+                                    }
+                                    @if (CanSubmitPurchase(purchase))
+                                    {
+                                        <button type="button"
+                                            @onclick="() => ShowSubmitConfirmation(purchase)"
+                                            class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                            title="Soumettre pour validation">
+                                            <i class="fas fa-paper-plane"></i>
                                         </button>
                                     }
                                 </div>
@@ -208,18 +223,35 @@
                                 }
                             </div>
                         </div>
-                        <div class="mt-2">
-                            @if (purchase.Status == "draft")
+                        <div class="mt-2 flex items-center justify-between">
+                            <div>
+                                @if (purchase.Status == "draft")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-edit mr-1"></i> Brouillon
+                                    </span>
+                                }
+                                else if (purchase.Status == "pending_approval")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-clock mr-1"></i> En attente
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check mr-1"></i> Validé
+                                    </span>
+                                }
+                            </div>
+                            @if (CanSubmitPurchase(purchase))
                             {
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    <i class="fas fa-edit mr-1"></i> Brouillon
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <i class="fas fa-check mr-1"></i> Validé
-                                </span>
+                                <button type="button"
+                                    @onclick="() => ShowSubmitConfirmation(purchase)"
+                                    class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                    title="Soumettre pour validation">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
                             }
                         </div>
                     </div>
@@ -313,6 +345,92 @@
         }" />
 </Modal>
 
+<!-- Submit Confirmation Modal -->
+<Modal
+    ShowModal="@showSubmitModal"
+    OnCloseModal="CloseSubmitModal"
+    ModalTitle="Soumettre l'achat pour validation"
+>
+    <div class="p-6">
+        @if (!string.IsNullOrEmpty(submitErrorMessage))
+        {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@submitErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <p class="text-gray-700 dark:text-gray-300">
+                Êtes-vous sûr de vouloir soumettre cet achat pour validation ?
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Une fois soumis, l'achat ne pourra plus être modifié jusqu'à ce qu'il soit approuvé ou rejeté.
+            </p>
+        </div>
+
+        @if (purchaseToSubmit != null)
+        {
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToSubmit.Title</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToSubmit.SupplierName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                        <span class="font-semibold text-primary-700 ml-1">@purchaseToSubmit.TotalAmount.ToString("N0") FCFA</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Articles:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToSubmit.Items.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-yellow-500 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-yellow-700 dark:text-yellow-300">
+                        <p class="font-medium">Vérifications avant soumission :</p>
+                        <ul class="mt-1 list-disc list-inside">
+                            <li>Mode de paiement : @(string.IsNullOrEmpty(purchaseToSubmit.PaymentMethod) ? "Non renseigné" : purchaseToSubmit.PaymentMethod)</li>
+                            <li>Compte : @(purchaseToSubmit.AccountId.HasValue ? "Renseigné" : "Non renseigné")</li>
+                            <li>Catégorie : @(string.IsNullOrEmpty(purchaseToSubmit.CategoryId) ? "Non renseignée" : "Renseignée")</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="CloseSubmitModal" disabled="@isSubmitting">
+            Annuler
+        </button>
+        <button class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" @onclick="HandleSubmitPurchase" disabled="@isSubmitting">
+            @if (isSubmitting)
+            {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <span>Soumission...</span>
+            }
+            else
+            {
+                <i class="fas fa-paper-plane mr-2"></i>
+                <span>Soumettre</span>
+            }
+        </button>
+    </div>
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -320,10 +438,14 @@
     private bool showModal = false;
     private bool showViewModal = false;
     private bool showEditModal = false;
+    private bool showSubmitModal = false;
     private string modalTitle = "";
     private bool isLoad = false;
+    private bool isSubmitting = false;
+    private string submitErrorMessage = "";
     private Purchase selectedPurchase = new();
     private Purchase purchaseToEdit = new();
+    private Purchase? purchaseToSubmit;
 
     private List<Purchase> purchases = new();
     private List<Purchase> filteredPurchases = new();
@@ -424,6 +546,12 @@
         return purchase.Status == "draft" || purchase.Status == "rejected";
     }
 
+    private bool CanSubmitPurchase(Purchase purchase)
+    {
+        // Only Draft purchases can be submitted for approval
+        return purchase.Status == "draft";
+    }
+
     private void ShowEditModal(Purchase purchase)
     {
         purchaseToEdit = purchase;
@@ -434,6 +562,69 @@
     {
         showEditModal = false;
         purchaseToEdit = new();
+    }
+
+    private void ShowSubmitConfirmation(Purchase purchase)
+    {
+        purchaseToSubmit = purchase;
+        submitErrorMessage = "";
+        showSubmitModal = true;
+    }
+
+    private void CloseSubmitModal()
+    {
+        showSubmitModal = false;
+        purchaseToSubmit = null;
+        submitErrorMessage = "";
+    }
+
+    private async Task HandleSubmitPurchase()
+    {
+        if (purchaseToSubmit == null) return;
+
+        isSubmitting = true;
+        submitErrorMessage = "";
+
+        try
+        {
+            var request = new SubmitPurchaseRequest(boutiqueId);
+            var result = await _purchaseService.SubmitPurchaseAsync(purchaseToSubmit.Id, request);
+
+            if (result.Success)
+            {
+                // Refresh the list
+                await GetPurchaseAsync();
+                ApplyFilter();
+                CloseSubmitModal();
+            }
+            else
+            {
+                submitErrorMessage = result.Message ?? "Une erreur est survenue lors de la soumission.";
+            }
+        }
+        catch (Refit.ApiException ex)
+        {
+            try
+            {
+                var errorResult = System.Text.Json.JsonSerializer.Deserialize<ErrorMessage>(ex.Content ?? "{}", new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                submitErrorMessage = errorResult?.Detail ?? ex.Message;
+            }
+            catch
+            {
+                submitErrorMessage = "Une erreur est survenue lors de la soumission.";
+            }
+        }
+        catch (Exception ex)
+        {
+            submitErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 
     // Pagination methods
