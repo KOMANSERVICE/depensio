@@ -9,12 +9,12 @@ public interface IDepensioDbContext
     DbSet<SaleItem> SaleItems { get; }
     DbSet<BoutiqueSetting> BoutiqueSettings { get; }
     DbSet<ProductItem> ProductItems { get; }
-    DbSet<Plan> Plans { get; }
-    DbSet<Feature> Features { get; }
-    DbSet<PlanFeature> PlanFeatures { get; }
-    DbSet<Subscription> Subscriptions { get; }
+    //DbSet<Plan> Plans { get; }
+    //DbSet<Feature> Features { get; }
+    //DbSet<PlanFeature> PlanFeatures { get; }
+    //DbSet<Subscription> Subscriptions { get; }
     DbSet<Menu> Menus { get; }
-    DbSet<PlanMenu> PlanMenus { get; }
+    //DbSet<PlanMenu> PlanMenus { get; }
     DbSet<Profile> Profiles { get; }
     DbSet<ProfileMenu> ProfileMenus { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
