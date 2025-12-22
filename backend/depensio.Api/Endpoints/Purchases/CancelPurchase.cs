@@ -3,7 +3,7 @@ using depensio.Application.UseCases.Purchases.Commands.CancelPurchase;
 
 namespace Depensio.Api.Endpoints.Purchases;
 
-public record CancelPurchaseRequest(Guid BoutiqueId, string Reason);
+public record CancelPurchaseRequest(Guid BoutiqueId, string? Reason);
 public record CancelPurchaseResponse(Guid Id, string Status);
 
 public class CancelPurchase : ICarterModule
@@ -43,8 +43,11 @@ public class CancelPurchase : ICarterModule
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status502BadGateway)
-        .WithSummary("Annuler un achat approuvé")
-        .WithDescription("Permet d'annuler un achat en statut Approved. L'achat passe en statut Cancelled (5), le mouvement de trésorerie associé est supprimé si présent, et l'historique est créé. Cet état est final, aucune transition n'est possible depuis Cancelled.")
+        .WithSummary("Annuler un achat")
+        .WithDescription("Permet d'annuler un achat selon son statut actuel:\n" +
+            "- US-PUR-008 (Approved → Cancelled): Motif obligatoire, suppression du mouvement de trésorerie associé si présent.\n" +
+            "- US-PUR-009 (Draft/PendingApproval/Rejected → Cancelled): Motif optionnel, pas d'appel à la trésorerie.\n" +
+            "L'achat passe en statut Cancelled (5) et l'historique est créé. Cet état est final, aucune transition n'est possible depuis Cancelled.")
         .RequireAuthorization();
     }
 }
