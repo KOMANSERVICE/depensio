@@ -410,6 +410,7 @@
            onShowModal();
     }"
     ModalTitle="@modalTitle"
+    Size="ModalSize.Large"
 >
     <CreatePurchaseComponent
             BoutiqueId="@boutiqueId"
@@ -426,6 +427,7 @@
     ShowModal="@showViewModal"
     OnCloseModal="CloseViewModal"
     ModalTitle="Détails de l'achat"
+    Size="ModalSize.Large"
 >
     <ViewPurchaseComponent
         Purchase="@selectedPurchase"
@@ -438,6 +440,7 @@
     ShowModal="@showEditModal"
     OnCloseModal="CloseEditModal"
     ModalTitle="Modifier l'achat"
+    Size="ModalSize.Large"
 >
     <EditPurchaseComponent
         BoutiqueId="@boutiqueId"
