@@ -123,12 +123,23 @@
                                 }
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <button type="button"
-                                    @onclick="() => ShowPurchaseDetails(purchase)"
-                                    class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
-                                    title="Voir les détails">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                                <div class="flex gap-1">
+                                    <button type="button"
+                                        @onclick="() => ShowPurchaseDetails(purchase)"
+                                        class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
+                                        title="Voir les détails">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    @if (CanEditPurchase(purchase))
+                                    {
+                                        <button type="button"
+                                            @onclick="() => ShowEditModal(purchase)"
+                                            class="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-2 rounded-full transition-colors"
+                                            title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -179,12 +190,23 @@
                                 <span class="font-medium">Prix total: @purchase.TotalAmount.ToString("N0") FCFA</span>
                                 <span class="text-xs ml-2">Quantité totale: @purchase.TotalQuantity</span>
                             </div>
-                            <button type="button"
-                                @onclick="() => ShowPurchaseDetails(purchase)"
-                                class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
-                                title="Voir les détails">
-                                <i class="fas fa-eye"></i>
-                            </button>
+                            <div class="flex gap-1">
+                                <button type="button"
+                                    @onclick="() => ShowPurchaseDetails(purchase)"
+                                    class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
+                                    title="Voir les détails">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                @if (CanEditPurchase(purchase))
+                                {
+                                    <button type="button"
+                                        @onclick="() => ShowEditModal(purchase)"
+                                        class="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-2 rounded-full transition-colors"
+                                        title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                }
+                            </div>
                         </div>
                         <div class="mt-2">
                             @if (purchase.Status == "draft")
@@ -274,15 +296,34 @@
         OnClose="CloseViewModal" />
 </Modal>
 
+<!-- Edit Purchase Modal -->
+<Modal
+    ShowModal="@showEditModal"
+    OnCloseModal="CloseEditModal"
+    ModalTitle="Modifier l'achat"
+>
+    <EditPurchaseComponent
+        BoutiqueId="@boutiqueId"
+        products="@products"
+        PurchaseToEdit="@purchaseToEdit"
+        OnAfterSave="async ()=>{
+            await GetPurchaseAsync();
+            ApplyFilter();
+            showEditModal = false;
+        }" />
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
 
     private bool showModal = false;
     private bool showViewModal = false;
+    private bool showEditModal = false;
     private string modalTitle = "";
     private bool isLoad = false;
     private Purchase selectedPurchase = new();
+    private Purchase purchaseToEdit = new();
 
     private List<Purchase> purchases = new();
     private List<Purchase> filteredPurchases = new();
@@ -375,6 +416,24 @@
     {
         showViewModal = false;
         selectedPurchase = new();
+    }
+
+    private bool CanEditPurchase(Purchase purchase)
+    {
+        // AC-1: Only Draft or Rejected purchases can be modified
+        return purchase.Status == "draft" || purchase.Status == "rejected";
+    }
+
+    private void ShowEditModal(Purchase purchase)
+    {
+        purchaseToEdit = purchase;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        purchaseToEdit = new();
     }
 
     // Pagination methods

@@ -1,0 +1,526 @@
+@using depensio.Shared.Pages.Produits.Models
+@inject IPurchaseService _purchaseService;
+
+<LoadingComponent IsLoad="@isLoad" />
+
+@if (showPurchaseSummary)
+{
+    <!-- Purchase Summary - Articles achetés -->
+    <div class="p-6">
+        <div class="flex flex-col items-center justify-center mb-6">
+            @if (completedPurchase.Status == "draft")
+            {
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Brouillon modifié!</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Vous pourrez continuer à modifier cet achat avant de le valider</p>
+            }
+            else
+            {
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Achat modifié avec succès!</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Voici le récapitulatif des articles achetés</p>
+            }
+        </div>
+
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+            <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                    <span class="font-medium text-gray-900 dark:text-white ml-1">@completedPurchase.Title</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                    <span class="font-medium text-gray-900 dark:text-white ml-1">@completedPurchase.SupplierName</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Date d'achat:</span>
+                    <span class="font-medium text-gray-900 dark:text-white ml-1">@completedPurchase.DateAchat.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                    <span class="font-semibold text-primary-700 ml-1">@completedPurchase.TotalAmount FCFA</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                <thead class="bg-gray-100 dark:bg-gray-700">
+                    <tr>
+                        <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                            Produit
+                        </th>
+                        <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                            Prix unitaire
+                        </th>
+                        <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                            Quantité
+                        </th>
+                        <th scope="col" class="p-3 text-xs font-medium text-right text-gray-500 uppercase dark:text-gray-400">
+                            Sous-total
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    @foreach (var item in completedPurchase.Items)
+                    {
+                        var productName = products.FirstOrDefault(p => p.Id == item.ProductId)?.Name ?? "Produit inconnu";
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="p-3 text-sm font-medium text-gray-900 dark:text-white">
+                                @productName
+                            </td>
+                            <td class="p-3 text-sm text-gray-500 dark:text-gray-400">
+                                @item.Price FCFA
+                            </td>
+                            <td class="p-3 text-sm text-gray-500 dark:text-gray-400">
+                                @item.Quantity
+                            </td>
+                            <td class="p-3 text-sm font-medium text-gray-900 dark:text-white text-right">
+                                @(item.Price * item.Quantity) FCFA
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <td colspan="3" class="p-3 text-sm font-semibold text-gray-900 dark:text-white text-right">
+                            Total général:
+                        </td>
+                        <td class="p-3 text-sm font-bold text-primary-700 text-right">
+                            @completedPurchase.TotalAmount FCFA
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                type="button" @onclick="CloseSummaryAndReset">
+            Fermer
+        </button>
+    </div>
+}
+else
+{
+<EditForm EditContext="@editContext" OnValidSubmit="HandleUpdatePurchase">
+    <DataAnnotationsValidator />
+    <ErrorsSummary editContext="@editContext" />
+    <div class="p-6">
+        <div class="grid grid-cols-6 gap-6">
+            <div class="col-span-6 sm:col-span-3">
+                <label for="titre"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Titre</label>
+                <InputText type="text" @bind-Value="purchase.Title" name="titre" id="titre"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="Achat de fin de mois" />
+
+                <div  class="error-message">
+                    <ValidationMessage For="@(() => purchase.Title)" />
+                </div>
+            </div>
+
+            <div class="col-span-6 sm:col-span-3">
+                <label for="SupplierName"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fournisseur</label>
+                <InputText type="text" @bind-Value="purchase.SupplierName" name="SupplierName" id="SupplierName"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="Fournisseur" />
+
+                <div  class="error-message">
+                    <ValidationMessage For="@(() => purchase.SupplierName)" />
+                </div>
+            </div>
+            <div class="col-span-6">
+                <label for="dateachat"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date d'achat</label>
+                <InputDate @bind-Value="purchase.DateAchat"
+                           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="Date de l'achat" />
+
+                <div  class="error-message">
+                    <ValidationMessage For="@(() => purchase.DateAchat)" />
+                </div>
+            </div>
+            <div class="col-span-6">
+                <label for="description"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                <InputTextArea id="description" @bind-Value="purchase.Description" rows="4"
+                               class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                               placeholder="Description de l'achat"></InputTextArea>
+
+                <div class="error-message">
+                    <ValidationMessage For="@(() => purchase.Description)" />
+                </div>
+            </div>
+            <div class="col-span-6 flex items-start justify-start">
+                <p class="block text-sm font-medium text-gray-900 dark:text-white">Total: @purchase.TotalAmount FCFA</p>
+            </div>
+            <div class="col-span-6 flex gap-2">
+                <div>
+                    <label for="prodctId"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Produit</label>
+                    <select @bind="purchaseItem.ProductId" id="prodctId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                        <option selected="">Choix de produit</option>
+                        @foreach (var prod in products)
+                        {
+                            <option value="@prod.Id">@prod.Name</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label for="Prix"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Prix</label>
+                    <input @bind="purchaseItem.Price" type="number" name="position" id="Prix"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="e.g. Prix d'achat'">
+                </div>
+
+                <div>
+                    <label for="Quantite"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantité</label>
+                    <input @bind="purchaseItem.Quantity" type="number" name="position" id="Quantite"
+                           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                           placeholder="e.g. Quantité">
+                </div>
+                <div class="flex items-end justify-end">
+                    <label for="Quantite"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                            type="button" @onclick="AddItem">
+                        <svg class="w-5 h-5 -ml-1" fill="currentColor" viewBox="0 0 20 20"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                  clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="col-span-6">
+                <div class="overflow-x-auto">
+                    <div class="inline-block min-w-full align-middle">
+                        <div class="overflow-hidden shadow">
+                            <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th scope="col" class="p-4">
+                                            <div class="flex items-center">
+                                                <input id="checkbox-all" aria-describedby="checkbox-1" type="checkbox"
+                                                       class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
+                                                <label for="checkbox-all" class="sr-only">checkbox</label>
+                                            </div>
+                                        </th>
+                                        <th scope="col"
+                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Produit
+                                        </th>
+                                        <th scope="col"
+                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Prix
+                                        </th>
+                                        <th scope="col"
+                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Quantité
+                                        </th>
+                                        <th scope="col"
+                                            class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                                    @foreach (var item in purchase.Items)
+                                    {
+                                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <td class="w-4 p-4">
+                                                <div class="flex items-center">
+                                                    <input id="checkbox-@item.ProductId" aria-describedby="checkbox-1" type="checkbox"
+                                                           class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
+                                                    <label for="checkbox-@item.ProductId" class="sr-only">checkbox</label>
+                                                </div>
+                                            </td>
+                                            <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                                                @(products.FirstOrDefault(p => p.Id == @item.ProductId)?.Name ?? "")
+                                            </td>
+                                            <td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                                                @item.Price FCFA
+                                            </td>
+                                            <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                @item.Quantity
+                                            </td>
+                                            <td class="p-4">
+                                                <button type="button" @onclick="() => RemoveItem(item)"
+                                                        class="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full transition-colors"
+                                                        title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+
+                                    }
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- Modal footer -->
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="HandleSaveAsDraft">
+            <i class="fas fa-save mr-2"></i>
+            Enregistrer brouillon
+        </button>
+        <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                type="submit">
+            <i class="fas fa-check mr-2"></i>
+            Valider l'achat
+        </button>
+    </div>
+</EditForm>
+}
+
+@code {
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnAfterSave { get; set; }
+
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    [Parameter]
+    public IEnumerable<Product> products { get; set; } = new List<Product>();
+
+    [Parameter]
+    public Purchase PurchaseToEdit { get; set; } = new();
+
+    private bool isLoad = false;
+    private bool showPurchaseSummary = false;
+    private Purchase purchase = new();
+    private Purchase completedPurchase = new();
+    private PurchaseItem purchaseItem = new();
+    private ErrorMessage errorMessage = new();
+
+    private EditContext editContext = null!;
+    private ValidationMessageStore messageStore = null!;
+
+    protected override void OnInitialized()
+    {
+        InitializePurchase();
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Re-initialize when PurchaseToEdit changes
+        if (PurchaseToEdit != null && PurchaseToEdit.Id != Guid.Empty && PurchaseToEdit.Id != purchase.Id)
+        {
+            InitializePurchase();
+        }
+    }
+
+    private void InitializePurchase()
+    {
+        // Clone the purchase to edit to avoid modifying the original
+        purchase = new Purchase
+        {
+            Id = PurchaseToEdit.Id,
+            BoutiqueId = PurchaseToEdit.BoutiqueId,
+            Title = PurchaseToEdit.Title,
+            SupplierName = PurchaseToEdit.SupplierName,
+            DateAchat = PurchaseToEdit.DateAchat,
+            Description = PurchaseToEdit.Description,
+            TotalAmount = PurchaseToEdit.TotalAmount,
+            TotalQuantity = PurchaseToEdit.TotalQuantity,
+            Status = PurchaseToEdit.Status,
+            PaymentMethod = PurchaseToEdit.PaymentMethod,
+            AccountId = PurchaseToEdit.AccountId,
+            CategoryId = PurchaseToEdit.CategoryId,
+            Items = PurchaseToEdit.Items?.Select(i => new PurchaseItem
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                Price = i.Price,
+                Quantity = i.Quantity
+            }).ToList() ?? new List<PurchaseItem>()
+        };
+
+        editContext = new EditContext(purchase);
+        messageStore = new ValidationMessageStore(editContext);
+
+        editContext.OnValidationRequested += (s, e) => messageStore.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
+    }
+
+    private async Task HandleUpdatePurchase()
+    {
+        // Validation: vérifier qu'au moins un produit est ajouté
+        if (!purchase.Items.Any())
+        {
+            messageStore.Clear();
+            messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Vous devez ajouter au moins un produit avant d'enregistrer l'achat.");
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        isLoad = true;
+        try
+        {
+            purchase.BoutiqueId = BoutiqueId;
+            // Recalculate total amount
+            purchase.TotalAmount = purchase.Items.Sum(x => x.Price * x.Quantity);
+
+            var result = await _purchaseService.UpdatePurchaseAsync(purchase.Id, new UpdatePurchaseRequest(purchase));
+            if (result.Success)
+            {
+                messageStore.Clear();
+                editContext.NotifyValidationStateChanged();
+
+                // Store the completed purchase for display in summary
+                completedPurchase = new Purchase
+                {
+                    Id = result.Data.Id,
+                    BoutiqueId = purchase.BoutiqueId,
+                    Title = purchase.Title,
+                    SupplierName = purchase.SupplierName,
+                    DateAchat = purchase.DateAchat,
+                    Description = purchase.Description,
+                    TotalAmount = purchase.TotalAmount,
+                    TotalQuantity = purchase.Items.Sum(x => x.Quantity),
+                    Items = purchase.Items.ToList(),
+                    Status = purchase.Status
+                };
+
+                // Show the purchase summary instead of immediately closing
+                showPurchaseSummary = true;
+            }
+
+        }
+        catch (ApiException ex)
+        {
+            HandleApiException(ex);
+        }
+        finally
+        {
+            isLoad = false;
+        }
+    }
+
+    private void HandleApiException(ApiException ex)
+    {
+        try
+        {
+            var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            // Efface les anciennes erreurs
+            messageStore.Clear();
+
+            if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
+            {
+                foreach (var validationError in errorResult.ValidationErrors)
+                {
+                    // Nettoyer le nom de propriété (ex: Product.Name -> Name)
+                    var propertyName = validationError.PropertyName;
+                    if (propertyName.Contains('.'))
+                        propertyName = propertyName.Split('.').Last();
+
+                    // Associer au champ si possible
+                    var fieldIdentifier = new FieldIdentifier(purchase!, propertyName);
+                    messageStore.Add(fieldIdentifier, validationError.ErrorMessage);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+            {
+                // Message global sans champ spécifique
+                var fieldIdentifier = new FieldIdentifier(purchase!, string.Empty);
+                messageStore.Add(fieldIdentifier, errorResult.Detail);
+            }
+
+            // Rafraîchir l'affichage
+            editContext.NotifyValidationStateChanged();
+
+        }
+        catch
+        {
+            messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Une erreur est survenue.");
+            editContext.NotifyValidationStateChanged();
+        }
+    }
+
+    private void AddItem()
+    {
+        if (purchaseItem.ProductId == Guid.Empty || purchaseItem.Quantity <= 0 || purchaseItem.Price <= 0)
+            return;
+
+        bool alreadyExists = purchase.Items.Any(i => i.ProductId == purchaseItem.ProductId);
+
+        if (alreadyExists)
+        {
+            // Option : afficher un message d'erreur, toast, etc.
+            Console.WriteLine("Produit déjà ajouté.");
+            return;
+        }
+
+        purchase.Items.Add(new()
+        {
+            ProductId = purchaseItem.ProductId,
+            Price = purchaseItem.Price,
+            Quantity = purchaseItem.Quantity
+        });
+
+        purchase.TotalAmount = purchase.Items.Sum(x => x.Price * x.Quantity);
+
+        purchaseItem = new();
+    }
+
+    private void RemoveItem(PurchaseItem item)
+    {
+        purchase.Items.Remove(item);
+        purchase.TotalAmount = purchase.Items.Sum(x => x.Price * x.Quantity);
+    }
+
+    private async Task CloseSummaryAndReset()
+    {
+        // Reset all state
+        showPurchaseSummary = false;
+        completedPurchase = new();
+        purchaseItem = new();
+
+        // Notify parent to refresh the list
+        await OnAfterSave.InvokeAsync(null);
+    }
+
+    private async Task HandleSaveAsDraft()
+    {
+        // Validation: vérifier qu'au moins un produit est ajouté
+        if (!purchase.Items.Any())
+        {
+            messageStore.Clear();
+            messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Vous devez ajouter au moins un produit avant d'enregistrer l'achat.");
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        // Set status to draft
+        purchase.Status = "draft";
+
+        // Reuse the existing save logic
+        await HandleUpdatePurchase();
+    }
+
+}
