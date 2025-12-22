@@ -107,11 +107,6 @@ public interface ITresorerieService
         CashFlowTypeExtended? type = null,
         Guid? accountId = null);
 
-    [Post("/tresorerie/{boutiqueId}/cash-flows/from-purchase")]
-    Task<BaseResponse<CreateCashFlowFromPurchaseResponse>> CreateCashFlowFromPurchaseAsync(
-        Guid boutiqueId,
-        [Body] CreateCashFlowFromPurchaseRequest request);
-
     [Post("/tresorerie/{boutiqueId}/recurring-cash-flows")]
     Task<BaseResponse<CreateRecurringCashFlowResponse>> CreateRecurringCashFlowAsync(
         Guid boutiqueId,
