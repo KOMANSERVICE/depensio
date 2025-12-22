@@ -24,4 +24,7 @@ public interface IPurchaseService
 
     [Post("/purchase/{id}/reject")]
     Task<BaseResponse<RejectPurchaseResponse>> RejectPurchaseAsync(Guid id, RejectPurchaseRequest request);
+
+    [Post("/purchase/{id}/reopen")]
+    Task<BaseResponse<ReopenPurchaseResponse>> ReopenPurchaseAsync(Guid id, ReopenPurchaseRequest request);
 }

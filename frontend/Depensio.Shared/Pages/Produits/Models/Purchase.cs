@@ -11,6 +11,8 @@ public record ApprovePurchaseRequest(Guid BoutiqueId);
 public record ApprovePurchaseResponse(Guid Id, string Status, Guid? CashFlowId);
 public record RejectPurchaseRequest(Guid BoutiqueId, string Reason);
 public record RejectPurchaseResponse(Guid Id, string Status);
+public record ReopenPurchaseRequest(Guid BoutiqueId);
+public record ReopenPurchaseResponse(Guid Id, string Status);
 public record Purchase
 {
     public Guid Id { get; set; } = Guid.Empty;

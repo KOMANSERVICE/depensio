@@ -175,6 +175,15 @@
                                             <i class="fas fa-times-circle"></i>
                                         </button>
                                     }
+                                    @if (CanReopenPurchase(purchase))
+                                    {
+                                        <button type="button"
+                                            @onclick="() => ShowReopenConfirmation(purchase)"
+                                            class="text-orange-600 hover:text-orange-800 hover:bg-orange-100 p-2 rounded-full transition-colors"
+                                            title="Rouvrir pour correction">
+                                            <i class="fas fa-redo"></i>
+                                        </button>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -294,6 +303,15 @@
                                         class="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full transition-colors"
                                         title="Rejeter l'achat">
                                         <i class="fas fa-times-circle"></i>
+                                    </button>
+                                }
+                                @if (CanReopenPurchase(purchase))
+                                {
+                                    <button type="button"
+                                        @onclick="() => ShowReopenConfirmation(purchase)"
+                                        class="text-orange-600 hover:text-orange-800 hover:bg-orange-100 p-2 rounded-full transition-colors"
+                                        title="Rouvrir pour correction">
+                                        <i class="fas fa-redo"></i>
                                     </button>
                                 }
                             </div>
@@ -658,6 +676,88 @@
     </div>
 </Modal>
 
+<!-- Reopen Confirmation Modal -->
+<Modal
+    ShowModal="@showReopenModal"
+    OnCloseModal="CloseReopenModal"
+    ModalTitle="Rouvrir l'achat pour correction"
+>
+    <div class="p-6">
+        @if (!string.IsNullOrEmpty(reopenErrorMessage))
+        {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@reopenErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <p class="text-gray-700 dark:text-gray-300">
+                Souhaitez-vous rouvrir cet achat pour correction ?
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                L'achat repassera en statut brouillon et pourra etre modifie puis resoumis pour validation.
+            </p>
+        </div>
+
+        @if (purchaseToReopen != null)
+        {
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToReopen.Title</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToReopen.SupplierName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                        <span class="font-semibold text-primary-700 ml-1">@purchaseToReopen.TotalAmount.ToString("N0") FCFA</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Articles:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToReopen.Items.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-orange-500 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-orange-700 dark:text-orange-300">
+                        <p class="font-medium">Information :</p>
+                        <p class="mt-1">Cet achat a ete rejete. En le rouvrant, vous pourrez corriger les elements demandes et le resoumettre pour une nouvelle validation.</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="CloseReopenModal" disabled="@isReopening">
+            Annuler
+        </button>
+        <button class="text-white bg-orange-600 hover:bg-orange-700 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-orange-500 dark:hover:bg-orange-600 dark:focus:ring-orange-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" @onclick="HandleReopenPurchase" disabled="@isReopening">
+            @if (isReopening)
+            {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <span>Reouverture...</span>
+            }
+            else
+            {
+                <i class="fas fa-redo mr-2"></i>
+                <span>Rouvrir</span>
+            }
+        </button>
+    </div>
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -668,20 +768,24 @@
     private bool showSubmitModal = false;
     private bool showApproveModal = false;
     private bool showRejectModal = false;
+    private bool showReopenModal = false;
     private string modalTitle = "";
     private bool isLoad = false;
     private bool isSubmitting = false;
     private bool isApproving = false;
     private bool isRejecting = false;
+    private bool isReopening = false;
     private string submitErrorMessage = "";
     private string approveErrorMessage = "";
     private string rejectErrorMessage = "";
+    private string reopenErrorMessage = "";
     private string rejectionReason = "";
     private Purchase selectedPurchase = new();
     private Purchase purchaseToEdit = new();
     private Purchase? purchaseToSubmit;
     private Purchase? purchaseToApprove;
     private Purchase? purchaseToReject;
+    private Purchase? purchaseToReopen;
 
     private List<Purchase> purchases = new();
     private List<Purchase> filteredPurchases = new();
@@ -792,6 +896,12 @@
     {
         // Only PendingApproval purchases can be approved
         return purchase.Status == "pending_approval";
+    }
+
+    private bool CanReopenPurchase(Purchase purchase)
+    {
+        // Only Rejected purchases can be reopened
+        return purchase.Status == "rejected";
     }
 
     private void ShowEditModal(Purchase purchase)
@@ -995,6 +1105,69 @@
         finally
         {
             isRejecting = false;
+        }
+    }
+
+    private void ShowReopenConfirmation(Purchase purchase)
+    {
+        purchaseToReopen = purchase;
+        reopenErrorMessage = "";
+        showReopenModal = true;
+    }
+
+    private void CloseReopenModal()
+    {
+        showReopenModal = false;
+        purchaseToReopen = null;
+        reopenErrorMessage = "";
+    }
+
+    private async Task HandleReopenPurchase()
+    {
+        if (purchaseToReopen == null) return;
+
+        isReopening = true;
+        reopenErrorMessage = "";
+
+        try
+        {
+            var request = new ReopenPurchaseRequest(boutiqueId);
+            var result = await _purchaseService.ReopenPurchaseAsync(purchaseToReopen.Id, request);
+
+            if (result.Success)
+            {
+                // Refresh the list
+                await GetPurchaseAsync();
+                ApplyFilter();
+                CloseReopenModal();
+            }
+            else
+            {
+                reopenErrorMessage = result.Message ?? "Une erreur est survenue lors de la reouverture.";
+            }
+        }
+        catch (Refit.ApiException ex)
+        {
+            try
+            {
+                var errorResult = System.Text.Json.JsonSerializer.Deserialize<ErrorMessage>(ex.Content ?? "{}", new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                reopenErrorMessage = errorResult?.Detail ?? ex.Message;
+            }
+            catch
+            {
+                reopenErrorMessage = "Une erreur est survenue lors de la reouverture.";
+            }
+        }
+        catch (Exception ex)
+        {
+            reopenErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isReopening = false;
         }
     }
 
