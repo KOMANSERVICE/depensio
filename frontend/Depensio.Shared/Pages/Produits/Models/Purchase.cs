@@ -15,6 +15,8 @@ public record ReopenPurchaseRequest(Guid BoutiqueId);
 public record ReopenPurchaseResponse(Guid Id, string Status);
 public record CancelPurchaseRequest(Guid BoutiqueId, string? Reason);
 public record CancelPurchaseResponse(Guid Id, string Status);
+public record TransferPurchaseRequest(Guid BoutiqueId);
+public record TransferPurchaseResponse(Guid Id, string Status, Guid? CashFlowId);
 
 /// <summary>
 /// Response containing the status history of a purchase
@@ -89,6 +91,16 @@ public record Purchase
     /// Optional expense category ID (required when approving and creating CashFlow)
     /// </summary>
     public string? CategoryId { get; set; }
+
+    /// <summary>
+    /// Indicates whether the purchase has been successfully transferred to the treasury (CashFlow created)
+    /// </summary>
+    public bool IsTransferred { get; set; }
+
+    /// <summary>
+    /// The ID of the CashFlow created in Treasury when the purchase was approved (if transferred)
+    /// </summary>
+    public Guid? CashFlowId { get; set; }
 }
 
 public record PurchaseItem

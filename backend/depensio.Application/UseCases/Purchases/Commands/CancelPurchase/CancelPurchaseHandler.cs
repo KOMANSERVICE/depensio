@@ -120,6 +120,7 @@ public class CancelPurchaseHandler(
         if (purchase.CashFlowId.HasValue)
         {
             purchase.CashFlowId = null;
+            purchase.IsTransferred = false;
         }
 
         // AC-5: Historique enregistré

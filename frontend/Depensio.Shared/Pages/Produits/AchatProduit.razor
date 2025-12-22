@@ -80,6 +80,8 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                         Statut</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        Trésorerie</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                         Actions</th>
                 </tr>
             </thead>
@@ -153,6 +155,27 @@
                                     </span>
                                 }
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @if (purchase.Status == "approved")
+                                {
+                                    @if (purchase.IsTransferred)
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-exchange-alt mr-1"></i> Transféré
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> Non transféré
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">-</span>
+                                }
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <div class="flex gap-1">
                                     <button type="button"
@@ -220,7 +243,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center">
+                        <td colspan="9" class="px-6 py-12 text-center">
                             <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 text-lg">Aucun achat trouvé</p>
                         </td>
@@ -312,6 +335,21 @@
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         <i class="fas fa-check mr-1"></i> Validé
                                     </span>
+                                }
+                                @if (purchase.Status == "approved")
+                                {
+                                    @if (purchase.IsTransferred)
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
+                                            <i class="fas fa-exchange-alt mr-1"></i> Transféré
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 ml-2">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> Non transféré
+                                        </span>
+                                    }
                                 }
                             </div>
                             <div class="flex gap-1">

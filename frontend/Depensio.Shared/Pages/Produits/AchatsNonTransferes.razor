@@ -1,0 +1,744 @@
+@page "/achats-non-transferes/{boutiqueId:guid}"
+@using depensio.Shared.Pages.Produits.Components
+@using depensio.Shared.Pages.Produits.Models
+@inherits FlowbitePage
+@layout MainLayout
+@inject IPurchaseService _purchaseService
+@inject IProductService _productService
+
+<PageTitle>Depensio - Achats non transférés</PageTitle>
+
+<HeaderPage
+            Title="Achats non transférés"
+            SubTitle="Transférer les achats approuvés vers la trésorerie"/>
+
+<LoadingComponent IsLoad="@isLoad" />
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center">
+                <label for="itemsPerPage" class="mr-2 text-sm text-gray-600">Afficher</label>
+                <select id="itemsPerPage" @bind="itemsPerPage" @bind:after="OnItemsPerPageChanged" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <span class="ml-2 text-sm text-gray-600">éléments</span>
+            </div>
+        </div>
+        <div class="relative w-full md:w-64">
+            <input type="text" placeholder="Rechercher un achat..."
+                @bind="searchTerm"
+                @bind:event="oninput"
+                @bind:after="ApplyFilter"
+                class="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+    </div>
+
+    @if (!untransferredPurchases.Any() && !isLoad)
+    {
+        <div class="text-center py-12">
+            <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+            <p class="text-gray-500 text-lg">Tous les achats approuvés ont été transférés à la trésorerie</p>
+            <p class="text-gray-400 text-sm mt-2">Aucun transfert en attente</p>
+        </div>
+    }
+    else
+    {
+        <!-- Desktop Table -->
+        <div class="desktop-view bg-white rounded-lg overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-primary-700 text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            <input type="checkbox" @onchange="ToggleSelectAll" checked="@allSelected" class="rounded text-primary-700 focus:ring-primary-700">
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Titre</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Fournisseur</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Date d'achat</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Montant total</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Statut transfert</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
+                    @if (paginatedPurchases.Any())
+                    {
+                        @foreach(var purchase in paginatedPurchases)
+                        {
+                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox"
+                                        checked="@selectedPurchaseIds.Contains(purchase.Id)"
+                                        @onchange="() => TogglePurchaseSelection(purchase.Id)"
+                                        class="rounded text-primary-700 focus:ring-primary-700">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                                        <div class="text-base font-semibold text-gray-900 dark:text-white">
+                                            @purchase.Title
+                                        </div>
+                                        <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                                            @TruncateText(purchase.Description, 50)
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @purchase.SupplierName
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if(purchase.DateAchat != DateOnly.MinValue)
+                                    {
+                                        @purchase.DateAchat.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span>--/--/----</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @purchase.TotalAmount.ToString("N0") FCFA
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i> Non transféré
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div class="flex gap-1">
+                                        <button type="button"
+                                            @onclick="() => ShowPurchaseDetails(purchase)"
+                                            class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
+                                            title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button"
+                                            @onclick="() => ShowTransferConfirmation(purchase)"
+                                            class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                            title="Transférer à la trésorerie">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500 text-lg">Aucun achat trouvé</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-view">
+            <div class="grid grid-cols-1 gap-4" id="mobileProductsList">
+                @if (paginatedPurchases.Any())
+                {
+                    @foreach (var purchase in paginatedPurchases)
+                    {
+                        <div class="product-card bg-white rounded-lg shadow-md p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">@purchase.Title</h3>
+                                    <p class="text-sm text-gray-500">@purchase.SupplierName</p>
+                                </div>
+                                <input type="checkbox"
+                                    checked="@selectedPurchaseIds.Contains(purchase.Id)"
+                                    @onchange="() => TogglePurchaseSelection(purchase.Id)"
+                                    class="rounded text-primary-700 focus:ring-primary-700">
+                            </div>
+                            <p class="text-sm text-gray-500 mb-3">
+                                @TruncateText(purchase.Description, 50)
+                            </p>
+                            <p class="text-sm text-gray-500 mb-3">
+                                Date d'achat:
+                                @if(purchase.DateAchat != DateOnly.MinValue)
+                                {
+                                    @purchase.DateAchat.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span>--/--/----</span>
+                                }
+                            </p>
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <span class="font-medium">@purchase.TotalAmount.ToString("N0") FCFA</span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button type="button"
+                                        @onclick="() => ShowPurchaseDetails(purchase)"
+                                        class="text-primary-700 hover:text-primary-900 hover:bg-primary-100 p-2 rounded-full transition-colors"
+                                        title="Voir les détails">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button"
+                                        @onclick="() => ShowTransferConfirmation(purchase)"
+                                        class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                        title="Transférer à la trésorerie">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i> Non transféré
+                                </span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-12">
+                        <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">Aucun achat trouvé</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Bulk Transfer Button -->
+        @if (selectedPurchaseIds.Any())
+        {
+            <div class="fixed bottom-4 right-4 z-50">
+                <button type="button"
+                    @onclick="ShowBulkTransferConfirmation"
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 transition-colors">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transférer @selectedPurchaseIds.Count achat(s)</span>
+                </button>
+            </div>
+        }
+
+        <!-- Footer with pagination -->
+        <div class="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+            <div class="mb-4 md:mb-0">
+                <span class="text-sm text-gray-600">@filteredPurchases.Count achat(s) non transféré(s)</span>
+            </div>
+            <div class="text-sm text-gray-600 mb-4 md:mb-0">
+                Affichage de @StartIndex à @EndIndex sur @filteredPurchases.Count éléments
+            </div>
+            <div class="flex items-center gap-1">
+                <button @onclick="GoToPreviousPage"
+                        disabled="@(currentPage <= 1)"
+                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    var pageNumber = i;
+                    <button @onclick="() => GoToPage(pageNumber)"
+                            class="px-3 py-1 rounded @(currentPage == pageNumber ? "bg-primary-700 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-100")">
+                        @pageNumber
+                    </button>
+                }
+                <button @onclick="GoToNextPage"
+                        disabled="@(currentPage >= TotalPages)"
+                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- View Purchase Details Modal -->
+<Modal
+    ShowModal="@showViewModal"
+    OnCloseModal="CloseViewModal"
+    ModalTitle="Détails de l'achat"
+    Size="ModalSize.Large"
+>
+    <ViewPurchaseComponent
+        Purchase="@selectedPurchase"
+        Products="@products"
+        OnClose="CloseViewModal" />
+</Modal>
+
+<!-- Transfer Confirmation Modal -->
+<Modal
+    ShowModal="@showTransferModal"
+    OnCloseModal="CloseTransferModal"
+    ModalTitle="Transférer l'achat"
+>
+    <div class="p-6">
+        @if (!string.IsNullOrEmpty(transferErrorMessage))
+        {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@transferErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <p class="text-gray-700 dark:text-gray-300">
+                Êtes-vous sûr de vouloir transférer cet achat à la trésorerie ?
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Un mouvement de trésorerie sera créé correspondant à cet achat.
+            </p>
+        </div>
+
+        @if (purchaseToTransfer != null)
+        {
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToTransfer.Title</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToTransfer.SupplierName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                        <span class="font-semibold text-primary-700 ml-1">@purchaseToTransfer.TotalAmount.ToString("N0") FCFA</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Articles:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToTransfer.Items.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-green-500 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-green-700 dark:text-green-300">
+                        <p class="font-medium">Informations de paiement :</p>
+                        <ul class="mt-1 list-disc list-inside">
+                            <li>Mode de paiement : @(string.IsNullOrEmpty(purchaseToTransfer.PaymentMethod) ? "Non renseigné" : purchaseToTransfer.PaymentMethod)</li>
+                            <li>Compte : @(purchaseToTransfer.AccountId.HasValue ? "Renseigné" : "Non renseigné")</li>
+                            <li>Catégorie : @(string.IsNullOrEmpty(purchaseToTransfer.CategoryId) ? "Non renseignée" : "Renseignée")</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="CloseTransferModal" disabled="@isTransferring">
+            Annuler
+        </button>
+        <button class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" @onclick="HandleTransferPurchase" disabled="@isTransferring">
+            @if (isTransferring)
+            {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <span>Transfert...</span>
+            }
+            else
+            {
+                <i class="fas fa-exchange-alt mr-2"></i>
+                <span>Transférer</span>
+            }
+        </button>
+    </div>
+</Modal>
+
+<!-- Bulk Transfer Confirmation Modal -->
+<Modal
+    ShowModal="@showBulkTransferModal"
+    OnCloseModal="CloseBulkTransferModal"
+    ModalTitle="Transférer plusieurs achats"
+>
+    <div class="p-6">
+        @if (!string.IsNullOrEmpty(bulkTransferErrorMessage))
+        {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@bulkTransferErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <p class="text-gray-700 dark:text-gray-300">
+                Êtes-vous sûr de vouloir transférer <strong>@selectedPurchaseIds.Count achat(s)</strong> à la trésorerie ?
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Des mouvements de trésorerie seront créés pour chaque achat sélectionné.
+            </p>
+        </div>
+
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 mr-2"></i>
+                <div class="text-sm text-yellow-700 dark:text-yellow-300">
+                    <p class="font-medium">Attention :</p>
+                    <p class="mt-1">Assurez-vous que tous les achats sélectionnés ont les informations de paiement complètes (compte, mode de paiement, catégorie).</p>
+                </div>
+            </div>
+        </div>
+
+        @if (bulkTransferProgress > 0)
+        {
+            <div class="mt-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Progression</span>
+                    <span>@bulkTransferProgress / @selectedPurchaseIds.Count</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="bg-green-600 h-2.5 rounded-full transition-all duration-300" style="width: @((bulkTransferProgress * 100 / selectedPurchaseIds.Count))%"></div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="CloseBulkTransferModal" disabled="@isBulkTransferring">
+            Annuler
+        </button>
+        <button class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" @onclick="HandleBulkTransfer" disabled="@isBulkTransferring">
+            @if (isBulkTransferring)
+            {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <span>Transfert en cours...</span>
+            }
+            else
+            {
+                <i class="fas fa-exchange-alt mr-2"></i>
+                <span>Transférer tout</span>
+            }
+        </button>
+    </div>
+</Modal>
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    private bool showViewModal = false;
+    private bool showTransferModal = false;
+    private bool showBulkTransferModal = false;
+    private bool isLoad = false;
+    private bool isTransferring = false;
+    private bool isBulkTransferring = false;
+    private string transferErrorMessage = "";
+    private string bulkTransferErrorMessage = "";
+    private int bulkTransferProgress = 0;
+    private Purchase selectedPurchase = new();
+    private Purchase? purchaseToTransfer;
+
+    private List<Purchase> allPurchases = new();
+    private List<Purchase> untransferredPurchases = new();
+    private List<Purchase> filteredPurchases = new();
+    private List<Product> products = new();
+    private HashSet<Guid> selectedPurchaseIds = new();
+    private string searchTerm = "";
+
+    // Pagination
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+
+    private List<Purchase> paginatedPurchases => filteredPurchases
+        .Skip((currentPage - 1) * itemsPerPage)
+        .Take(itemsPerPage)
+        .ToList();
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)filteredPurchases.Count / itemsPerPage));
+    private int StartIndex => filteredPurchases.Count == 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+    private int EndIndex => Math.Min(currentPage * itemsPerPage, filteredPurchases.Count);
+
+    private bool allSelected => paginatedPurchases.Any() && paginatedPurchases.All(p => selectedPurchaseIds.Contains(p.Id));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoad = true;
+        try
+        {
+            await GetPurchaseAsync();
+            await GetProductsAsync();
+            ApplyFilter();
+        }
+        finally
+        {
+            isLoad = false;
+        }
+    }
+
+    private async Task GetProductsAsync()
+    {
+        var productsResponse = await _productService.GetProductsByUserAsync(boutiqueId);
+        products = productsResponse.Data.Products.ToList();
+    }
+
+    private async Task GetPurchaseAsync()
+    {
+        // Get only approved purchases
+        var purchasesReponse = await _purchaseService.GetPurchaseByBoutiqueAsync(boutiqueId, "approved");
+        allPurchases = purchasesReponse.Data.Purchases.OrderByDescending(p => p.DateAchat).ToList();
+
+        // Filter only those that are not transferred
+        untransferredPurchases = allPurchases.Where(p => !p.IsTransferred).ToList();
+    }
+
+    private void ApplyFilter()
+    {
+        var filtered = untransferredPurchases.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var search = searchTerm.Trim().ToLower();
+            filtered = filtered.Where(p =>
+                p.Title.ToLower().Contains(search) ||
+                p.SupplierName.ToLower().Contains(search) ||
+                p.Description.ToLower().Contains(search) ||
+                p.DateAchat.ToString("dd/MM/yyyy").Contains(search) ||
+                p.TotalAmount.ToString("N0").Contains(search)
+            );
+        }
+
+        filteredPurchases = filtered.ToList();
+        currentPage = 1;
+
+        // Clear selection when filter changes
+        selectedPurchaseIds.Clear();
+    }
+
+    private string TruncateText(string? text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text.Substring(0, maxLength) + "...";
+    }
+
+    private void ShowPurchaseDetails(Purchase purchase)
+    {
+        selectedPurchase = purchase;
+        showViewModal = true;
+    }
+
+    private void CloseViewModal()
+    {
+        showViewModal = false;
+        selectedPurchase = new();
+    }
+
+    private void ShowTransferConfirmation(Purchase purchase)
+    {
+        purchaseToTransfer = purchase;
+        transferErrorMessage = "";
+        showTransferModal = true;
+    }
+
+    private void CloseTransferModal()
+    {
+        showTransferModal = false;
+        purchaseToTransfer = null;
+        transferErrorMessage = "";
+    }
+
+    private async Task HandleTransferPurchase()
+    {
+        if (purchaseToTransfer == null) return;
+
+        isTransferring = true;
+        transferErrorMessage = "";
+
+        try
+        {
+            var request = new TransferPurchaseRequest(boutiqueId);
+            var result = await _purchaseService.TransferPurchaseAsync(purchaseToTransfer.Id, request);
+
+            if (result.Success)
+            {
+                // Refresh the list
+                await GetPurchaseAsync();
+                ApplyFilter();
+                CloseTransferModal();
+            }
+            else
+            {
+                transferErrorMessage = result.Message ?? "Une erreur est survenue lors du transfert.";
+            }
+        }
+        catch (Refit.ApiException ex)
+        {
+            try
+            {
+                var errorResult = System.Text.Json.JsonSerializer.Deserialize<ErrorMessage>(ex.Content ?? "{}", new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                transferErrorMessage = errorResult?.Detail ?? ex.Message;
+            }
+            catch
+            {
+                transferErrorMessage = "Une erreur est survenue lors du transfert.";
+            }
+        }
+        catch (Exception ex)
+        {
+            transferErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isTransferring = false;
+        }
+    }
+
+    private void TogglePurchaseSelection(Guid purchaseId)
+    {
+        if (selectedPurchaseIds.Contains(purchaseId))
+        {
+            selectedPurchaseIds.Remove(purchaseId);
+        }
+        else
+        {
+            selectedPurchaseIds.Add(purchaseId);
+        }
+    }
+
+    private void ToggleSelectAll(ChangeEventArgs e)
+    {
+        if ((bool)(e.Value ?? false))
+        {
+            foreach (var purchase in paginatedPurchases)
+            {
+                selectedPurchaseIds.Add(purchase.Id);
+            }
+        }
+        else
+        {
+            foreach (var purchase in paginatedPurchases)
+            {
+                selectedPurchaseIds.Remove(purchase.Id);
+            }
+        }
+    }
+
+    private void ShowBulkTransferConfirmation()
+    {
+        bulkTransferErrorMessage = "";
+        bulkTransferProgress = 0;
+        showBulkTransferModal = true;
+    }
+
+    private void CloseBulkTransferModal()
+    {
+        showBulkTransferModal = false;
+        bulkTransferErrorMessage = "";
+        bulkTransferProgress = 0;
+    }
+
+    private async Task HandleBulkTransfer()
+    {
+        if (!selectedPurchaseIds.Any()) return;
+
+        isBulkTransferring = true;
+        bulkTransferErrorMessage = "";
+        bulkTransferProgress = 0;
+        var failedTransfers = new List<string>();
+
+        try
+        {
+            var purchaseIds = selectedPurchaseIds.ToList();
+
+            foreach (var purchaseId in purchaseIds)
+            {
+                try
+                {
+                    var request = new TransferPurchaseRequest(boutiqueId);
+                    var result = await _purchaseService.TransferPurchaseAsync(purchaseId, request);
+
+                    if (!result.Success)
+                    {
+                        var purchase = untransferredPurchases.FirstOrDefault(p => p.Id == purchaseId);
+                        failedTransfers.Add(purchase?.Title ?? purchaseId.ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var purchase = untransferredPurchases.FirstOrDefault(p => p.Id == purchaseId);
+                    failedTransfers.Add(purchase?.Title ?? purchaseId.ToString());
+                }
+
+                bulkTransferProgress++;
+                StateHasChanged();
+            }
+
+            if (failedTransfers.Any())
+            {
+                bulkTransferErrorMessage = $"Certains transferts ont échoué : {string.Join(", ", failedTransfers)}";
+            }
+            else
+            {
+                CloseBulkTransferModal();
+            }
+
+            // Refresh the list
+            selectedPurchaseIds.Clear();
+            await GetPurchaseAsync();
+            ApplyFilter();
+        }
+        catch (Exception ex)
+        {
+            bulkTransferErrorMessage = $"Une erreur est survenue : {ex.Message}";
+        }
+        finally
+        {
+            isBulkTransferring = false;
+        }
+    }
+
+    // Pagination methods
+    private void OnItemsPerPageChanged()
+    {
+        currentPage = 1;
+        selectedPurchaseIds.Clear();
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
+    }
+}
