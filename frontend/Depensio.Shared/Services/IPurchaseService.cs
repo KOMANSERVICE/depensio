@@ -30,4 +30,7 @@ public interface IPurchaseService
 
     [Post("/purchase/{id}/cancel")]
     Task<BaseResponse<CancelPurchaseResponse>> CancelPurchaseAsync(Guid id, CancelPurchaseRequest request);
+
+    [Get("/purchase/{id}/history")]
+    Task<BaseResponse<GetPurchaseHistoryResponse>> GetPurchaseHistoryAsync(Guid id, [Query] Guid boutiqueId);
 }

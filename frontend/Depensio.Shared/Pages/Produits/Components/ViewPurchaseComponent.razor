@@ -1,4 +1,5 @@
 @using depensio.Shared.Pages.Produits.Models
+@inject IPurchaseService _purchaseService
 
 <div class="p-6">
     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
@@ -39,7 +40,7 @@
     </div>
 
     <div class="mb-4">
-        <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Articles achetés</h4>
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Articles achetes</h4>
     </div>
 
     <div class="overflow-x-auto">
@@ -53,7 +54,7 @@
                         Prix unitaire
                     </th>
                     <th scope="col" class="p-3 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                        Quantité
+                        Quantite
                     </th>
                     <th scope="col" class="p-3 text-xs font-medium text-right text-gray-500 uppercase dark:text-gray-400">
                         Sous-total
@@ -109,6 +110,82 @@
             }
         </table>
     </div>
+
+    <!-- Status History Section -->
+    <div class="mt-6">
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Historique des statuts</h4>
+            @if (isLoadingHistory)
+            {
+                <span class="text-xs text-gray-500">
+                    <i class="fas fa-spinner fa-spin mr-1"></i> Chargement...
+                </span>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(historyErrorMessage))
+        {
+            <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@historyErrorMessage</p>
+                </div>
+            </div>
+        }
+        else if (!isLoadingHistory && statusHistory.Any())
+        {
+            <div class="relative">
+                <!-- Timeline -->
+                <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-600"></div>
+
+                <div class="space-y-4">
+                    @foreach (var entry in statusHistory)
+                    {
+                        <div class="relative flex items-start pl-10">
+                            <!-- Timeline dot -->
+                            <div class="absolute left-2.5 w-3 h-3 rounded-full bg-primary-600 border-2 border-white dark:border-gray-800"></div>
+
+                            <div class="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center gap-2">
+                                        @if (!string.IsNullOrEmpty(entry.FromStatus))
+                                        {
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium @GetStatusBadgeClass(entry.FromStatus)">
+                                                @entry.FromStatus
+                                            </span>
+                                            <i class="fas fa-arrow-right text-gray-400 text-xs"></i>
+                                        }
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium @GetStatusBadgeClass(entry.ToStatus)">
+                                            @entry.ToStatus
+                                        </span>
+                                    </div>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        @entry.Date.ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                </div>
+                                <div class="text-xs text-gray-600 dark:text-gray-300">
+                                    <span class="font-medium">Par:</span> @(string.IsNullOrEmpty(entry.ChangedBy) ? "Systeme" : entry.ChangedBy)
+                                </div>
+                                @if (!string.IsNullOrEmpty(entry.Comment))
+                                {
+                                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400 italic">
+                                        "@entry.Comment"
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (!isLoadingHistory)
+        {
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
+                <i class="fas fa-history text-2xl text-gray-300 mb-2"></i>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Aucun historique de statut disponible</p>
+            </div>
+        }
+    </div>
 </div>
 
 <div class="flex justify-end gap-3 px-6 py-4 border-t">
@@ -127,4 +204,58 @@
 
     [Parameter]
     public EventCallback OnClose { get; set; }
+
+    private List<PurchaseStatusHistory> statusHistory = new();
+    private bool isLoadingHistory = false;
+    private string historyErrorMessage = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Purchase.Id != Guid.Empty && Purchase.BoutiqueId != Guid.Empty)
+        {
+            await LoadStatusHistory();
+        }
+    }
+
+    private async Task LoadStatusHistory()
+    {
+        isLoadingHistory = true;
+        historyErrorMessage = "";
+        statusHistory = new();
+
+        try
+        {
+            var response = await _purchaseService.GetPurchaseHistoryAsync(Purchase.Id, Purchase.BoutiqueId);
+            if (response.Success && response.Data != null)
+            {
+                statusHistory = response.Data.History.ToList();
+            }
+            else
+            {
+                historyErrorMessage = response.Message ?? "Impossible de charger l'historique.";
+            }
+        }
+        catch (Exception ex)
+        {
+            historyErrorMessage = "Erreur lors du chargement de l'historique.";
+            Console.WriteLine($"Error loading purchase history: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingHistory = false;
+        }
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Brouillon" => "bg-yellow-100 text-yellow-800",
+            "En attente de validation" => "bg-blue-100 text-blue-800",
+            "Approuve" or "Approuvé" => "bg-green-100 text-green-800",
+            "Rejete" or "Rejeté" => "bg-red-100 text-red-800",
+            "Annule" or "Annulé" => "bg-gray-100 text-gray-800",
+            _ => "bg-gray-100 text-gray-800"
+        };
+    }
 }
