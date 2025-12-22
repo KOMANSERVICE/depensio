@@ -1,6 +1,8 @@
 using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Application.Exceptions;
+using depensio.Domain.Constants;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace depensio.Application.UseCases.Purchases.Commands.ApprovePurchase;
 
@@ -9,6 +11,7 @@ public class ApprovePurchaseHandler(
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
     ITresorerieService _tresorerieService,
+    IBoutiqueSettingService _boutiqueSettingService,
     ILogger<ApprovePurchaseHandler> _logger
     )
     : ICommandHandler<ApprovePurchaseCommand, ApprovePurchaseResult>
@@ -38,80 +41,97 @@ public class ApprovePurchaseHandler(
             throw new BadRequestException($"Impossible d'approuver un achat avec le statut '{currentStatus}'. Seuls les achats en attente de validation peuvent être approuvés.");
         }
 
-        // Validate required fields for Treasury call
-        if (!purchase.AccountId.HasValue)
-        {
-            throw new BadRequestException("Le compte est obligatoire pour approuver l'achat.");
-        }
+        // Check if automatic treasury transfer is enabled
+        var envoiAutomatiqueEnabled = await IsEnvoiAutomatiqueEnabledAsync(command.BoutiqueId);
 
-        if (string.IsNullOrWhiteSpace(purchase.PaymentMethod))
+        // Validate required fields for Treasury call only if automatic transfer is enabled
+        if (envoiAutomatiqueEnabled)
         {
-            throw new BadRequestException("Le mode de paiement est obligatoire pour approuver l'achat.");
-        }
+            if (!purchase.AccountId.HasValue)
+            {
+                throw new BadRequestException("Le compte est obligatoire pour approuver l'achat.");
+            }
 
-        if (string.IsNullOrWhiteSpace(purchase.CategoryId))
-        {
-            throw new BadRequestException("La catégorie est obligatoire pour approuver l'achat.");
+            if (string.IsNullOrWhiteSpace(purchase.PaymentMethod))
+            {
+                throw new BadRequestException("Le mode de paiement est obligatoire pour approuver l'achat.");
+            }
+
+            if (string.IsNullOrWhiteSpace(purchase.CategoryId))
+            {
+                throw new BadRequestException("La catégorie est obligatoire pour approuver l'achat.");
+            }
         }
 
         var userId = _userContextService.GetUserId();
 
-        // AC-2, AC-3: Call ITresorerieService.CreateCashFlowFromPurchaseAsync()
         Guid? cashFlowId = null;
-        try
+        bool isTransferred = false;
+
+        // Only call Treasury service if automatic transfer is enabled
+        if (envoiAutomatiqueEnabled)
         {
-            var request = new CreateCashFlowFromPurchaseRequest(
-                PurchaseId: purchase.Id.Value,
-                PurchaseReference: $"ACH-{purchase.Id.Value.ToString()[..8].ToUpper()}",
-                Amount: purchase.TotalAmount, // AC-3: TotalAmount
-                AccountId: purchase.AccountId!.Value, // AC-3: AccountId
-                PaymentMethod: purchase.PaymentMethod!, // AC-3: PaymentMethodId
-                PurchaseDate: purchase.Date,
-                SupplierName: purchase.SupplierName,
-                SupplierId: null,
-                CategoryId: purchase.CategoryId! // AC-3: CategoryId (part of reference data)
-            );
-
-            var result = await _tresorerieService.CreateCashFlowFromPurchaseAsync(
-                "depensio",
-                command.BoutiqueId.ToString(),
-                request
-            );
-
-            if (result.Success && result.Data != null)
+            // AC-2, AC-3: Call ITresorerieService.CreateCashFlowFromPurchaseAsync()
+            try
             {
-                // AC-4: CashFlowId renseigné avec l'ID retourné par le service
-                cashFlowId = result.Data.CashFlow.Id;
-                _logger.LogInformation("CashFlow {CashFlowId} created for Purchase {PurchaseId}", cashFlowId, purchase.Id.Value);
+                var request = new CreateCashFlowFromPurchaseRequest(
+                    PurchaseId: purchase.Id.Value,
+                    PurchaseReference: $"ACH-{purchase.Id.Value.ToString()[..8].ToUpper()}",
+                    Amount: purchase.TotalAmount, // AC-3: TotalAmount
+                    AccountId: purchase.AccountId!.Value, // AC-3: AccountId
+                    PaymentMethod: purchase.PaymentMethod!, // AC-3: PaymentMethodId
+                    PurchaseDate: purchase.Date,
+                    SupplierName: purchase.SupplierName,
+                    SupplierId: null,
+                    CategoryId: purchase.CategoryId! // AC-3: CategoryId (part of reference data)
+                );
+
+                var result = await _tresorerieService.CreateCashFlowFromPurchaseAsync(
+                    "depensio",
+                    command.BoutiqueId.ToString(),
+                    request
+                );
+
+                if (result.Success && result.Data != null)
+                {
+                    // AC-4: CashFlowId renseigné avec l'ID retourné par le service
+                    cashFlowId = result.Data.CashFlow.Id;
+                    isTransferred = true;
+                    _logger.LogInformation("CashFlow {CashFlowId} created for Purchase {PurchaseId}", cashFlowId, purchase.Id.Value);
+                }
+                else
+                {
+                    // Gestion d'erreur Trésorerie: retourner erreur 502 avec message explicite
+                    _logger.LogError("Failed to create CashFlow for Purchase {PurchaseId}: {Message}", purchase.Id.Value, result.Message);
+                    throw new ExternalServiceException("Tresorerie", $"Échec de l'appel au service de trésorerie: {result.Message}");
+                }
             }
-            else
+            catch (ExternalServiceException)
             {
-                // Gestion d'erreur Trésorerie: retourner erreur 502 avec message explicite
-                _logger.LogError("Failed to create CashFlow for Purchase {PurchaseId}: {Message}", purchase.Id.Value, result.Message);
-                throw new ExternalServiceException("Tresorerie", $"Échec de l'appel au service de trésorerie: {result.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Gestion d'erreur Trésorerie: L'achat reste en PendingApproval (2)
+                _logger.LogError(ex, "Error creating CashFlow for Purchase {PurchaseId}, AccountId: {AccountId}, Amount: {Amount}",
+                    purchase.Id.Value, purchase.AccountId, purchase.TotalAmount);
+                throw new ExternalServiceException("Tresorerie", $"Erreur lors de l'appel au service de trésorerie: {ex.Message}", ex);
             }
         }
-        catch (ExternalServiceException)
+        else
         {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            // Gestion d'erreur Trésorerie: L'achat reste en PendingApproval (2)
-            _logger.LogError(ex, "Error creating CashFlow for Purchase {PurchaseId}, AccountId: {AccountId}, Amount: {Amount}",
-                purchase.Id.Value, purchase.AccountId, purchase.TotalAmount);
-            throw new ExternalServiceException("Tresorerie", $"Erreur lors de l'appel au service de trésorerie: {ex.Message}", ex);
+            _logger.LogInformation("Automatic treasury transfer is disabled. Purchase {PurchaseId} approved without treasury transfer.", purchase.Id.Value);
         }
 
         // AC-1: Transition: PendingApproval (2) → Approved (3)
         var fromStatus = purchase.Status;
         purchase.Status = (int)PurchaseStatus.Approved;
 
-        // AC-4: CashFlowId renseigné
+        // AC-4: CashFlowId renseigné (only if transferred)
         purchase.CashFlowId = cashFlowId;
 
-        // Mark purchase as transferred to treasury
-        purchase.IsTransferred = true;
+        // Mark purchase as transferred to treasury (only if automatic transfer was enabled and successful)
+        purchase.IsTransferred = isTransferred;
 
         // AC-5: ApprovedAt = DateTime.UtcNow
         purchase.ApprovedAt = DateTime.UtcNow;
@@ -126,16 +146,48 @@ public class ApprovePurchaseHandler(
             PurchaseId = purchase.Id,
             FromStatus = fromStatus, // AC-7: FromStatus = 2 (PendingApproval)
             ToStatus = (int)PurchaseStatus.Approved, // AC-7: ToStatus = 3 (Approved)
-            Comment = "Achat approuvé"
+            Comment = envoiAutomatiqueEnabled ? "Achat approuvé et transféré à la trésorerie" : "Achat approuvé"
         };
 
         _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
 
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
-        _logger.LogInformation("Purchase {PurchaseId} approved by user {UserId}, CashFlowId: {CashFlowId}",
-            purchase.Id.Value, userId, cashFlowId);
+        _logger.LogInformation("Purchase {PurchaseId} approved by user {UserId}, CashFlowId: {CashFlowId}, Transferred: {IsTransferred}",
+            purchase.Id.Value, userId, cashFlowId, isTransferred);
 
         return new ApprovePurchaseResult(purchase.Id.Value, "Approved", cashFlowId);
     }
+
+    private async Task<bool> IsEnvoiAutomatiqueEnabledAsync(Guid boutiqueId)
+    {
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingAsync(boutiqueId, BoutiqueSettingKeys.ACHAT_KEY);
+            if (setting?.Value is string json && !string.IsNullOrEmpty(json))
+            {
+                var settingValues = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+                var envoiAutoSetting = settingValues?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.ACHAT_ENVOI_AUTOMATIQUE_TRESORERIE);
+                if (envoiAutoSetting != null)
+                {
+                    return envoiAutoSetting.Value?.ToString()?.ToLower() == "true";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error reading purchase setting for boutique {BoutiqueId}. Defaulting to false.", boutiqueId);
+        }
+        return false;
+    }
+}
+
+internal class BoutiqueSettingValue
+{
+    public string Id { get; set; } = string.Empty;
+    public string LabelValue { get; set; } = string.Empty;
+    public object? Value { get; set; }
+    public string LabelText { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 }
