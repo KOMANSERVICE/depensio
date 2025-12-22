@@ -499,8 +499,8 @@
         var purchasesReponse = await _purchaseService.GetPurchaseByBoutiqueAsync(boutiqueId, "approved");
         allPurchases = purchasesReponse.Data.Purchases.OrderByDescending(p => p.DateAchat).ToList();
 
-        // Filter only those that are not transferred
-        untransferredPurchases = allPurchases.Where(p => !p.IsTransferred).ToList();
+        // Filter only those that are not transferred (check both IsTransferred and CashFlowId for backwards compatibility)
+        untransferredPurchases = allPurchases.Where(p => !p.IsTransferred && !p.CashFlowId.HasValue).ToList();
     }
 
     private void ApplyFilter()
