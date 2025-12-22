@@ -15,6 +15,48 @@ public record ReopenPurchaseRequest(Guid BoutiqueId);
 public record ReopenPurchaseResponse(Guid Id, string Status);
 public record CancelPurchaseRequest(Guid BoutiqueId, string? Reason);
 public record CancelPurchaseResponse(Guid Id, string Status);
+
+/// <summary>
+/// Response containing the status history of a purchase
+/// </summary>
+public record GetPurchaseHistoryResponse(IEnumerable<PurchaseStatusHistory> History);
+
+/// <summary>
+/// Represents a single status change entry in the purchase history
+/// </summary>
+public record PurchaseStatusHistory
+{
+    /// <summary>
+    /// The unique identifier of the history entry
+    /// </summary>
+    public Guid Id { get; init; }
+
+    /// <summary>
+    /// The date and time when the status change occurred
+    /// </summary>
+    public DateTime Date { get; init; }
+
+    /// <summary>
+    /// The user who made the status change
+    /// </summary>
+    public string ChangedBy { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The previous status (null if initial creation)
+    /// </summary>
+    public string? FromStatus { get; init; }
+
+    /// <summary>
+    /// The new status after the change
+    /// </summary>
+    public string ToStatus { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Optional comment about the status change
+    /// </summary>
+    public string? Comment { get; init; }
+}
+
 public record Purchase
 {
     public Guid Id { get; set; } = Guid.Empty;
