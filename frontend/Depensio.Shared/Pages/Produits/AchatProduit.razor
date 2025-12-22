@@ -806,12 +806,24 @@
         }
 
         <div class="mb-4">
-            <p class="text-gray-700 dark:text-gray-300">
-                Vous allez annuler cet achat approuve. Veuillez indiquer le motif de l'annulation.
-            </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                <strong>Attention :</strong> Cette action est definitive. Le mouvement de tresorerie associe sera egalement supprime.
-            </p>
+            @if (IsApprovedPurchase(purchaseToCancel))
+            {
+                <p class="text-gray-700 dark:text-gray-300">
+                    Vous allez annuler cet achat approuve. Veuillez indiquer le motif de l'annulation.
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    <strong>Attention :</strong> Cette action est definitive. Le mouvement de tresorerie associe sera egalement supprime.
+                </p>
+            }
+            else
+            {
+                <p class="text-gray-700 dark:text-gray-300">
+                    Souhaitez-vous annuler cet achat ?
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    Cette action est definitive. L'achat sera marque comme annule.
+                </p>
+            }
         </div>
 
         @if (purchaseToCancel != null)
@@ -839,13 +851,13 @@
 
             <div class="mb-4">
                 <label for="cancelReason" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Motif de l'annulation <span class="text-red-500">*</span>
+                    Motif de l'annulation @if (IsApprovedPurchase(purchaseToCancel)) { <span class="text-red-500">*</span> } else { <span class="text-gray-400">(optionnel)</span> }
                 </label>
                 <textarea id="cancelReason"
                     @bind="cancelReason"
                     rows="4"
                     class="block w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-                    placeholder="Expliquez pourquoi l'achat est annule (minimum 10 caracteres)..."></textarea>
+                    placeholder="@(IsApprovedPurchase(purchaseToCancel) ? "Expliquez pourquoi l'achat est annule (minimum 10 caracteres)..." : "Motif de l'annulation (optionnel)...")"></textarea>
                 @if (!string.IsNullOrEmpty(cancelReason) && cancelReason.Length < 10)
                 {
                     <p class="mt-1 text-sm text-red-500">Le motif doit contenir au moins 10 caracteres.</p>
@@ -870,7 +882,7 @@
             Fermer
         </button>
         <button class="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                type="button" @onclick="HandleCancelPurchase" disabled="@(isCancelling || string.IsNullOrWhiteSpace(cancelReason) || cancelReason.Length < 10)">
+                type="button" @onclick="HandleCancelPurchase" disabled="@(isCancelling || !CanSubmitCancelRequest())">
             @if (isCancelling)
             {
                 <i class="fas fa-spinner fa-spin mr-2"></i>
@@ -1335,8 +1347,37 @@
 
     private bool CanCancelPurchase(Purchase purchase)
     {
-        // AC-1: Only Approved purchases can be cancelled
-        return purchase.Status == "approved";
+        // US-PUR-008: Approved purchases can be cancelled
+        // US-PUR-009: Draft, PendingApproval, and Rejected purchases can also be cancelled
+        return purchase.Status == "approved" ||
+               purchase.Status == "draft" ||
+               purchase.Status == "pending_approval" ||
+               purchase.Status == "rejected";
+    }
+
+    private bool IsApprovedPurchase(Purchase? purchase)
+    {
+        return purchase?.Status == "approved";
+    }
+
+    private bool CanSubmitCancelRequest()
+    {
+        if (purchaseToCancel == null) return false;
+
+        // Pour un achat approuve, le motif est obligatoire (min 10 caracteres)
+        if (IsApprovedPurchase(purchaseToCancel))
+        {
+            return !string.IsNullOrWhiteSpace(cancelReason) && cancelReason.Length >= 10;
+        }
+
+        // Pour les autres statuts (Draft, PendingApproval, Rejected), le motif est optionnel
+        // Mais s'il est fourni, il doit faire au moins 10 caracteres
+        if (!string.IsNullOrEmpty(cancelReason) && cancelReason.Length < 10)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void ShowCancelConfirmation(Purchase purchase)
@@ -1358,14 +1399,16 @@
     private async Task HandleCancelPurchase()
     {
         if (purchaseToCancel == null) return;
-        if (string.IsNullOrWhiteSpace(cancelReason) || cancelReason.Length < 10) return;
+        if (!CanSubmitCancelRequest()) return;
 
         isCancelling = true;
         cancelErrorMessage = "";
 
         try
         {
-            var request = new CancelPurchaseRequest(boutiqueId, cancelReason);
+            // Pour les achats non approuves, le motif est optionnel
+            var reason = string.IsNullOrWhiteSpace(cancelReason) ? null : cancelReason;
+            var request = new CancelPurchaseRequest(boutiqueId, reason);
             var result = await _purchaseService.CancelPurchaseAsync(purchaseToCancel.Id, request);
 
             if (result.Success)

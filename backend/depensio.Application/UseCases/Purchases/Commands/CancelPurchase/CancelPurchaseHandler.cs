@@ -5,12 +5,18 @@ using Microsoft.Extensions.Logging;
 namespace depensio.Application.UseCases.Purchases.Commands.CancelPurchase;
 
 /// <summary>
-/// Handler for cancelling an approved purchase
-/// AC-1: Transition: Approved (3) -> Cancelled (5)
-/// AC-2: RejectionReason obligatoire (motif d'annulation) - validated by command validator
-/// AC-3: Si CashFlowId non null -> Appel annulation/contre-passation Tresorerie
+/// Handler for cancelling a purchase
+/// US-PUR-008: Approved -> Cancelled (with Tresorerie call if CashFlowId exists)
+/// US-PUR-009: Draft/PendingApproval/Rejected -> Cancelled (no Tresorerie call)
+///
+/// AC-1 (US-PUR-008): Transition: Approved (3) -> Cancelled (5)
+/// AC-1 (US-PUR-009): Transitions: Draft (1) -> Cancelled (5), PendingApproval (2) -> Cancelled (5), Rejected (4) -> Cancelled (5)
+/// AC-2 (US-PUR-008): RejectionReason obligatoire pour Approved
+/// AC-2 (US-PUR-009): RejectionReason optionnel pour Draft/PendingApproval/Rejected
+/// AC-3 (US-PUR-008): Si CashFlowId non null -> Appel annulation/contre-passation Tresorerie
+/// AC-3 (US-PUR-009): Aucun appel Tresorerie (pas de CashFlow)
 /// AC-4: Les PurchaseItems restent intacts (audit)
-/// AC-5: Historique: FromStatus = 3, ToStatus = 5, Comment = RejectionReason
+/// AC-5: Historique enregistré
 /// AC-6: Etat final - aucune transition possible depuis Cancelled
 /// </summary>
 public class CancelPurchaseHandler(
@@ -22,6 +28,15 @@ public class CancelPurchaseHandler(
     )
     : ICommandHandler<CancelPurchaseCommand, CancelPurchaseResult>
 {
+    // Statuts autorisés pour l'annulation
+    private static readonly PurchaseStatus[] AllowedStatuses =
+    [
+        PurchaseStatus.Draft,           // US-PUR-009
+        PurchaseStatus.PendingApproval, // US-PUR-009
+        PurchaseStatus.Rejected,        // US-PUR-009
+        PurchaseStatus.Approved         // US-PUR-008
+    ];
+
     public async Task<CancelPurchaseResult> Handle(
         CancelPurchaseCommand command,
         CancellationToken cancellationToken
@@ -39,17 +54,25 @@ public class CancelPurchaseHandler(
             throw new NotFoundException($"L'achat avec l'ID {command.PurchaseId} n'existe pas.", nameof(command.PurchaseId));
         }
 
-        // AC-1: Verify current status is Approved (3)
         var currentStatus = (PurchaseStatus)purchase.Status;
-        if (currentStatus != PurchaseStatus.Approved)
+
+        // AC-1: Vérifier que le statut actuel permet l'annulation
+        if (!AllowedStatuses.Contains(currentStatus))
         {
-            throw new BadRequestException($"Impossible d'annuler un achat avec le statut '{currentStatus}'. Seuls les achats approuvés peuvent être annulés.");
+            throw new BadRequestException($"Impossible d'annuler un achat avec le statut '{currentStatus}'. Seuls les achats en brouillon, en attente d'approbation, rejetés ou approuvés peuvent être annulés.");
+        }
+
+        // AC-2 (US-PUR-008): RejectionReason obligatoire pour Approved
+        if (currentStatus == PurchaseStatus.Approved && string.IsNullOrWhiteSpace(command.Reason))
+        {
+            throw new BadRequestException("Le motif d'annulation est obligatoire pour un achat approuvé.");
         }
 
         var userId = _userContextService.GetUserId();
 
-        // AC-3: Si CashFlowId non null -> Appel annulation/contre-passation Tresorerie
-        if (purchase.CashFlowId.HasValue)
+        // AC-3 (US-PUR-008): Si CashFlowId non null -> Appel annulation/contre-passation Tresorerie
+        // AC-3 (US-PUR-009): Aucun appel Tresorerie pour Draft/PendingApproval/Rejected
+        if (currentStatus == PurchaseStatus.Approved && purchase.CashFlowId.HasValue)
         {
             try
             {
@@ -83,32 +106,38 @@ public class CancelPurchaseHandler(
             }
         }
 
-        // AC-1: Transition: Approved (3) -> Cancelled (5)
+        // Transition vers Cancelled
         var fromStatus = purchase.Status;
         purchase.Status = (int)PurchaseStatus.Cancelled;
 
-        // Store cancellation reason in RejectionReason field
-        purchase.RejectionReason = command.Reason;
+        // Store cancellation reason in RejectionReason field (optionnel pour US-PUR-009)
+        if (!string.IsNullOrWhiteSpace(command.Reason))
+        {
+            purchase.RejectionReason = command.Reason;
+        }
 
-        // Clear CashFlowId since the CashFlow has been deleted
-        purchase.CashFlowId = null;
+        // Clear CashFlowId since the CashFlow has been deleted (si applicable)
+        if (purchase.CashFlowId.HasValue)
+        {
+            purchase.CashFlowId = null;
+        }
 
-        // AC-5: Historique: FromStatus = 3, ToStatus = 5, Comment = RejectionReason
+        // AC-5: Historique enregistré
         var statusHistory = new PurchaseStatusHistory
         {
             Id = PurchaseStatusHistoryId.Of(Guid.NewGuid()),
             PurchaseId = purchase.Id,
-            FromStatus = fromStatus, // AC-5: FromStatus = 3 (Approved)
-            ToStatus = (int)PurchaseStatus.Cancelled, // AC-5: ToStatus = 5 (Cancelled)
-            Comment = command.Reason // AC-5: Comment = RejectionReason
+            FromStatus = fromStatus,
+            ToStatus = (int)PurchaseStatus.Cancelled,
+            Comment = command.Reason // Peut être null pour US-PUR-009
         };
 
         _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
 
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
-        _logger.LogInformation("Purchase {PurchaseId} cancelled by user {UserId}. Reason: {Reason}",
-            purchase.Id.Value, userId, command.Reason);
+        _logger.LogInformation("Purchase {PurchaseId} cancelled from status {FromStatus} by user {UserId}. Reason: {Reason}",
+            purchase.Id.Value, currentStatus, userId, command.Reason ?? "(aucun motif)");
 
         // AC-6: Etat final - aucune transition possible depuis Cancelled
         // This is enforced by other handlers checking the current status

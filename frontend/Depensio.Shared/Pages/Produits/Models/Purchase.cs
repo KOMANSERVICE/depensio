@@ -13,7 +13,7 @@ public record RejectPurchaseRequest(Guid BoutiqueId, string Reason);
 public record RejectPurchaseResponse(Guid Id, string Status);
 public record ReopenPurchaseRequest(Guid BoutiqueId);
 public record ReopenPurchaseResponse(Guid Id, string Status);
-public record CancelPurchaseRequest(Guid BoutiqueId, string Reason);
+public record CancelPurchaseRequest(Guid BoutiqueId, string? Reason);
 public record CancelPurchaseResponse(Guid Id, string Status);
 public record Purchase
 {
