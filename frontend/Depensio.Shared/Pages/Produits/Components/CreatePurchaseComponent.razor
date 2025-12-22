@@ -8,13 +8,26 @@
     <!-- Purchase Summary - Articles achetés -->
     <div class="p-6">
         <div class="flex flex-col items-center justify-center mb-6">
-            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Achat enregistré avec succès!</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Voici le récapitulatif des articles achetés</p>
+            @if (completedPurchase.Status == "draft")
+            {
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Brouillon enregistré!</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Vous pourrez modifier cet achat avant de le valider</p>
+            }
+            else
+            {
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Achat validé avec succès!</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Voici le récapitulatif des articles achetés</p>
+            }
         </div>
 
         <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
@@ -257,9 +270,15 @@ else
     </div>
     <!-- Modal footer -->
     <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="HandleSaveAsDraft">
+            <i class="fas fa-save mr-2"></i>
+            Enregistrer brouillon
+        </button>
         <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
                 type="submit">
-            Enregistrer
+            <i class="fas fa-check mr-2"></i>
+            Valider l'achat
         </button>
     </div>
 </EditForm>
@@ -327,7 +346,8 @@ else
                     Description = purchase.Description,
                     TotalAmount = purchase.TotalAmount,
                     TotalQuantity = purchase.Items.Sum(x => x.Quantity),
-                    Items = purchase.Items.ToList()
+                    Items = purchase.Items.ToList(),
+                    Status = purchase.Status
                 };
 
                 // Show the purchase summary instead of immediately closing
@@ -426,6 +446,24 @@ else
 
         // Notify parent to refresh the list
         await OnAfterSave.InvokeAsync(null);
+    }
+
+    private async Task HandleSaveAsDraft()
+    {
+        // Validation: vérifier qu'au moins un produit est ajouté
+        if (!purchase.Items.Any())
+        {
+            messageStore.Clear();
+            messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Vous devez ajouter au moins un produit avant d'enregistrer l'achat.");
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        // Set status to draft
+        purchase.Status = "draft";
+
+        // Reuse the existing save logic
+        await HandleCreateProduit();
     }
 
 }
