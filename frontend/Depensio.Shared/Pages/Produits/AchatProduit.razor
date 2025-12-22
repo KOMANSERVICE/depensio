@@ -127,6 +127,12 @@
                                         <i class="fas fa-times-circle mr-1"></i> Rejeté
                                     </span>
                                 }
+                                else if (purchase.Status == "cancelled")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-ban mr-1"></i> Annulé
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -173,6 +179,15 @@
                                             class="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full transition-colors"
                                             title="Rejeter l'achat">
                                             <i class="fas fa-times-circle"></i>
+                                        </button>
+                                    }
+                                    @if (CanCancelPurchase(purchase))
+                                    {
+                                        <button type="button"
+                                            @onclick="() => ShowCancelConfirmation(purchase)"
+                                            class="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                                            title="Annuler l'achat">
+                                            <i class="fas fa-ban"></i>
                                         </button>
                                     }
                                     @if (CanReopenPurchase(purchase))
@@ -273,6 +288,12 @@
                                         <i class="fas fa-times-circle mr-1"></i> Rejeté
                                     </span>
                                 }
+                                else if (purchase.Status == "cancelled")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-ban mr-1"></i> Annulé
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -303,6 +324,15 @@
                                         class="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full transition-colors"
                                         title="Rejeter l'achat">
                                         <i class="fas fa-times-circle"></i>
+                                    </button>
+                                }
+                                @if (CanCancelPurchase(purchase))
+                                {
+                                    <button type="button"
+                                        @onclick="() => ShowCancelConfirmation(purchase)"
+                                        class="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                                        title="Annuler l'achat">
+                                        <i class="fas fa-ban"></i>
                                     </button>
                                 }
                                 @if (CanReopenPurchase(purchase))
@@ -758,6 +788,103 @@
     </div>
 </Modal>
 
+<!-- Cancel Confirmation Modal -->
+<Modal
+    ShowModal="@showCancelModal"
+    OnCloseModal="CloseCancelModal"
+    ModalTitle="Annuler l'achat"
+>
+    <div class="p-6">
+        @if (!string.IsNullOrEmpty(cancelErrorMessage))
+        {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@cancelErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <p class="text-gray-700 dark:text-gray-300">
+                Vous allez annuler cet achat approuve. Veuillez indiquer le motif de l'annulation.
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                <strong>Attention :</strong> Cette action est definitive. Le mouvement de tresorerie associe sera egalement supprime.
+            </p>
+        </div>
+
+        @if (purchaseToCancel != null)
+        {
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToCancel.Title</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToCancel.SupplierName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                        <span class="font-semibold text-primary-700 ml-1">@purchaseToCancel.TotalAmount.ToString("N0") FCFA</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Articles:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToCancel.Items.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="cancelReason" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Motif de l'annulation <span class="text-red-500">*</span>
+                </label>
+                <textarea id="cancelReason"
+                    @bind="cancelReason"
+                    rows="4"
+                    class="block w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                    placeholder="Expliquez pourquoi l'achat est annule (minimum 10 caracteres)..."></textarea>
+                @if (!string.IsNullOrEmpty(cancelReason) && cancelReason.Length < 10)
+                {
+                    <p class="mt-1 text-sm text-red-500">Le motif doit contenir au moins 10 caracteres.</p>
+                }
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-gray-500 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        <p class="font-medium">Attention :</p>
+                        <p class="mt-1">Cette action va annuler definitivement l'achat. Aucune modification ne sera possible apres l'annulation.</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="CloseCancelModal" disabled="@isCancelling">
+            Fermer
+        </button>
+        <button class="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" @onclick="HandleCancelPurchase" disabled="@(isCancelling || string.IsNullOrWhiteSpace(cancelReason) || cancelReason.Length < 10)">
+            @if (isCancelling)
+            {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <span>Annulation...</span>
+            }
+            else
+            {
+                <i class="fas fa-ban mr-2"></i>
+                <span>Annuler l'achat</span>
+            }
+        </button>
+    </div>
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -769,23 +896,28 @@
     private bool showApproveModal = false;
     private bool showRejectModal = false;
     private bool showReopenModal = false;
+    private bool showCancelModal = false;
     private string modalTitle = "";
     private bool isLoad = false;
     private bool isSubmitting = false;
     private bool isApproving = false;
     private bool isRejecting = false;
     private bool isReopening = false;
+    private bool isCancelling = false;
     private string submitErrorMessage = "";
     private string approveErrorMessage = "";
     private string rejectErrorMessage = "";
     private string reopenErrorMessage = "";
+    private string cancelErrorMessage = "";
     private string rejectionReason = "";
+    private string cancelReason = "";
     private Purchase selectedPurchase = new();
     private Purchase purchaseToEdit = new();
     private Purchase? purchaseToSubmit;
     private Purchase? purchaseToApprove;
     private Purchase? purchaseToReject;
     private Purchase? purchaseToReopen;
+    private Purchase? purchaseToCancel;
 
     private List<Purchase> purchases = new();
     private List<Purchase> filteredPurchases = new();
@@ -1198,6 +1330,78 @@
         if (currentPage < TotalPages)
         {
             currentPage++;
+        }
+    }
+
+    private bool CanCancelPurchase(Purchase purchase)
+    {
+        // AC-1: Only Approved purchases can be cancelled
+        return purchase.Status == "approved";
+    }
+
+    private void ShowCancelConfirmation(Purchase purchase)
+    {
+        purchaseToCancel = purchase;
+        cancelErrorMessage = "";
+        cancelReason = "";
+        showCancelModal = true;
+    }
+
+    private void CloseCancelModal()
+    {
+        showCancelModal = false;
+        purchaseToCancel = null;
+        cancelErrorMessage = "";
+        cancelReason = "";
+    }
+
+    private async Task HandleCancelPurchase()
+    {
+        if (purchaseToCancel == null) return;
+        if (string.IsNullOrWhiteSpace(cancelReason) || cancelReason.Length < 10) return;
+
+        isCancelling = true;
+        cancelErrorMessage = "";
+
+        try
+        {
+            var request = new CancelPurchaseRequest(boutiqueId, cancelReason);
+            var result = await _purchaseService.CancelPurchaseAsync(purchaseToCancel.Id, request);
+
+            if (result.Success)
+            {
+                // Refresh the list
+                await GetPurchaseAsync();
+                ApplyFilter();
+                CloseCancelModal();
+            }
+            else
+            {
+                cancelErrorMessage = result.Message ?? "Une erreur est survenue lors de l'annulation.";
+            }
+        }
+        catch (Refit.ApiException ex)
+        {
+            try
+            {
+                var errorResult = System.Text.Json.JsonSerializer.Deserialize<ErrorMessage>(ex.Content ?? "{}", new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                cancelErrorMessage = errorResult?.Detail ?? ex.Message;
+            }
+            catch
+            {
+                cancelErrorMessage = "Une erreur est survenue lors de l'annulation.";
+            }
+        }
+        catch (Exception ex)
+        {
+            cancelErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isCancelling = false;
         }
     }
 }
