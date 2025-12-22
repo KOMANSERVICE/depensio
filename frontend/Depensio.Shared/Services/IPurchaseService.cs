@@ -33,4 +33,7 @@ public interface IPurchaseService
 
     [Get("/purchase/{id}/history")]
     Task<BaseResponse<GetPurchaseHistoryResponse>> GetPurchaseHistoryAsync(Guid id, [Query] Guid boutiqueId);
+
+    [Post("/purchase/{id}/transfer")]
+    Task<BaseResponse<TransferPurchaseResponse>> TransferPurchaseAsync(Guid id, TransferPurchaseRequest request);
 }

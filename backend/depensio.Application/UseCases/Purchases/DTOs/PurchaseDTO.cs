@@ -35,4 +35,14 @@ public record PurchaseDTO
     /// Optional expense category ID (required when approving and creating CashFlow)
     /// </summary>
     public string? CategoryId { get; set; }
+
+    /// <summary>
+    /// Indicates whether the purchase has been successfully transferred to the treasury (CashFlow created)
+    /// </summary>
+    public bool IsTransferred { get; set; }
+
+    /// <summary>
+    /// The ID of the CashFlow created in Treasury when the purchase was approved (if transferred)
+    /// </summary>
+    public Guid? CashFlowId { get; set; }
 }

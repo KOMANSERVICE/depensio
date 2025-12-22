@@ -46,6 +46,8 @@ public class GetPurchaseByBoutiqueHandler(
                 PaymentMethod = p.PaymentMethod,
                 AccountId = p.AccountId,
                 CategoryId = p.CategoryId,
+                IsTransferred = p.IsTransferred,
+                CashFlowId = p.CashFlowId,
                 Items = p.PurchaseItems.Select(pi => new PurchaseItemDTO(
                     pi.Id.Value,pi.ProductId.Value, pi.Price, pi.Quantity
                 )).ToList()
