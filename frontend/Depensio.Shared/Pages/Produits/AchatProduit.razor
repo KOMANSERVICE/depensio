@@ -121,6 +121,12 @@
                                         <i class="fas fa-clock mr-1"></i> En attente
                                     </span>
                                 }
+                                else if (purchase.Status == "rejected")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-times-circle mr-1"></i> Rejeté
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -161,6 +167,12 @@
                                             class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
                                             title="Approuver l'achat">
                                             <i class="fas fa-check-circle"></i>
+                                        </button>
+                                        <button type="button"
+                                            @onclick="() => ShowRejectConfirmation(purchase)"
+                                            class="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full transition-colors"
+                                            title="Rejeter l'achat">
+                                            <i class="fas fa-times-circle"></i>
                                         </button>
                                     }
                                 </div>
@@ -246,6 +258,12 @@
                                         <i class="fas fa-clock mr-1"></i> En attente
                                     </span>
                                 }
+                                else if (purchase.Status == "rejected")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-times-circle mr-1"></i> Rejeté
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -253,24 +271,32 @@
                                     </span>
                                 }
                             </div>
-                            @if (CanSubmitPurchase(purchase))
-                            {
-                                <button type="button"
-                                    @onclick="() => ShowSubmitConfirmation(purchase)"
-                                    class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
-                                    title="Soumettre pour validation">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            }
-                            @if (CanApprovePurchase(purchase))
-                            {
-                                <button type="button"
-                                    @onclick="() => ShowApproveConfirmation(purchase)"
-                                    class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
-                                    title="Approuver l'achat">
-                                    <i class="fas fa-check-circle"></i>
-                                </button>
-                            }
+                            <div class="flex gap-1">
+                                @if (CanSubmitPurchase(purchase))
+                                {
+                                    <button type="button"
+                                        @onclick="() => ShowSubmitConfirmation(purchase)"
+                                        class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                        title="Soumettre pour validation">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                }
+                                @if (CanApprovePurchase(purchase))
+                                {
+                                    <button type="button"
+                                        @onclick="() => ShowApproveConfirmation(purchase)"
+                                        class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                        title="Approuver l'achat">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                    <button type="button"
+                                        @onclick="() => ShowRejectConfirmation(purchase)"
+                                        class="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full transition-colors"
+                                        title="Rejeter l'achat">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 }
@@ -535,6 +561,103 @@
     </div>
 </Modal>
 
+<!-- Reject Confirmation Modal -->
+<Modal
+    ShowModal="@showRejectModal"
+    OnCloseModal="CloseRejectModal"
+    ModalTitle="Rejeter l'achat"
+>
+    <div class="p-6">
+        @if (!string.IsNullOrEmpty(rejectErrorMessage))
+        {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@rejectErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <p class="text-gray-700 dark:text-gray-300">
+                Vous allez rejeter cet achat. Veuillez indiquer le motif du rejet.
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                L'achat pourra ensuite etre modifie et resoumis par le demandeur.
+            </p>
+        </div>
+
+        @if (purchaseToReject != null)
+        {
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToReject.Title</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToReject.SupplierName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                        <span class="font-semibold text-primary-700 ml-1">@purchaseToReject.TotalAmount.ToString("N0") FCFA</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Articles:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToReject.Items.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="rejectionReason" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Motif du rejet <span class="text-red-500">*</span>
+                </label>
+                <textarea id="rejectionReason"
+                    @bind="rejectionReason"
+                    rows="4"
+                    class="block w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
+                    placeholder="Expliquez pourquoi l'achat est rejete (minimum 10 caracteres)..."></textarea>
+                @if (!string.IsNullOrEmpty(rejectionReason) && rejectionReason.Length < 10)
+                {
+                    <p class="mt-1 text-sm text-red-500">Le motif doit contenir au moins 10 caracteres.</p>
+                }
+            </div>
+
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-red-700 dark:text-red-300">
+                        <p class="font-medium">Attention :</p>
+                        <p class="mt-1">Cette action va rejeter l'achat. Le demandeur pourra le modifier et le resoumettre.</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="CloseRejectModal" disabled="@isRejecting">
+            Annuler
+        </button>
+        <button class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" @onclick="HandleRejectPurchase" disabled="@(isRejecting || string.IsNullOrWhiteSpace(rejectionReason) || rejectionReason.Length < 10)">
+            @if (isRejecting)
+            {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <span>Rejet en cours...</span>
+            }
+            else
+            {
+                <i class="fas fa-times-circle mr-2"></i>
+                <span>Rejeter</span>
+            }
+        </button>
+    </div>
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -544,16 +667,21 @@
     private bool showEditModal = false;
     private bool showSubmitModal = false;
     private bool showApproveModal = false;
+    private bool showRejectModal = false;
     private string modalTitle = "";
     private bool isLoad = false;
     private bool isSubmitting = false;
     private bool isApproving = false;
+    private bool isRejecting = false;
     private string submitErrorMessage = "";
     private string approveErrorMessage = "";
+    private string rejectErrorMessage = "";
+    private string rejectionReason = "";
     private Purchase selectedPurchase = new();
     private Purchase purchaseToEdit = new();
     private Purchase? purchaseToSubmit;
     private Purchase? purchaseToApprove;
+    private Purchase? purchaseToReject;
 
     private List<Purchase> purchases = new();
     private List<Purchase> filteredPurchases = new();
@@ -801,6 +929,72 @@
         finally
         {
             isSubmitting = false;
+        }
+    }
+
+    private void ShowRejectConfirmation(Purchase purchase)
+    {
+        purchaseToReject = purchase;
+        rejectErrorMessage = "";
+        rejectionReason = "";
+        showRejectModal = true;
+    }
+
+    private void CloseRejectModal()
+    {
+        showRejectModal = false;
+        purchaseToReject = null;
+        rejectErrorMessage = "";
+        rejectionReason = "";
+    }
+
+    private async Task HandleRejectPurchase()
+    {
+        if (purchaseToReject == null) return;
+        if (string.IsNullOrWhiteSpace(rejectionReason) || rejectionReason.Length < 10) return;
+
+        isRejecting = true;
+        rejectErrorMessage = "";
+
+        try
+        {
+            var request = new RejectPurchaseRequest(boutiqueId, rejectionReason);
+            var result = await _purchaseService.RejectPurchaseAsync(purchaseToReject.Id, request);
+
+            if (result.Success)
+            {
+                // Refresh the list
+                await GetPurchaseAsync();
+                ApplyFilter();
+                CloseRejectModal();
+            }
+            else
+            {
+                rejectErrorMessage = result.Message ?? "Une erreur est survenue lors du rejet.";
+            }
+        }
+        catch (Refit.ApiException ex)
+        {
+            try
+            {
+                var errorResult = System.Text.Json.JsonSerializer.Deserialize<ErrorMessage>(ex.Content ?? "{}", new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                rejectErrorMessage = errorResult?.Detail ?? ex.Message;
+            }
+            catch
+            {
+                rejectErrorMessage = "Une erreur est survenue lors du rejet.";
+            }
+        }
+        catch (Exception ex)
+        {
+            rejectErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isRejecting = false;
         }
     }
 

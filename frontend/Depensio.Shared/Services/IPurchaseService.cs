@@ -21,4 +21,7 @@ public interface IPurchaseService
 
     [Post("/purchase/{id}/approve")]
     Task<BaseResponse<ApprovePurchaseResponse>> ApprovePurchaseAsync(Guid id, ApprovePurchaseRequest request);
+
+    [Post("/purchase/{id}/reject")]
+    Task<BaseResponse<RejectPurchaseResponse>> RejectPurchaseAsync(Guid id, RejectPurchaseRequest request);
 }
