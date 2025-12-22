@@ -1,10 +1,12 @@
+@using depensio.Shared.Enums
+
 <div class="@onShowModal(ShowModal)">
     <!-- Overlay sombre -->
     <div class="fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
     <!-- Conteneur de la modal -->
     <div class="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 my-8 relative">
+        <div class="bg-white rounded-lg shadow-xl w-full @GetSizeClass() mx-4 my-8 relative">
             <div class="flex justify-between items-center border-b px-6 py-4">
                 <h3 class="text-lg font-semibold text-primary-700">@ModalTitle</h3>
                 <button type="button" @onclick="closeModal" class="text-gray-500 hover:text-gray-700">
@@ -28,13 +30,19 @@
     /// </summary>
     [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
-    
+
     [Parameter]
     public bool ShowModal { get; set; } = false;
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnCloseModal { get; set; }
-    
+
+    /// <summary>
+    /// Taille de la modale (Small, Medium, Large, ExtraLarge, FullScreen)
+    /// </summary>
+    [Parameter]
+    public ModalSize Size { get; set; } = ModalSize.Medium;
+
     private void closeModal()
     {
         OnCloseModal.InvokeAsync(null);
@@ -43,4 +51,14 @@
     private string onShowModal(bool show) =>
     show
     ? "fixed inset-0 flex items-center justify-center z-50" : "hidden";
+
+    private string GetSizeClass() => Size switch
+    {
+        ModalSize.Small => "max-w-sm",
+        ModalSize.Medium => "max-w-md",
+        ModalSize.Large => "max-w-lg",
+        ModalSize.ExtraLarge => "max-w-xl",
+        ModalSize.FullScreen => "max-w-full",
+        _ => "max-w-md"
+    };
 }
