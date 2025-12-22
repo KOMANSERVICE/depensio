@@ -1,7 +1,10 @@
 @using depensio.Shared.Pages.Produits.Models
 @using depensio.Shared.Pages.Tresoreries.Models
+@using depensio.Shared.Pages.Boutique.Model
+@using depensio.Shared.Contants
 @inject IPurchaseService _purchaseService;
 @inject ITresorerieService _tresorerieService;
+@inject IBoutiqueSettingService _boutiqueSettingService;
 
 <LoadingComponent IsLoad="@isLoad" />
 
@@ -174,9 +177,11 @@ else
                     <ValidationMessage For="@(() => purchase.DateAchat)" />
                 </div>
             </div>
+            @if (_envoiAutomatiqueEnabled)
+            {
             <div class="col-span-6 sm:col-span-2">
                 <label for="paymentMethod"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mode de paiement</label>
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mode de paiement <span class="text-red-500">*</span></label>
                 <InputSelect @bind-Value="purchase.PaymentMethod" id="paymentMethod"
                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                     <option value="">Selectionnez un mode</option>
@@ -190,7 +195,7 @@ else
             </div>
             <div class="col-span-6 sm:col-span-2">
                 <label for="accountId"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Compte</label>
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Compte <span class="text-red-500">*</span></label>
                 <InputSelect @bind-Value="selectedAccountId" id="accountId"
                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                     <option value="">Selectionnez un compte</option>
@@ -202,7 +207,7 @@ else
             </div>
             <div class="col-span-6 sm:col-span-2">
                 <label for="categoryId"
-                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Categorie</label>
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Categorie <span class="text-red-500">*</span></label>
                 <InputSelect @bind-Value="purchase.CategoryId" id="categoryId"
                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                     <option value="">Selectionnez une categorie</option>
@@ -212,6 +217,7 @@ else
                     }
                 </InputSelect>
             </div>
+            }
             <div class="col-span-6">
                 <label for="description"
                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
@@ -383,6 +389,9 @@ else
     private List<CategoryDTO> categories = new();
     private bool _dataLoaded = false;
 
+    // Setting pour l'envoi automatique vers la trésorerie
+    private bool _envoiAutomatiqueEnabled = false;
+
     // Variable temporaire pour l'AccountId (car InputSelect utilise string)
     private string selectedAccountId
     {
@@ -453,6 +462,37 @@ else
             messageStore.Add(new FieldIdentifier(purchase, string.Empty), "Vous devez ajouter au moins un produit avant d'enregistrer l'achat.");
             editContext.NotifyValidationStateChanged();
             return;
+        }
+
+        // Validation des champs obligatoires si l'envoi automatique est activé
+        if (_envoiAutomatiqueEnabled)
+        {
+            messageStore.Clear();
+            bool hasErrors = false;
+
+            if (string.IsNullOrWhiteSpace(purchase.PaymentMethod))
+            {
+                messageStore.Add(new FieldIdentifier(purchase, nameof(purchase.PaymentMethod)), "Le mode de paiement est obligatoire.");
+                hasErrors = true;
+            }
+
+            if (!purchase.AccountId.HasValue)
+            {
+                messageStore.Add(new FieldIdentifier(purchase, nameof(purchase.AccountId)), "Le compte est obligatoire.");
+                hasErrors = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(purchase.CategoryId))
+            {
+                messageStore.Add(new FieldIdentifier(purchase, nameof(purchase.CategoryId)), "La catégorie est obligatoire.");
+                hasErrors = true;
+            }
+
+            if (hasErrors)
+            {
+                editContext.NotifyValidationStateChanged();
+                return;
+            }
         }
 
         isLoad = true;
@@ -610,23 +650,29 @@ else
     {
         try
         {
-            // Charger les comptes et catégories en parallèle
-            var accountsTask = _tresorerieService.GetAccountsAsync(BoutiqueId, false);
-            var categoriesTask = _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.EXPENSE, false);
+            // Charger les paramètres d'achat en premier
+            await LoadPurchaseSettingsAsync();
 
-            await Task.WhenAll(accountsTask, categoriesTask);
-
-            var accountsResponse = await accountsTask;
-            var categoriesResponse = await categoriesTask;
-
-            if (accountsResponse.Success && accountsResponse.Data != null)
+            // Charger les comptes et catégories seulement si l'envoi automatique est activé
+            if (_envoiAutomatiqueEnabled)
             {
-                accounts = accountsResponse.Data.Accounts.ToList();
-            }
+                var accountsTask = _tresorerieService.GetAccountsAsync(BoutiqueId, false);
+                var categoriesTask = _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.EXPENSE, false);
 
-            if (categoriesResponse.Success && categoriesResponse.Data != null)
-            {
-                categories = categoriesResponse.Data.Categories.ToList();
+                await Task.WhenAll(accountsTask, categoriesTask);
+
+                var accountsResponse = await accountsTask;
+                var categoriesResponse = await categoriesTask;
+
+                if (accountsResponse.Success && accountsResponse.Data != null)
+                {
+                    accounts = accountsResponse.Data.Accounts.ToList();
+                }
+
+                if (categoriesResponse.Success && categoriesResponse.Data != null)
+                {
+                    categories = categoriesResponse.Data.Categories.ToList();
+                }
             }
         }
         catch
@@ -637,6 +683,27 @@ else
         finally
         {
             StateHasChanged();
+        }
+    }
+
+    private async Task LoadPurchaseSettingsAsync()
+    {
+        try
+        {
+            var settingResponse = await _boutiqueSettingService.GetSettingByBoutique(BoutiqueId, BoutiqueSettingKeys.ACHAT_KEY);
+            if (settingResponse?.Data?.Settings?.Value is string json)
+            {
+                var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+                var envoiAutoSetting = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.ACHAT_ENVOI_AUTOMATIQUE_TRESORERIE);
+                if (envoiAutoSetting != null)
+                {
+                    _envoiAutomatiqueEnabled = envoiAutoSetting.Value?.ToString()?.ToLower() == "true";
+                }
+            }
+        }
+        catch
+        {
+            _envoiAutomatiqueEnabled = false;
         }
     }
 

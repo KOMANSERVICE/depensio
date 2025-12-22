@@ -55,6 +55,18 @@ public class SettingService : ISettingService
                 "Description": "Lors de la vente, à la caisse, vous ou vos employer pourrons selectionner un produit en rupture de stock"
             }
         ]
+        """ },
+             new SettingDTO { Key = BoutiqueSettingKeys.ACHAT_KEY, Value = $$"""
+        [
+            {
+                "Id": "{{BoutiqueSettingKeys.ACHAT_ENVOI_AUTOMATIQUE_TRESORERIE}}",
+                "LabelValue": "Envoi automatique vers la trésorerie",
+                "Value": "false",
+                "LabelText": "",
+                "Text": "",
+                "Description": "Si activé, les achats validés seront automatiquement envoyés à la trésorerie. Les champs Mode de paiement, Compte et Catégorie seront obligatoires lors de la création ou modification d'un achat."
+            }
+        ]
         """ }
         };
     }
