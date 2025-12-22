@@ -1,5 +1,7 @@
 @using depensio.Shared.Pages.Produits.Models
+@using depensio.Shared.Pages.Tresoreries.Models
 @inject IPurchaseService _purchaseService;
+@inject ITresorerieService _tresorerieService;
 
 <LoadingComponent IsLoad="@isLoad" />
 
@@ -48,6 +50,27 @@
                     <span class="text-gray-500 dark:text-gray-400">Total:</span>
                     <span class="font-semibold text-primary-700 ml-1">@completedPurchase.TotalAmount FCFA</span>
                 </div>
+                @if (!string.IsNullOrEmpty(completedPurchase.PaymentMethod))
+                {
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Mode de paiement:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@GetPaymentMethodName(completedPurchase.PaymentMethod)</span>
+                    </div>
+                }
+                @if (completedPurchase.AccountId.HasValue)
+                {
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Compte:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@GetAccountName(completedPurchase.AccountId.Value)</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(completedPurchase.CategoryId))
+                {
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Categorie:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@GetCategoryName(completedPurchase.CategoryId)</span>
+                    </div>
+                }
             </div>
         </div>
 
@@ -150,6 +173,44 @@ else
                 <div  class="error-message">
                     <ValidationMessage For="@(() => purchase.DateAchat)" />
                 </div>
+            </div>
+            <div class="col-span-6 sm:col-span-2">
+                <label for="paymentMethod"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mode de paiement</label>
+                <InputSelect @bind-Value="purchase.PaymentMethod" id="paymentMethod"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                    <option value="">Selectionnez un mode</option>
+                    <option value="CASH">Especes</option>
+                    <option value="BANK_TRANSFER">Virement bancaire</option>
+                    <option value="CHECK">Cheque</option>
+                    <option value="MOBILE_MONEY">Mobile Money</option>
+                    <option value="CARD">Carte bancaire</option>
+                    <option value="OTHER">Autre</option>
+                </InputSelect>
+            </div>
+            <div class="col-span-6 sm:col-span-2">
+                <label for="accountId"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Compte</label>
+                <InputSelect @bind-Value="selectedAccountId" id="accountId"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                    <option value="">Selectionnez un compte</option>
+                    @foreach (var account in accounts.Where(a => a.IsActive))
+                    {
+                        <option value="@account.Id.ToString()">@account.Name (@GetAccountTypeName(account.Type))</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-span-6 sm:col-span-2">
+                <label for="categoryId"
+                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Categorie</label>
+                <InputSelect @bind-Value="purchase.CategoryId" id="categoryId"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                    <option value="">Selectionnez une categorie</option>
+                    @foreach (var category in categories.Where(c => c.Type == CategoryType.EXPENSE))
+                    {
+                        <option value="@category.Id.ToString()">@category.Name</option>
+                    }
+                </InputSelect>
             </div>
             <div class="col-span-6">
                 <label for="description"
@@ -317,17 +378,36 @@ else
     private EditContext editContext = null!;
     private ValidationMessageStore messageStore = null!;
 
+    // Listes pour les dropdowns Tresorerie
+    private List<AccountListDto> accounts = new();
+    private List<CategoryDTO> categories = new();
+    private bool _dataLoaded = false;
+
+    // Variable temporaire pour l'AccountId (car InputSelect utilise string)
+    private string selectedAccountId
+    {
+        get => purchase.AccountId?.ToString() ?? string.Empty;
+        set => purchase.AccountId = string.IsNullOrEmpty(value) ? null : Guid.Parse(value);
+    }
+
     protected override void OnInitialized()
     {
         InitializePurchase();
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         // Re-initialize when PurchaseToEdit changes
         if (PurchaseToEdit != null && PurchaseToEdit.Id != Guid.Empty && PurchaseToEdit.Id != purchase.Id)
         {
             InitializePurchase();
+        }
+
+        // Charger les données de tresorerie si pas encore fait
+        if (!_dataLoaded && BoutiqueId != Guid.Empty)
+        {
+            await LoadTresorerieDataAsync();
+            _dataLoaded = true;
         }
     }
 
@@ -400,7 +480,10 @@ else
                     TotalAmount = purchase.TotalAmount,
                     TotalQuantity = purchase.Items.Sum(x => x.Quantity),
                     Items = purchase.Items.ToList(),
-                    Status = purchase.Status
+                    Status = purchase.Status,
+                    PaymentMethod = purchase.PaymentMethod,
+                    AccountId = purchase.AccountId,
+                    CategoryId = purchase.CategoryId
                 };
 
                 // Show the purchase summary instead of immediately closing
@@ -521,6 +604,74 @@ else
 
         // Reuse the existing save logic
         await HandleUpdatePurchase();
+    }
+
+    private async Task LoadTresorerieDataAsync()
+    {
+        try
+        {
+            // Charger les comptes et catégories en parallèle
+            var accountsTask = _tresorerieService.GetAccountsAsync(BoutiqueId, false);
+            var categoriesTask = _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.EXPENSE, false);
+
+            await Task.WhenAll(accountsTask, categoriesTask);
+
+            var accountsResponse = await accountsTask;
+            var categoriesResponse = await categoriesTask;
+
+            if (accountsResponse.Success && accountsResponse.Data != null)
+            {
+                accounts = accountsResponse.Data.Accounts.ToList();
+            }
+
+            if (categoriesResponse.Success && categoriesResponse.Data != null)
+            {
+                categories = categoriesResponse.Data.Categories.ToList();
+            }
+        }
+        catch
+        {
+            accounts = new List<AccountListDto>();
+            categories = new List<CategoryDTO>();
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private string GetAccountTypeName(AccountType type) => type switch
+    {
+        AccountType.Cash => "Especes",
+        AccountType.Bank => "Banque",
+        AccountType.MobileMoney => "Mobile Money",
+        AccountType.Other => "Autre",
+        _ => type.ToString()
+    };
+
+    private string GetPaymentMethodName(string? paymentMethod) => paymentMethod switch
+    {
+        "CASH" => "Especes",
+        "BANK_TRANSFER" => "Virement bancaire",
+        "CHECK" => "Cheque",
+        "MOBILE_MONEY" => "Mobile Money",
+        "CARD" => "Carte bancaire",
+        "OTHER" => "Autre",
+        _ => paymentMethod ?? "-"
+    };
+
+    private string GetAccountName(Guid accountId)
+    {
+        var account = accounts.FirstOrDefault(a => a.Id == accountId);
+        return account?.Name ?? "-";
+    }
+
+    private string GetCategoryName(string? categoryId)
+    {
+        if (string.IsNullOrEmpty(categoryId) || !Guid.TryParse(categoryId, out var id))
+            return "-";
+        var category = categories.FirstOrDefault(c => c.Id == id);
+        return category?.Name ?? "-";
     }
 
 }
