@@ -154,6 +154,15 @@
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     }
+                                    @if (CanApprovePurchase(purchase))
+                                    {
+                                        <button type="button"
+                                            @onclick="() => ShowApproveConfirmation(purchase)"
+                                            class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                            title="Approuver l'achat">
+                                            <i class="fas fa-check-circle"></i>
+                                        </button>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -251,6 +260,15 @@
                                     class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
                                     title="Soumettre pour validation">
                                     <i class="fas fa-paper-plane"></i>
+                                </button>
+                            }
+                            @if (CanApprovePurchase(purchase))
+                            {
+                                <button type="button"
+                                    @onclick="() => ShowApproveConfirmation(purchase)"
+                                    class="text-green-600 hover:text-green-800 hover:bg-green-100 p-2 rounded-full transition-colors"
+                                    title="Approuver l'achat">
+                                    <i class="fas fa-check-circle"></i>
                                 </button>
                             }
                         </div>
@@ -431,6 +449,92 @@
     </div>
 </Modal>
 
+<!-- Approve Confirmation Modal -->
+<Modal
+    ShowModal="@showApproveModal"
+    OnCloseModal="CloseApproveModal"
+    ModalTitle="Approuver l'achat"
+>
+    <div class="p-6">
+        @if (!string.IsNullOrEmpty(approveErrorMessage))
+        {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                    <p class="text-red-700 text-sm">@approveErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <p class="text-gray-700 dark:text-gray-300">
+                Êtes-vous sûr de vouloir approuver cet achat ?
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                L'approbation va créer un mouvement de trésorerie correspondant.
+            </p>
+        </div>
+
+        @if (purchaseToApprove != null)
+        {
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Titre:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToApprove.Title</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Fournisseur:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToApprove.SupplierName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                        <span class="font-semibold text-primary-700 ml-1">@purchaseToApprove.TotalAmount.ToString("N0") FCFA</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Articles:</span>
+                        <span class="font-medium text-gray-900 dark:text-white ml-1">@purchaseToApprove.Items.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-green-500 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-green-700 dark:text-green-300">
+                        <p class="font-medium">Informations de paiement :</p>
+                        <ul class="mt-1 list-disc list-inside">
+                            <li>Mode de paiement : @(string.IsNullOrEmpty(purchaseToApprove.PaymentMethod) ? "Non renseigné" : purchaseToApprove.PaymentMethod)</li>
+                            <li>Compte : @(purchaseToApprove.AccountId.HasValue ? "Renseigné" : "Non renseigné")</li>
+                            <li>Catégorie : @(string.IsNullOrEmpty(purchaseToApprove.CategoryId) ? "Non renseignée" : "Renseignée")</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button class="text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-gray-700"
+                type="button" @onclick="CloseApproveModal" disabled="@isApproving">
+            Annuler
+        </button>
+        <button class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" @onclick="HandleApprovePurchase" disabled="@isApproving">
+            @if (isApproving)
+            {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <span>Approbation...</span>
+            }
+            else
+            {
+                <i class="fas fa-check-circle mr-2"></i>
+                <span>Approuver</span>
+            }
+        </button>
+    </div>
+</Modal>
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -439,13 +543,17 @@
     private bool showViewModal = false;
     private bool showEditModal = false;
     private bool showSubmitModal = false;
+    private bool showApproveModal = false;
     private string modalTitle = "";
     private bool isLoad = false;
     private bool isSubmitting = false;
+    private bool isApproving = false;
     private string submitErrorMessage = "";
+    private string approveErrorMessage = "";
     private Purchase selectedPurchase = new();
     private Purchase purchaseToEdit = new();
     private Purchase? purchaseToSubmit;
+    private Purchase? purchaseToApprove;
 
     private List<Purchase> purchases = new();
     private List<Purchase> filteredPurchases = new();
@@ -552,6 +660,12 @@
         return purchase.Status == "draft";
     }
 
+    private bool CanApprovePurchase(Purchase purchase)
+    {
+        // Only PendingApproval purchases can be approved
+        return purchase.Status == "pending_approval";
+    }
+
     private void ShowEditModal(Purchase purchase)
     {
         purchaseToEdit = purchase;
@@ -576,6 +690,69 @@
         showSubmitModal = false;
         purchaseToSubmit = null;
         submitErrorMessage = "";
+    }
+
+    private void ShowApproveConfirmation(Purchase purchase)
+    {
+        purchaseToApprove = purchase;
+        approveErrorMessage = "";
+        showApproveModal = true;
+    }
+
+    private void CloseApproveModal()
+    {
+        showApproveModal = false;
+        purchaseToApprove = null;
+        approveErrorMessage = "";
+    }
+
+    private async Task HandleApprovePurchase()
+    {
+        if (purchaseToApprove == null) return;
+
+        isApproving = true;
+        approveErrorMessage = "";
+
+        try
+        {
+            var request = new ApprovePurchaseRequest(boutiqueId);
+            var result = await _purchaseService.ApprovePurchaseAsync(purchaseToApprove.Id, request);
+
+            if (result.Success)
+            {
+                // Refresh the list
+                await GetPurchaseAsync();
+                ApplyFilter();
+                CloseApproveModal();
+            }
+            else
+            {
+                approveErrorMessage = result.Message ?? "Une erreur est survenue lors de l'approbation.";
+            }
+        }
+        catch (Refit.ApiException ex)
+        {
+            try
+            {
+                var errorResult = System.Text.Json.JsonSerializer.Deserialize<ErrorMessage>(ex.Content ?? "{}", new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                approveErrorMessage = errorResult?.Detail ?? ex.Message;
+            }
+            catch
+            {
+                approveErrorMessage = "Une erreur est survenue lors de l'approbation.";
+            }
+        }
+        catch (Exception ex)
+        {
+            approveErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isApproving = false;
+        }
     }
 
     private async Task HandleSubmitPurchase()
