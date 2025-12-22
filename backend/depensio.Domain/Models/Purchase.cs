@@ -1,4 +1,4 @@
-﻿namespace depensio.Domain.Models;
+namespace depensio.Domain.Models;
 
 public class Purchase : Entity<PurchaseId>
 {
@@ -8,8 +8,19 @@ public class Purchase : Entity<PurchaseId>
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime Date { get; set; }
-    //public decimal TotalAmount { get; set; }
+
+    // New fields for purchase workflow
+    public int Status { get; set; }
+    public Guid? PaymentMethodId { get; set; }
+    public Guid? AccountId { get; set; }
+    public Guid? CategoryId { get; set; }
+    public Guid? CashFlowId { get; set; }
+    public decimal TotalAmount { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+    public string? ApprovedBy { get; set; }
+    public string? RejectionReason { get; set; }
 
     public Boutique Boutique { get; set; }
     public ICollection<PurchaseItem> PurchaseItems { get; set; }
+    public ICollection<PurchaseStatusHistory> StatusHistory { get; set; }
 }

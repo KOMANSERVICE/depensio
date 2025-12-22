@@ -18,4 +18,7 @@ public interface IDepensioDbContext
     DbSet<Profile> Profiles { get; }
     DbSet<ProfileMenu> ProfileMenus { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<Purchase> Purchases { get; }
+    DbSet<PurchaseItem> PurchaseItems { get; }
+    DbSet<PurchaseStatusHistory> PurchaseStatusHistories { get; }
 }
