@@ -31,6 +31,9 @@ public class DepensioDbContext : IdentityDbContext<ApplicationUser>, IDepensioDb
     public DbSet<Profile> Profiles => Set<Profile>();
     public DbSet<ProfileMenu> ProfileMenus => Set<ProfileMenu>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Purchase> Purchases => Set<Purchase>();
+    public DbSet<PurchaseItem> PurchaseItems => Set<PurchaseItem>();
+    public DbSet<PurchaseStatusHistory> PurchaseStatusHistories => Set<PurchaseStatusHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
