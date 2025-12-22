@@ -3,6 +3,8 @@ namespace depensio.Shared.Pages.Produits.Models;
 public record GetPurchaseByBoutiqueResponse(IEnumerable<Purchase> Purchases);
 public record CreatePurchaseRequest(Purchase Purchase);
 public record CreatePurchaseResponse(Guid Id);
+public record UpdatePurchaseRequest(Purchase Purchase);
+public record UpdatePurchaseResponse(Guid Id);
 public record Purchase
 {
     public Guid Id { get; set; } = Guid.Empty;
