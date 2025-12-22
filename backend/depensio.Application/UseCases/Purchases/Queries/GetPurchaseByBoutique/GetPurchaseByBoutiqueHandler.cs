@@ -28,9 +28,9 @@ public class GetPurchaseByBoutiqueHandler(
                 DateAchat = p.DateAchat,
                 // Map int status back to string for frontend
                 Status = p.Status == (int)PurchaseStatus.Draft ? "draft" : null,
-                PaymentMethodId = p.PaymentMethodId,
+                PaymentMethod = p.PaymentMethod,
                 AccountId = p.AccountId,
-                ExpenseCategoryId = p.CategoryId,
+                CategoryId = p.CategoryId,
                 Items = p.PurchaseItems.Select(pi => new PurchaseItemDTO(
                     pi.Id.Value,pi.ProductId.Value, pi.Price, pi.Quantity
                 )).ToList()

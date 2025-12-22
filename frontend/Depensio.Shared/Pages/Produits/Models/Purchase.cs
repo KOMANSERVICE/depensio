@@ -21,19 +21,20 @@ public record Purchase
     public string? Status { get; set; }
 
     /// <summary>
-    /// Optional payment method ID
+    /// Optional payment method (e.g., "CASH", "BANK_TRANSFER", "MOBILE_MONEY", etc.)
+    /// Required when approving and creating CashFlow
     /// </summary>
-    public Guid? PaymentMethodId { get; set; }
+    public string? PaymentMethod { get; set; }
 
     /// <summary>
-    /// Optional account ID
+    /// Optional account ID (required when approving and creating CashFlow)
     /// </summary>
     public Guid? AccountId { get; set; }
 
     /// <summary>
-    /// Optional expense category ID
+    /// Optional expense category ID (required when approving and creating CashFlow)
     /// </summary>
-    public Guid? ExpenseCategoryId { get; set; }
+    public string? CategoryId { get; set; }
 }
 
 public record PurchaseItem

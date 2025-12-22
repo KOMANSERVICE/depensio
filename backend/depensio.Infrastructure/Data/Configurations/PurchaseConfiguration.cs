@@ -30,6 +30,12 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
             .HasPrecision(18, 2)
             .HasDefaultValue(0m);
 
+        builder.Property(e => e.PaymentMethod)
+            .HasMaxLength(50);
+
+        builder.Property(e => e.CategoryId)
+            .HasMaxLength(100);
+
         builder.Property(e => e.ApprovedBy)
             .HasMaxLength(450);
 
