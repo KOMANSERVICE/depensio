@@ -1,15 +1,20 @@
 
+using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Application.UseCases.Purchases.Commands.CreatePurchase;
 using depensio.Application.UseCases.Purchases.DTOs;
 using depensio.Domain.Enums;
 using depensio.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 
 namespace depensio.Application.UseCases.Purchases.Commands.CreatePurchase;
 
 public class CreatePurchaseHandler(
     IDepensioDbContext _depensioRepository,
     IGenericRepository<Purchase> _purchaseRepository,
-    IUnitOfWork _unitOfWork
+    IUnitOfWork _unitOfWork,
+    IUserContextService _userContextService,
+    ITresorerieService _tresorerieService,
+    ILogger<CreatePurchaseHandler> _logger
     )
     : ICommandHandler<CreatePurchaseCommand, CreatePurchaseResult>
 {
@@ -38,26 +43,38 @@ public class CreatePurchaseHandler(
             throw new NotFoundException($"Any product does not exist.", nameof(command.Purchase.BoutiqueId));
         }
 
-        var purchase = CreateNewPurchase(command.Purchase);
+        var userId = _userContextService.GetUserId();
+        var purchase = CreateNewPurchase(command.Purchase, userId);
 
         await _purchaseRepository.AddDataAsync(purchase, cancellationToken);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
+        // AC-3: If PaymentMethod + AccountId provided AND status is Approved → Call Trésorerie to create CashFlow
+        // AC-4: If payment info absent → No Trésorerie call (current behavior)
+        if (purchase.Status == (int)PurchaseStatus.Approved &&
+            !string.IsNullOrEmpty(purchase.PaymentMethod) &&
+            purchase.AccountId.HasValue &&
+            !string.IsNullOrEmpty(purchase.CategoryId))
+        {
+            await CreateCashFlowFromPurchaseAsync(purchase, command.Purchase.BoutiqueId);
+        }
+
         return new CreatePurchaseResult(purchase.Id.Value);
     }
 
-    private Purchase CreateNewPurchase(PurchaseDTO purchaseDTO)
+    private Purchase CreateNewPurchase(PurchaseDTO purchaseDTO, string userId)
     {
         var purchaseId = PurchaseId.Of(Guid.NewGuid());
+        var now = DateTime.UtcNow;
 
-        // Determine status: if "draft" is specified, use Draft; otherwise use Approved for backward compatibility
+        // AC-1: If status not specified in request → Status = Approved (3) (retrocompatibility)
         var isDraft = string.Equals(purchaseDTO.Status, "draft", StringComparison.OrdinalIgnoreCase);
         var status = isDraft ? PurchaseStatus.Draft : PurchaseStatus.Approved;
 
         // Calculate total amount from items
         var totalAmount = purchaseDTO.Items.Sum(i => i.Price * i.Quantity);
 
-        // Create initial status history entry (AC-6)
+        // AC-6: Create initial status history entry (FromStatus = null, ToStatus = status)
         var statusHistory = new PurchaseStatusHistory
         {
             Id = PurchaseStatusHistoryId.Of(Guid.NewGuid()),
@@ -70,19 +87,22 @@ public class CreatePurchaseHandler(
         return new Purchase
         {
             Id = purchaseId,
-            Date = DateTime.UtcNow,
+            Date = now,
             Title = purchaseDTO.Title,
             Description = purchaseDTO.Description,
             SupplierName = purchaseDTO.SupplierName,
             DateAchat = purchaseDTO.DateAchat,
             Status = (int)status,
-            TotalAmount = totalAmount, // AC-7: TotalAmount is calculated and stored
-            // AC-2: Optional fields (PaymentMethodId, AccountId, CategoryId)
-            PaymentMethodId = purchaseDTO.PaymentMethodId,
+            TotalAmount = totalAmount,
+            // AC-2: Optional fields (PaymentMethod, AccountId, CategoryId)
+            PaymentMethod = purchaseDTO.PaymentMethod,
             AccountId = purchaseDTO.AccountId,
-            CategoryId = purchaseDTO.ExpenseCategoryId,
-            // AC-3 & AC-4: No call to Trésorerie service, CashFlowId remains null for draft
+            CategoryId = purchaseDTO.CategoryId,
+            // CashFlowId will be set after Trésorerie call if applicable
             CashFlowId = null,
+            // AC-5: ApprovedAt = CreatedAt, ApprovedBy = CreatedBy (when status is Approved)
+            ApprovedAt = isDraft ? null : now,
+            ApprovedBy = isDraft ? null : userId,
             PurchaseItems = purchaseDTO.Items.Select(i => new PurchaseItem
             {
                 Id = PurchaseItemId.Of(Guid.NewGuid()),
@@ -95,5 +115,49 @@ public class CreatePurchaseHandler(
             // AC-6: Create initial status history entry
             StatusHistory = new List<PurchaseStatusHistory> { statusHistory }
         };
+    }
+
+    /// <summary>
+    /// AC-3: Call Trésorerie service to create CashFlow from approved purchase
+    /// </summary>
+    private async Task CreateCashFlowFromPurchaseAsync(Purchase purchase, Guid boutiqueId)
+    {
+        try
+        {
+            var request = new CreateCashFlowFromPurchaseRequest(
+                PurchaseId: purchase.Id.Value,
+                PurchaseReference: $"ACH-{purchase.Id.Value.ToString()[..8].ToUpper()}",
+                Amount: purchase.TotalAmount,
+                AccountId: purchase.AccountId!.Value,
+                PaymentMethod: purchase.PaymentMethod!,
+                PurchaseDate: purchase.Date,
+                SupplierName: purchase.SupplierName,
+                SupplierId: null,
+                CategoryId: purchase.CategoryId!
+            );
+
+            var result = await _tresorerieService.CreateCashFlowFromPurchaseAsync(
+                "depensio",
+                boutiqueId.ToString(),
+                request
+            );
+
+            if (result.Success && result.Data != null)
+            {
+                // Update purchase with CashFlowId
+                purchase.CashFlowId = result.Data.CashFlow.Id;
+                await _unitOfWork.SaveChangesDataAsync(default);
+                _logger.LogInformation("CashFlow {CashFlowId} created for Purchase {PurchaseId}", result.Data.CashFlow.Id, purchase.Id.Value);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to create CashFlow for Purchase {PurchaseId}: {Message}", purchase.Id.Value, result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't fail the purchase creation
+            _logger.LogError(ex, "Error creating CashFlow for Purchase {PurchaseId}", purchase.Id.Value);
+        }
     }
 }

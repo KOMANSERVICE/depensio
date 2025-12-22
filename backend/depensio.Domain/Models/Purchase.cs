@@ -11,9 +11,9 @@ public class Purchase : Entity<PurchaseId>
 
     // New fields for purchase workflow
     public int Status { get; set; }
-    public Guid? PaymentMethodId { get; set; }
+    public string? PaymentMethod { get; set; }
     public Guid? AccountId { get; set; }
-    public Guid? CategoryId { get; set; }
+    public string? CategoryId { get; set; }
     public Guid? CashFlowId { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime? ApprovedAt { get; set; }
