@@ -7,6 +7,8 @@ public record UpdatePurchaseRequest(Purchase Purchase);
 public record UpdatePurchaseResponse(Guid Id);
 public record SubmitPurchaseRequest(Guid BoutiqueId);
 public record SubmitPurchaseResponse(Guid Id, string Status);
+public record ApprovePurchaseRequest(Guid BoutiqueId);
+public record ApprovePurchaseResponse(Guid Id, string Status, Guid? CashFlowId);
 public record Purchase
 {
     public Guid Id { get; set; } = Guid.Empty;
