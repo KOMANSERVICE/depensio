@@ -27,7 +27,9 @@ public class GetPurchaseByBoutiqueHandler(
                 Description = p.Description,
                 DateAchat = p.DateAchat,
                 // Map int status back to string for frontend
-                Status = p.Status == (int)PurchaseStatus.Draft ? "draft" : null,
+                Status = p.Status == (int)PurchaseStatus.Draft ? "draft" :
+                         p.Status == (int)PurchaseStatus.PendingApproval ? "pending_approval" :
+                         p.Status == (int)PurchaseStatus.Rejected ? "rejected" : null,
                 PaymentMethod = p.PaymentMethod,
                 AccountId = p.AccountId,
                 CategoryId = p.CategoryId,

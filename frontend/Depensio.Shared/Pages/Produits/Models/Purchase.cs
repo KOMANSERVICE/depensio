@@ -5,6 +5,8 @@ public record CreatePurchaseRequest(Purchase Purchase);
 public record CreatePurchaseResponse(Guid Id);
 public record UpdatePurchaseRequest(Purchase Purchase);
 public record UpdatePurchaseResponse(Guid Id);
+public record SubmitPurchaseRequest(Guid BoutiqueId);
+public record SubmitPurchaseResponse(Guid Id, string Status);
 public record Purchase
 {
     public Guid Id { get; set; } = Guid.Empty;
