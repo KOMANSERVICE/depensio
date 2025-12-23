@@ -50,21 +50,31 @@ public class TransferPurchaseHandler(
             throw new BadRequestException("Cet achat a déjà été transféré à la trésorerie.");
         }
 
+        // Use provided values or fall back to existing purchase values
+        var accountId = command.AccountId ?? purchase.AccountId;
+        var paymentMethod = !string.IsNullOrWhiteSpace(command.PaymentMethod) ? command.PaymentMethod : purchase.PaymentMethod;
+        var categoryId = !string.IsNullOrWhiteSpace(command.CategoryId) ? command.CategoryId : purchase.CategoryId;
+
         // Validate required fields for Treasury call
-        if (!purchase.AccountId.HasValue)
+        if (!accountId.HasValue)
         {
             throw new BadRequestException("Le compte est obligatoire pour transférer l'achat.");
         }
 
-        if (string.IsNullOrWhiteSpace(purchase.PaymentMethod))
+        if (string.IsNullOrWhiteSpace(paymentMethod))
         {
             throw new BadRequestException("Le mode de paiement est obligatoire pour transférer l'achat.");
         }
 
-        if (string.IsNullOrWhiteSpace(purchase.CategoryId))
+        if (string.IsNullOrWhiteSpace(categoryId))
         {
             throw new BadRequestException("La catégorie est obligatoire pour transférer l'achat.");
         }
+
+        // Update purchase with the values that will be used for transfer
+        purchase.AccountId = accountId;
+        purchase.PaymentMethod = paymentMethod;
+        purchase.CategoryId = categoryId;
 
         var userId = _userContextService.GetUserId();
 
@@ -76,12 +86,12 @@ public class TransferPurchaseHandler(
                 PurchaseId: purchase.Id.Value,
                 PurchaseReference: $"ACH-{purchase.Id.Value.ToString()[..8].ToUpper()}",
                 Amount: purchase.TotalAmount,
-                AccountId: purchase.AccountId!.Value,
-                PaymentMethod: purchase.PaymentMethod!,
+                AccountId: accountId!.Value,
+                PaymentMethod: paymentMethod!,
                 PurchaseDate: purchase.Date,
                 SupplierName: purchase.SupplierName,
                 SupplierId: null,
-                CategoryId: purchase.CategoryId!
+                CategoryId: categoryId!
             );
 
             var result = await _tresorerieService.CreateCashFlowFromPurchaseAsync(

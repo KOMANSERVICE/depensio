@@ -1,8 +1,10 @@
 @page "/achats-non-transferes/{boutiqueId:guid}"
+@using depensio.Shared.Pages.Tresoreries.Models
 @inherits FlowbitePage
 @layout MainLayout
 @inject IPurchaseService _purchaseService
 @inject IProductService _productService
+@inject ITresorerieService _tresorerieService
 
 <PageTitleComponent Title="Achats non transférés" />
 
@@ -319,16 +321,52 @@
                 </div>
             </div>
 
-            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <div class="flex items-start">
-                    <i class="fas fa-info-circle text-green-500 mt-0.5 mr-2"></i>
-                    <div class="text-sm text-green-700 dark:text-green-300">
-                        <p class="font-medium">Informations de paiement :</p>
-                        <ul class="mt-1 list-disc list-inside">
-                            <li>Mode de paiement : @(string.IsNullOrEmpty(purchaseToTransfer.PaymentMethod) ? "Non renseigné" : purchaseToTransfer.PaymentMethod)</li>
-                            <li>Compte : @(purchaseToTransfer.AccountId.HasValue ? "Renseigné" : "Non renseigné")</li>
-                            <li>Catégorie : @(string.IsNullOrEmpty(purchaseToTransfer.CategoryId) ? "Non renseignée" : "Renseignée")</li>
-                        </ul>
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                <div class="flex items-start mb-3">
+                    <i class="fas fa-edit text-blue-500 mt-0.5 mr-2"></i>
+                    <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Informations de paiement (modifiables) :</p>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="transferPaymentMethod" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Mode de paiement <span class="text-red-500">*</span>
+                        </label>
+                        <select @bind="transferPaymentMethod" id="transferPaymentMethod"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            <option value="">Sélectionnez un mode</option>
+                            <option value="CASH">Espèces</option>
+                            <option value="BANK_TRANSFER">Virement bancaire</option>
+                            <option value="CHECK">Chèque</option>
+                            <option value="MOBILE_MONEY">Mobile Money</option>
+                            <option value="CARD">Carte bancaire</option>
+                            <option value="OTHER">Autre</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="transferAccountId" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Compte <span class="text-red-500">*</span>
+                        </label>
+                        <select @bind="transferAccountId" id="transferAccountId"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            <option value="">Sélectionnez un compte</option>
+                            @foreach (var account in accounts.Where(a => a.IsActive))
+                            {
+                                <option value="@account.Id.ToString()">@account.Name (@GetAccountTypeName(account.Type))</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label for="transferCategoryId" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Catégorie <span class="text-red-500">*</span>
+                        </label>
+                        <select @bind="transferCategoryId" id="transferCategoryId"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            <option value="">Sélectionnez une catégorie</option>
+                            @foreach (var category in categories.Where(c => c.Type == CategoryType.EXPENSE))
+                            {
+                                <option value="@category.Id.ToString()">@category.Name</option>
+                            }
+                        </select>
                     </div>
                 </div>
             </div>
@@ -450,6 +488,15 @@
     private HashSet<Guid> selectedPurchaseIds = new();
     private string searchTerm = "";
 
+    // Treasury data for transfer form
+    private List<AccountListDto> accounts = new();
+    private List<CategoryDTO> categories = new();
+
+    // Transfer form fields
+    private string transferPaymentMethod = "";
+    private string transferAccountId = "";
+    private string transferCategoryId = "";
+
     // Pagination
     private int itemsPerPage = 10;
     private int currentPage = 1;
@@ -475,13 +522,45 @@
         isLoad = true;
         try
         {
-            await GetPurchaseAsync();
-            await GetProductsAsync();
+            await Task.WhenAll(
+                GetPurchaseAsync(),
+                GetProductsAsync(),
+                LoadTresorerieDataAsync()
+            );
             ApplyFilter();
         }
         finally
         {
             isLoad = false;
+        }
+    }
+
+    private async Task LoadTresorerieDataAsync()
+    {
+        try
+        {
+            var accountsTask = _tresorerieService.GetAccountsAsync(boutiqueId, false);
+            var categoriesTask = _tresorerieService.GetCategoriesAsync(boutiqueId, CategoryType.EXPENSE, false);
+
+            await Task.WhenAll(accountsTask, categoriesTask);
+
+            var accountsResponse = await accountsTask;
+            var categoriesResponse = await categoriesTask;
+
+            if (accountsResponse.Success && accountsResponse.Data != null)
+            {
+                accounts = accountsResponse.Data.Accounts.ToList();
+            }
+
+            if (categoriesResponse.Success && categoriesResponse.Data != null)
+            {
+                categories = categoriesResponse.Data.Categories.ToList();
+            }
+        }
+        catch
+        {
+            accounts = new List<AccountListDto>();
+            categories = new List<CategoryDTO>();
         }
     }
 
@@ -546,6 +625,12 @@
     {
         purchaseToTransfer = purchase;
         transferErrorMessage = "";
+
+        // Initialize form fields with existing purchase values
+        transferPaymentMethod = purchase.PaymentMethod ?? "";
+        transferAccountId = purchase.AccountId?.ToString() ?? "";
+        transferCategoryId = purchase.CategoryId ?? "";
+
         showTransferModal = true;
     }
 
@@ -554,18 +639,48 @@
         showTransferModal = false;
         purchaseToTransfer = null;
         transferErrorMessage = "";
+
+        // Reset form fields
+        transferPaymentMethod = "";
+        transferAccountId = "";
+        transferCategoryId = "";
     }
 
     private async Task HandleTransferPurchase()
     {
         if (purchaseToTransfer == null) return;
 
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(transferPaymentMethod))
+        {
+            transferErrorMessage = "Le mode de paiement est obligatoire.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(transferAccountId))
+        {
+            transferErrorMessage = "Le compte est obligatoire.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(transferCategoryId))
+        {
+            transferErrorMessage = "La catégorie est obligatoire.";
+            return;
+        }
+
         isTransferring = true;
         transferErrorMessage = "";
 
         try
         {
-            var request = new TransferPurchaseRequest(boutiqueId);
+            var accountId = Guid.TryParse(transferAccountId, out var parsedAccountId) ? parsedAccountId : (Guid?)null;
+            var request = new TransferPurchaseRequest(
+                boutiqueId,
+                transferPaymentMethod,
+                accountId,
+                transferCategoryId
+            );
             var result = await _purchaseService.TransferPurchaseAsync(purchaseToTransfer.Id, request);
 
             if (result.Success)
@@ -739,4 +854,13 @@
             currentPage++;
         }
     }
+
+    private string GetAccountTypeName(AccountType type) => type switch
+    {
+        AccountType.Cash => "Espèces",
+        AccountType.Bank => "Banque",
+        AccountType.MobileMoney => "Mobile Money",
+        AccountType.Other => "Autre",
+        _ => type.ToString()
+    };
 }
