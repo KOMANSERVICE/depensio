@@ -77,10 +77,8 @@ public class UpdatePurchaseHandler(
 
     private async Task UpdatePurchaseFields(Purchase purchase, PurchaseDTO purchaseDTO, string email, CancellationToken cancellationToken)
     {
-        foreach (var existingItem in purchase.PurchaseItems.ToList())
-        {
-            await _purchaseItemRepository.DeleteDataAsync(existingItem.PurchaseId.Value, cancellationToken);
-        }
+        await _purchaseItemRepository.DeleteRangeDataAsync(purchase.PurchaseItems);
+
 
         // Clear the collection
         purchase.PurchaseItems.Clear();
@@ -120,10 +118,7 @@ public class UpdatePurchaseHandler(
         // Strategy: Remove all existing items and add the new ones
 
         // Remove existing items from DbContext
-        foreach (var existingItem in purchase.PurchaseItems.ToList())
-        {
-            await _purchaseItemRepository.DeleteDataAsync(existingItem.Id.Value, cancellationToken);
-        }
+        await _purchaseItemRepository.DeleteRangeDataAsync(purchase.PurchaseItems);
 
         // Clear the collection
         purchase.PurchaseItems.Clear();
