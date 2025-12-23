@@ -5,10 +5,12 @@ namespace depensio.Application.UseCases.Sales.Commands.CancelSale;
 
 /// <summary>
 /// Handler for cancelling a sale
+/// US-SAL-002: Annuler une vente avec contre-passation
 /// - Transition: Validated -> Cancelled
-/// - If CashFlowId exists -> Call Treasury to delete CashFlow (contre-passation)
+/// - If CashFlowId exists -> Create contra-entry (contre-passation) in Treasury
 /// - Restore stock if not auto-managed
 /// - Restore ProductItems to Available
+/// - Create status history with FromStatus=Validated, ToStatus=Cancelled
 /// </summary>
 public class CancelSaleHandler(
     IDepensioDbContext _dbContext,
@@ -42,49 +44,26 @@ public class CancelSaleHandler(
             throw new BadRequestException("Cette vente a déjà été annulée.");
         }
 
-        // Treasury integration: Delete CashFlow if exists (contre-passation)
-        if (sale.CashFlowId.HasValue)
+        // AC-5: Si CashFlowId existe -> Contre-passation Trésorerie
+        // Create a contra-entry (EXPENSE) to reverse the original sale (INCOME)
+        if (sale.CashFlowId.HasValue && sale.AccountId.HasValue && sale.CategoryId.HasValue)
         {
-            try
-            {
-                var response = await _tresorerieService.DeleteCashFlowAsync(
-                    sale.CashFlowId.Value,
-                    "depensio",
-                    sale.BoutiqueId.Value.ToString()
-                );
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Failed to delete CashFlow {CashFlowId} for Sale {SaleId}",
-                        sale.CashFlowId.Value, sale.Id.Value);
-                    // Don't block sale cancellation if Treasury call fails
-                }
-                else
-                {
-                    _logger.LogInformation("CashFlow {CashFlowId} deleted for Sale {SaleId}",
-                        sale.CashFlowId.Value, sale.Id.Value);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't fail the sale cancellation
-                _logger.LogError(ex, "Error deleting CashFlow {CashFlowId} for Sale {SaleId}",
-                    sale.CashFlowId, sale.Id.Value);
-            }
+            await CreateContraEntryAsync(sale, command.Reason);
         }
 
+        // AC-7: Historique créé avec FromStatus=Validated, ToStatus=Cancelled
         var fromStatus = (int)sale.Status;
         sale.Status = SaleStatus.Cancelled;
         sale.CancelledAt = DateTime.UtcNow;
         sale.CancellationReason = command.Reason;
-        sale.CashFlowId = null; // Clear CashFlowId since it has been deleted
+        // Note: We keep CashFlowId as reference to the original CashFlow
 
+        // AC-3 & AC-4: Restore stock and ProductItems
         var stockIsAuto = await GetStockAuto(sale.BoutiqueId.Value);
-
         await RestoreStockAsync(sale, stockIsAuto, cancellationToken);
         await RestoreProductItemsAsync(sale, cancellationToken);
 
-        // Add status history entry
+        // AC-7: Add status history entry with FromStatus and ToStatus
         var statusHistory = new SaleStatusHistory
         {
             Id = SaleStatusHistoryId.Of(Guid.NewGuid()),
@@ -101,6 +80,56 @@ public class CancelSaleHandler(
         _logger.LogInformation("Sale {SaleId} cancelled. Reason: {Reason}", sale.Id.Value, command.Reason ?? "(aucun motif)");
 
         return new CancelSaleResult(true);
+    }
+
+    /// <summary>
+    /// AC-5: Create contra-entry (contre-passation) in Treasury
+    /// Original sale was INCOME, contra-entry is EXPENSE to reverse it
+    /// </summary>
+    private async Task CreateContraEntryAsync(Sale sale, string? cancellationReason)
+    {
+        try
+        {
+            var contraEntryRequest = new CreateCashFlowRequest(
+                Type: CashFlowTypeExtended.EXPENSE,
+                CategoryId: sale.CategoryId!.Value.ToString(),
+                Label: $"Annulation vente VTE-{sale.Id.Value.ToString()[..8].ToUpper()}",
+                Description: $"Contre-passation suite à annulation. {(string.IsNullOrWhiteSpace(cancellationReason) ? "" : $"Motif: {cancellationReason}")}",
+                Amount: sale.TotalAmount,
+                AccountId: sale.AccountId!.Value,
+                PaymentMethod: sale.PaymentMethodId?.ToString() ?? "CASH",
+                Date: DateTime.UtcNow,
+                CustomerName: null,
+                SupplierName: null,
+                AttachmentUrl: null
+            );
+
+            var result = await _tresorerieService.CreateCashFlowAsync(
+                "depensio",
+                sale.BoutiqueId.Value.ToString(),
+                contraEntryRequest
+            );
+
+            if (result.Success && result.Data != null)
+            {
+                _logger.LogInformation(
+                    "Contra-entry CashFlow {ContraCashFlowId} created for cancelled Sale {SaleId}. Original CashFlow: {OriginalCashFlowId}",
+                    result.Data.CashFlow.Id, sale.Id.Value, sale.CashFlowId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to create contra-entry CashFlow for Sale {SaleId}: {Message}",
+                    sale.Id.Value, result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't fail the sale cancellation
+            _logger.LogError(ex,
+                "Error creating contra-entry CashFlow for Sale {SaleId}. Original CashFlow: {CashFlowId}",
+                sale.Id.Value, sale.CashFlowId);
+        }
     }
 
     private async Task RestoreStockAsync(Sale sale, bool stockIsAuto, CancellationToken cancellationToken)
