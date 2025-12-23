@@ -1,5 +1,7 @@
 using depensio.Application.ApiExterne.Tresoreries;
+using depensio.Domain.Constants;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace depensio.Application.UseCases.Purchases.Commands.SubmitPurchase;
 
@@ -8,6 +10,7 @@ public class SubmitPurchaseHandler(
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
     ITresorerieService _tresorerieService,
+    IBoutiqueSettingService _boutiqueSettingService,
     ILogger<SubmitPurchaseHandler> _logger
     )
     : ICommandHandler<SubmitPurchaseCommand, SubmitPurchaseResult>
@@ -43,32 +46,40 @@ public class SubmitPurchaseHandler(
             throw new BadRequestException("L'achat doit contenir au moins un article pour être soumis.");
         }
 
-        // AC-2: Validate PaymentMethod is required
-        if (string.IsNullOrWhiteSpace(purchase.PaymentMethod))
-        {
-            throw new BadRequestException("Le mode de paiement est obligatoire pour soumettre l'achat.");
-        }
+        // Check if automatic treasury transfer is enabled
+        var envoiAutomatiqueEnabled = await IsEnvoiAutomatiqueEnabledAsync(command.BoutiqueId);
 
-        // AC-3: Validate AccountId is required
-        if (!purchase.AccountId.HasValue)
+        // Validate required fields for Treasury call only if automatic transfer is enabled
+        if (envoiAutomatiqueEnabled)
         {
-            throw new BadRequestException("Le compte est obligatoire pour soumettre l'achat.");
-        }
+            // AC-2: Validate PaymentMethod is required
+            if (string.IsNullOrWhiteSpace(purchase.PaymentMethod))
+            {
+                throw new BadRequestException("Le mode de paiement est obligatoire pour soumettre l'achat.");
+            }
 
-        // AC-4: Validate CategoryId is required
-        if (string.IsNullOrWhiteSpace(purchase.CategoryId))
-        {
-            throw new BadRequestException("La catégorie est obligatoire pour soumettre l'achat.");
-        }
+            // AC-3: Validate AccountId is required
+            if (!purchase.AccountId.HasValue)
+            {
+                throw new BadRequestException("Le compte est obligatoire pour soumettre l'achat.");
+            }
 
-        // AC-6, AC-7, AC-8: Validate references exist in Treasury API
-        await ValidateTreasuryReferencesAsync(command.BoutiqueId, purchase.AccountId.Value, purchase.CategoryId, cancellationToken);
+            // AC-4: Validate CategoryId is required
+            if (string.IsNullOrWhiteSpace(purchase.CategoryId))
+            {
+                throw new BadRequestException("La catégorie est obligatoire pour soumettre l'achat.");
+            }
+
+            // AC-6, AC-7, AC-8: Validate references exist in Treasury API
+            await ValidateTreasuryReferencesAsync(command.BoutiqueId, purchase.AccountId.Value, purchase.CategoryId, cancellationToken);
+        }
 
         var userId = _userContextService.GetUserId();
 
         // AC-1: Transition Draft (1) -> PendingApproval (2)
         var fromStatus = purchase.Status;
         purchase.Status = (int)PurchaseStatus.PendingApproval;
+
 
         // AC-10: Create status history entry
         var statusHistory = new PurchaseStatusHistory
@@ -159,4 +170,36 @@ public class SubmitPurchaseHandler(
             throw new BadRequestException("Erreur lors de la validation de la catégorie. Veuillez réessayer.");
         }
     }
+
+    private async Task<bool> IsEnvoiAutomatiqueEnabledAsync(Guid boutiqueId)
+    {
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingAsync(boutiqueId, BoutiqueSettingKeys.ACHAT_KEY);
+            if (setting?.Value is string json && !string.IsNullOrEmpty(json))
+            {
+                var settingValues = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+                var envoiAutoSetting = settingValues?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.ACHAT_ENVOI_AUTOMATIQUE_TRESORERIE);
+                if (envoiAutoSetting != null)
+                {
+                    return envoiAutoSetting.Value?.ToString()?.ToLower() == "true";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error reading purchase setting for boutique {BoutiqueId}. Defaulting to false.", boutiqueId);
+        }
+        return false;
+    }
+}
+
+internal class BoutiqueSettingValue
+{
+    public string Id { get; set; } = string.Empty;
+    public string LabelValue { get; set; } = string.Empty;
+    public object? Value { get; set; }
+    public string LabelText { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 }
