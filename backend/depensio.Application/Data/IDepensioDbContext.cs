@@ -21,4 +21,5 @@ public interface IDepensioDbContext
     DbSet<Purchase> Purchases { get; }
     DbSet<PurchaseItem> PurchaseItems { get; }
     DbSet<PurchaseStatusHistory> PurchaseStatusHistories { get; }
+    DbSet<SaleStatusHistory> SaleStatusHistories { get; }
 }
