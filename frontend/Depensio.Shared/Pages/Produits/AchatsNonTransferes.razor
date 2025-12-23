@@ -1,12 +1,10 @@
 @page "/achats-non-transferes/{boutiqueId:guid}"
-@using depensio.Shared.Pages.Produits.Components
-@using depensio.Shared.Pages.Produits.Models
 @inherits FlowbitePage
 @layout MainLayout
 @inject IPurchaseService _purchaseService
 @inject IProductService _productService
 
-<PageTitle>Depensio - Achats non transférés</PageTitle>
+<PageTitleComponent Title="Achats non transférés" />
 
 <HeaderPage
             Title="Achats non transférés"
