@@ -43,8 +43,8 @@ public class CreatePurchaseHandler(
             throw new NotFoundException($"Any product does not exist.", nameof(command.Purchase.BoutiqueId));
         }
 
-        var userId = _userContextService.GetUserId();
-        var purchase = CreateNewPurchase(command.Purchase, userId);
+        var email = _userContextService.GetEmail();
+        var purchase = CreateNewPurchase(command.Purchase, email);
 
         await _purchaseRepository.AddDataAsync(purchase, cancellationToken);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
@@ -62,7 +62,7 @@ public class CreatePurchaseHandler(
         return new CreatePurchaseResult(purchase.Id.Value);
     }
 
-    private Purchase CreateNewPurchase(PurchaseDTO purchaseDTO, string userId)
+    private Purchase CreateNewPurchase(PurchaseDTO purchaseDTO, string email)
     {
         var purchaseId = PurchaseId.Of(Guid.NewGuid());
         var now = DateTime.UtcNow;
@@ -102,7 +102,7 @@ public class CreatePurchaseHandler(
             CashFlowId = null,
             // AC-5: ApprovedAt = CreatedAt, ApprovedBy = CreatedBy (when status is Approved)
             ApprovedAt = isDraft ? null : now,
-            ApprovedBy = isDraft ? null : userId,
+            ApprovedBy = isDraft ? null : email,
             PurchaseItems = purchaseDTO.Items.Select(i => new PurchaseItem
             {
                 Id = PurchaseItemId.Of(Guid.NewGuid()),

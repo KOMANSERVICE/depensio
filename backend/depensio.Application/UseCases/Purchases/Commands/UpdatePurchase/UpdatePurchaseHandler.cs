@@ -51,10 +51,10 @@ public class UpdatePurchaseHandler(
             throw new NotFoundException("Un ou plusieurs produits n'existent pas.", nameof(command.Purchase.Items));
         }
 
-        var userId = _userContextService.GetUserId();
+        var email = _userContextService.GetEmail();
 
         // AC-2 & AC-3: Update all fields
-        UpdatePurchaseFields(purchase, command.Purchase, userId);
+        UpdatePurchaseFields(purchase, command.Purchase, email);
 
         // AC-3: Update items (remove existing and add new ones)
         await UpdatePurchaseItems(purchase, command.Purchase.Items, cancellationToken);
@@ -62,14 +62,15 @@ public class UpdatePurchaseHandler(
         // AC-4: Recalculate TotalAmount
         purchase.TotalAmount = command.Purchase.Items.Sum(i => i.Price * i.Quantity);
 
+        _purchaseRepository.UpdateData(purchase);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
-        _logger.LogInformation("Purchase {PurchaseId} updated successfully by user {UserId}", purchase.Id.Value, userId);
+        _logger.LogInformation("Purchase {PurchaseId} updated successfully by user {email}", purchase.Id.Value, email);
 
         return new UpdatePurchaseResult(purchase.Id.Value);
     }
 
-    private void UpdatePurchaseFields(Purchase purchase, PurchaseDTO purchaseDTO, string userId)
+    private void UpdatePurchaseFields(Purchase purchase, PurchaseDTO purchaseDTO, string email)
     {
         // AC-2: All fields can be modified
         purchase.Title = purchaseDTO.Title;
