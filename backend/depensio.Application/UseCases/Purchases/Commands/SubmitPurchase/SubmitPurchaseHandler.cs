@@ -11,6 +11,8 @@ public class SubmitPurchaseHandler(
     IUserContextService _userContextService,
     ITresorerieService _tresorerieService,
     IBoutiqueSettingService _boutiqueSettingService,
+    IGenericRepository<PurchaseStatusHistory> _purchaseStatusHistoryRepository,
+    IGenericRepository<Purchase> _purchaseRepository,
     ILogger<SubmitPurchaseHandler> _logger
     )
     : ICommandHandler<SubmitPurchaseCommand, SubmitPurchaseResult>
@@ -91,8 +93,8 @@ public class SubmitPurchaseHandler(
             Comment = "Achat soumis pour validation"
         };
 
-        _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
-
+        await _purchaseStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
+        _purchaseRepository.UpdateData(purchase);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
         _logger.LogInformation("Purchase {PurchaseId} submitted for approval by user {UserId}", purchase.Id.Value, userId);

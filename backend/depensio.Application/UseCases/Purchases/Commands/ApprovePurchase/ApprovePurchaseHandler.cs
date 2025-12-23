@@ -12,6 +12,8 @@ public class ApprovePurchaseHandler(
     IUserContextService _userContextService,
     ITresorerieService _tresorerieService,
     IBoutiqueSettingService _boutiqueSettingService,
+    IGenericRepository<PurchaseStatusHistory> _purchaseStatusHistoryRepository,
+    IGenericRepository<Purchase> _purchaseRepository,
     ILogger<ApprovePurchaseHandler> _logger
     )
     : ICommandHandler<ApprovePurchaseCommand, ApprovePurchaseResult>
@@ -149,7 +151,9 @@ public class ApprovePurchaseHandler(
             Comment = envoiAutomatiqueEnabled ? "Achat approuvé et transféré à la trésorerie" : "Achat approuvé"
         };
 
-        _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
+
+        await _purchaseStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
+        _purchaseRepository.UpdateData(purchase);
 
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 

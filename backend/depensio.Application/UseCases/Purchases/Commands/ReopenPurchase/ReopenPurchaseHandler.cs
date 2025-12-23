@@ -15,6 +15,8 @@ public class ReopenPurchaseHandler(
     IDepensioDbContext _depensioDbContext,
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
+    IGenericRepository<PurchaseStatusHistory> _purchaseStatusHistoryRepository,
+    IGenericRepository<Purchase> _purchaseRepository,
     ILogger<ReopenPurchaseHandler> _logger
     )
     : ICommandHandler<ReopenPurchaseCommand, ReopenPurchaseResult>
@@ -69,7 +71,9 @@ public class ReopenPurchaseHandler(
                 : $"Achat rouvert pour correction. Motif de rejet précédent: {previousRejectionReason}"
         };
 
-        _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
+
+        await _purchaseStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
+        _purchaseRepository.UpdateData(purchase);
 
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 

@@ -24,6 +24,8 @@ public class CancelPurchaseHandler(
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
     ITresorerieService _tresorerieService,
+    IGenericRepository<PurchaseStatusHistory> _purchaseStatusHistoryRepository,
+    IGenericRepository<Purchase> _purchaseRepository,
     ILogger<CancelPurchaseHandler> _logger
     )
     : ICommandHandler<CancelPurchaseCommand, CancelPurchaseResult>
@@ -133,8 +135,8 @@ public class CancelPurchaseHandler(
             Comment = command.Reason // Peut être null pour US-PUR-009
         };
 
-        _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
-
+        await _purchaseStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
+        _purchaseRepository.UpdateData(purchase);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
         _logger.LogInformation("Purchase {PurchaseId} cancelled from status {FromStatus} by user {UserId}. Reason: {Reason}",

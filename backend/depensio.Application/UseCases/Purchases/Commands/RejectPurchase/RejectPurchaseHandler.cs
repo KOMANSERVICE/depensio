@@ -15,6 +15,8 @@ public class RejectPurchaseHandler(
     IDepensioDbContext _depensioDbContext,
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
+    IGenericRepository<PurchaseStatusHistory> _purchaseStatusHistoryRepository,
+    IGenericRepository<Purchase> _purchaseRepository,
     ILogger<RejectPurchaseHandler> _logger
     )
     : ICommandHandler<RejectPurchaseCommand, RejectPurchaseResult>
@@ -64,8 +66,8 @@ public class RejectPurchaseHandler(
             Comment = command.RejectionReason // AC-4: Comment = RejectionReason
         };
 
-        _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
-
+        await _purchaseStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
+        _purchaseRepository.UpdateData(purchase);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
         _logger.LogInformation("Purchase {PurchaseId} rejected by user {UserId}. Reason: {RejectionReason}",

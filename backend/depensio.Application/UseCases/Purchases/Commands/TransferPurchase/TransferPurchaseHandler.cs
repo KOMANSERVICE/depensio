@@ -13,6 +13,8 @@ public class TransferPurchaseHandler(
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
     ITresorerieService _tresorerieService,
+    IGenericRepository<PurchaseStatusHistory> _purchaseStatusHistoryRepository,
+    IGenericRepository<Purchase> _purchaseRepository,
     ILogger<TransferPurchaseHandler> _logger
     )
     : ICommandHandler<TransferPurchaseCommand, TransferPurchaseResult>
@@ -124,8 +126,8 @@ public class TransferPurchaseHandler(
             Comment = "Transfert manuel vers la trésorerie"
         };
 
-        _depensioDbContext.PurchaseStatusHistories.Add(statusHistory);
-
+        await _purchaseStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
+        _purchaseRepository.UpdateData(purchase);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
         _logger.LogInformation("Purchase {PurchaseId} manually transferred to treasury by user {UserId}, CashFlowId: {CashFlowId}",
