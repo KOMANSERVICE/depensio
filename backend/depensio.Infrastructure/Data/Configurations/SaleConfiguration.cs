@@ -1,4 +1,4 @@
-﻿using depensio.Domain.Enums;
+using depensio.Domain.Enums;
 
 namespace depensio.Infrastructure.Data.Configurations;
 
@@ -30,10 +30,17 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
         builder.Property(e => e.CancellationReason)
             .HasMaxLength(500);
 
+        // Treasury integration fields (no SQL FK - references external Treasury microservice)
+        builder.Property(e => e.PaymentMethodId);
+        builder.Property(e => e.AccountId);
+        builder.Property(e => e.CategoryId);
+        builder.Property(e => e.CashFlowId);
+        builder.Property(e => e.TotalAmount)
+            .HasPrecision(18, 2);
+
         builder.HasOne(e => e.Boutique)
             .WithMany(b => b.Sales)
             .HasForeignKey(e => e.BoutiqueId)
             .OnDelete(DeleteBehavior.Restrict);
-
     }
 }

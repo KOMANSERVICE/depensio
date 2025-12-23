@@ -1,12 +1,25 @@
+using depensio.Application.ApiExterne.Tresoreries;
+using Microsoft.Extensions.Logging;
+
 namespace depensio.Application.UseCases.Sales.Commands.CancelSale;
 
+/// <summary>
+/// Handler for cancelling a sale
+/// - Transition: Validated -> Cancelled
+/// - If CashFlowId exists -> Call Treasury to delete CashFlow (contre-passation)
+/// - Restore stock if not auto-managed
+/// - Restore ProductItems to Available
+/// </summary>
 public class CancelSaleHandler(
     IDepensioDbContext _dbContext,
     IGenericRepository<Sale> _saleRepository,
     IGenericRepository<Product> _productRepository,
     IGenericRepository<ProductItem> _productItemRepository,
+    IGenericRepository<SaleStatusHistory> _saleStatusHistoryRepository,
     IBoutiqueSettingService _settingService,
-    IUnitOfWork _unitOfWork
+    IUnitOfWork _unitOfWork,
+    ITresorerieService _tresorerieService,
+    ILogger<CancelSaleHandler> _logger
     )
     : ICommandHandler<CancelSaleCommand, CancelSaleResult>
 {
@@ -29,17 +42,63 @@ public class CancelSaleHandler(
             throw new BadRequestException("Cette vente a déjà été annulée.");
         }
 
+        // Treasury integration: Delete CashFlow if exists (contre-passation)
+        if (sale.CashFlowId.HasValue)
+        {
+            try
+            {
+                var response = await _tresorerieService.DeleteCashFlowAsync(
+                    sale.CashFlowId.Value,
+                    "depensio",
+                    sale.BoutiqueId.Value.ToString()
+                );
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to delete CashFlow {CashFlowId} for Sale {SaleId}",
+                        sale.CashFlowId.Value, sale.Id.Value);
+                    // Don't block sale cancellation if Treasury call fails
+                }
+                else
+                {
+                    _logger.LogInformation("CashFlow {CashFlowId} deleted for Sale {SaleId}",
+                        sale.CashFlowId.Value, sale.Id.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the sale cancellation
+                _logger.LogError(ex, "Error deleting CashFlow {CashFlowId} for Sale {SaleId}",
+                    sale.CashFlowId, sale.Id.Value);
+            }
+        }
+
+        var fromStatus = (int)sale.Status;
         sale.Status = SaleStatus.Cancelled;
         sale.CancelledAt = DateTime.UtcNow;
         sale.CancellationReason = command.Reason;
+        sale.CashFlowId = null; // Clear CashFlowId since it has been deleted
 
         var stockIsAuto = await GetStockAuto(sale.BoutiqueId.Value);
 
         await RestoreStockAsync(sale, stockIsAuto, cancellationToken);
         await RestoreProductItemsAsync(sale, cancellationToken);
 
+        // Add status history entry
+        var statusHistory = new SaleStatusHistory
+        {
+            Id = SaleStatusHistoryId.Of(Guid.NewGuid()),
+            SaleId = sale.Id,
+            FromStatus = fromStatus,
+            ToStatus = (int)SaleStatus.Cancelled,
+            Comment = command.Reason
+        };
+
+        await _saleStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
         _saleRepository.UpdateData(sale);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
+
+        _logger.LogInformation("Sale {SaleId} cancelled. Reason: {Reason}", sale.Id.Value, command.Reason ?? "(aucun motif)");
 
         return new CancelSaleResult(true);
     }

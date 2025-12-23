@@ -1,5 +1,6 @@
-﻿using depensio.Application.UseCases.Sales.DTOs;
-using System.Text.Json;
+using depensio.Application.ApiExterne.Tresoreries;
+using depensio.Application.UseCases.Sales.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace depensio.Application.UseCases.Sales.Commands.CreateSale;
 
@@ -10,7 +11,9 @@ public class CreateSaleHandler(
     IGenericRepository<ProductItem> _productItemRepository,
     IBoutiqueSettingService _settingService,
     IUnitOfWork _unitOfWork,
-    IProductService _productService
+    IProductService _productService,
+    ITresorerieService _tresorerieService,
+    ILogger<CreateSaleHandler> _logger
     )
     : ICommandHandler<CreateSaleCommand, CreateSaleResult>
 {
@@ -19,8 +22,6 @@ public class CreateSaleHandler(
         CancellationToken cancellationToken
         )
     {
-
-
         var boutiqueExite = await _dbContext.Boutiques
             .AnyAsync(b => b.Id == BoutiqueId.Of(command.Sale.BoutiqueId), cancellationToken);
         if (!boutiqueExite)
@@ -48,6 +49,12 @@ public class CreateSaleHandler(
         await _saleRepository.AddDataAsync(sale, cancellationToken);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
+        // Create CashFlow if payment info is provided (Treasury integration)
+        if (command.Sale.AccountId.HasValue && command.Sale.CategoryId.HasValue)
+        {
+            await CreateCashFlowFromSaleAsync(sale, command.Sale.BoutiqueId);
+        }
+
         return new CreateSaleResult(sale.Id.Value);
     }
 
@@ -67,6 +74,10 @@ public class CreateSaleHandler(
 
         var autoSaisiePrix = await GetAutoSaisiePrixConfigAsync(saleDTO.BoutiqueId);
         var autoVenteStockZero = await GetAutoVenteStockZeroConfigAsync(saleDTO.BoutiqueId);
+
+        // Calculate total amount from items
+        decimal totalAmount = 0;
+
         // Étape 3: Construire la vente
         var saleItems = saleDTO.Items.Select(i =>
         {
@@ -90,23 +101,86 @@ public class CreateSaleHandler(
 
             _productRepository.UpdateData(product);
 
+            // Add to total amount
+            totalAmount += productPrice * i.Quantity;
+
             return new SaleItem
             {
                 Id = SaleItemId.Of(Guid.NewGuid()),
                 ProductId = ProductId.Of(i.ProductId),
-                Price = productPrice, // TODO a revoir
+                Price = productPrice,
                 Quantity = i.Quantity,
                 SaleId = saleId
             };
         }).ToList();
+
+        // Create initial status history entry (FromStatus = null, ToStatus = Validated)
+        var statusHistory = new SaleStatusHistory
+        {
+            Id = SaleStatusHistoryId.Of(Guid.NewGuid()),
+            SaleId = saleId,
+            FromStatus = null,
+            ToStatus = (int)SaleStatus.Validated,
+            Comment = "Vente créée et validée"
+        };
 
         return new Sale
         {
             Id = saleId,
             Date = DateTime.UtcNow,
             BoutiqueId = BoutiqueId.Of(saleDTO.BoutiqueId),
-            SaleItems = saleItems
+            SaleItems = saleItems,
+            TotalAmount = totalAmount,
+            // Treasury integration fields (optional)
+            PaymentMethodId = saleDTO.PaymentMethodId,
+            AccountId = saleDTO.AccountId,
+            CategoryId = saleDTO.CategoryId,
+            StatusHistory = new List<SaleStatusHistory> { statusHistory }
         };
+    }
+
+    /// <summary>
+    /// Call Trésorerie service to create CashFlow from sale (INFLOW)
+    /// </summary>
+    private async Task CreateCashFlowFromSaleAsync(Sale sale, Guid boutiqueId)
+    {
+        try
+        {
+            var request = new CreateCashFlowFromSaleRequest(
+                SaleId: sale.Id.Value,
+                SaleReference: $"VTE-{sale.Id.Value.ToString()[..8].ToUpper()}",
+                Amount: sale.TotalAmount,
+                AccountId: sale.AccountId!.Value,
+                PaymentMethod: sale.PaymentMethodId?.ToString() ?? "CASH",
+                SaleDate: sale.Date,
+                CustomerName: null,
+                CustomerId: null,
+                CategoryId: sale.CategoryId!.Value.ToString()
+            );
+
+            var result = await _tresorerieService.CreateCashFlowFromSaleAsync(
+                "depensio",
+                boutiqueId.ToString(),
+                request
+            );
+
+            if (result.Success && result.Data != null)
+            {
+                // Update sale with CashFlowId
+                sale.CashFlowId = result.Data.CashFlow.Id;
+                await _unitOfWork.SaveChangesDataAsync(default);
+                _logger.LogInformation("CashFlow {CashFlowId} created for Sale {SaleId}", result.Data.CashFlow.Id, sale.Id.Value);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to create CashFlow for Sale {SaleId}: {Message}", sale.Id.Value, result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't fail the sale creation
+            _logger.LogError(ex, "Error creating CashFlow for Sale {SaleId}", sale.Id.Value);
+        }
     }
 
     private async Task<List<ProductItem>> UpdateProductItemAsync(SaleDTO saleDTO)
