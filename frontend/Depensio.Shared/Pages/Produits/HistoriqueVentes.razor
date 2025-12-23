@@ -109,20 +109,27 @@
                                 }
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                @if (!sale.IsCancelled)
-                                {
+                                <div class="flex justify-center gap-2">
                                     <button type="button"
-                                            @onclick="() => ShowCancelModal(sale)"
-                                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">
-                                        <i class="fas fa-ban mr-1"></i> Annuler
+                                            @onclick="() => ShowHistoryModal(sale)"
+                                            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition text-sm">
+                                        <i class="fas fa-history mr-1"></i> Historique
                                     </button>
-                                }
-                                else
-                                {
-                                    <span class="text-gray-400 text-sm">
-                                        Annulée le @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
-                                    </span>
-                                }
+                                    @if (!sale.IsCancelled)
+                                    {
+                                        <button type="button"
+                                                @onclick="() => ShowCancelModal(sale)"
+                                                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">
+                                            <i class="fas fa-ban mr-1"></i> Annuler
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400 text-sm">
+                                            Annulée le @(sale.CancelledAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                        </span>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -176,7 +183,12 @@
                                 <span class="text-xs text-gray-400">+ @(sale.Items.Count - 2) autre(s)...</span>
                             }
                         </div>
-                        <div class="flex justify-end">
+                        <div class="flex justify-end gap-2">
+                            <button type="button"
+                                    @onclick="() => ShowHistoryModal(sale)"
+                                    class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition text-sm">
+                                <i class="fas fa-history mr-1"></i> Historique
+                            </button>
                             @if (!sale.IsCancelled)
                             {
                                 <button type="button"
@@ -283,6 +295,95 @@
     </div>
 }
 
+@if (showHistoryModal && historySale != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-blue-600">
+                    <i class="fas fa-history mr-2"></i> Historique des statuts
+                </h3>
+                <button type="button"
+                        @onclick="CloseHistoryModal"
+                        class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <p class="text-gray-600 mb-4">
+                Vente du <strong>@historySale.Date.ToLocalTime().ToString("dd/MM/yyyy")</strong> à <strong>@historySale.Date.ToLocalTime().ToString("HH:mm")</strong>
+                - Total: <strong>@historySale.TotalPrice.ToString("N0") FCFA</strong>
+            </p>
+
+            @if (isLoadingHistory)
+            {
+                <div class="flex justify-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i>
+                </div>
+            }
+            else if (saleHistory.Any())
+            {
+                <div class="relative">
+                    <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                    <div class="space-y-6">
+                        @foreach (var entry in saleHistory)
+                        {
+                            <div class="relative flex items-start pl-10">
+                                <div class="absolute left-2 w-5 h-5 rounded-full @GetStatusBgColor(entry.ToStatus) flex items-center justify-center">
+                                    <i class="@GetStatusIcon(entry.ToStatus) text-white text-xs"></i>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4 flex-1 shadow-sm">
+                                    <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-2">
+                                        <div>
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                @if (!string.IsNullOrEmpty(entry.FromStatus))
+                                                {
+                                                    <span class="@GetStatusBadgeClass(entry.FromStatus) px-2 py-0.5 rounded text-xs">
+                                                        @entry.FromStatus
+                                                    </span>
+                                                    <i class="fas fa-arrow-right text-gray-400 text-xs"></i>
+                                                }
+                                                <span class="@GetStatusBadgeClass(entry.ToStatus) px-2 py-0.5 rounded text-xs font-semibold">
+                                                    @entry.ToStatus
+                                                </span>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(entry.Comment))
+                                            {
+                                                <p class="text-gray-600 text-sm mt-2">
+                                                    <i class="fas fa-comment text-gray-400 mr-1"></i> @entry.Comment
+                                                </p>
+                                            }
+                                        </div>
+                                        <div class="text-right text-sm text-gray-500 whitespace-nowrap">
+                                            <div><i class="fas fa-calendar mr-1"></i> @entry.Date.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                                            <div><i class="fas fa-clock mr-1"></i> @entry.Date.ToLocalTime().ToString("HH:mm:ss")</div>
+                                            <div><i class="fas fa-user mr-1"></i> @entry.ChangedBy</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-8">
+                    <i class="fas fa-info-circle text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Aucun historique disponible pour cette vente.</p>
+                </div>
+            }
+
+            <div class="flex justify-end mt-6">
+                <button type="button"
+                        @onclick="CloseHistoryModal"
+                        class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">
+                    <i class="fas fa-times mr-1"></i> Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid BoutiqueId { get; set; }
@@ -311,6 +412,12 @@
     private Sale? selectedSale = null;
     private string cancellationReason = "";
     private bool isCancelling = false;
+
+    // History modal
+    private bool showHistoryModal = false;
+    private Sale? historySale = null;
+    private List<SaleStatusHistoryDTO> saleHistory = new();
+    private bool isLoadingHistory = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -486,5 +593,91 @@
         {
             currentPage++;
         }
+    }
+
+    // History modal methods
+    private async Task ShowHistoryModal(Sale sale)
+    {
+        historySale = sale;
+        saleHistory = new();
+        showHistoryModal = true;
+        isLoadingHistory = true;
+
+        try
+        {
+            var result = await _saleService.GetSaleHistoryAsync(sale.Id, BoutiqueId);
+            if (result.Success)
+            {
+                saleHistory = result.Data.History.ToList();
+            }
+            else
+            {
+                ShowError("Erreur lors du chargement de l'historique");
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    ShowError(errorResult.Detail);
+                }
+                else
+                {
+                    ShowError("Erreur lors du chargement de l'historique");
+                }
+            }
+            catch
+            {
+                ShowError("Erreur lors du chargement de l'historique");
+            }
+        }
+        finally
+        {
+            isLoadingHistory = false;
+        }
+    }
+
+    private void CloseHistoryModal()
+    {
+        showHistoryModal = false;
+        historySale = null;
+        saleHistory = new();
+    }
+
+    private string GetStatusBgColor(string status)
+    {
+        return status switch
+        {
+            "Validée" => "bg-green-500",
+            "Annulée" => "bg-red-500",
+            _ => "bg-gray-500"
+        };
+    }
+
+    private string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Validée" => "fas fa-check",
+            "Annulée" => "fas fa-times",
+            _ => "fas fa-question"
+        };
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Validée" => "bg-green-100 text-green-700",
+            "Annulée" => "bg-red-100 text-red-700",
+            _ => "bg-gray-100 text-gray-700"
+        };
     }
 }

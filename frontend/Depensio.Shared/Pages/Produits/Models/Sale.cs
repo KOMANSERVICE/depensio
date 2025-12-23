@@ -39,3 +39,14 @@ public record SaleItem
 
 public record GetSaleSummaryByBoutiqueResponse(IEnumerable<SaleSummary> SaleSummarys);
 public record SaleSummary(Guid ProductId, string ProductName, int TotalQuantity, decimal TotalRevenue, string Color);
+
+public record GetSaleHistoryResponse(IEnumerable<SaleStatusHistoryDTO> History);
+public record SaleStatusHistoryDTO
+{
+    public Guid Id { get; init; }
+    public DateTime Date { get; init; }
+    public string ChangedBy { get; init; } = string.Empty;
+    public string? FromStatus { get; init; }
+    public string ToStatus { get; init; } = string.Empty;
+    public string? Comment { get; init; }
+}
