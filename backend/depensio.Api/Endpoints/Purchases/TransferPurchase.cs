@@ -3,7 +3,12 @@ using depensio.Application.UseCases.Purchases.Commands.TransferPurchase;
 
 namespace Depensio.Api.Endpoints.Purchases;
 
-public record TransferPurchaseRequest(Guid BoutiqueId);
+public record TransferPurchaseRequest(
+    Guid BoutiqueId,
+    string? PaymentMethod = null,
+    Guid? AccountId = null,
+    string? CategoryId = null
+);
 public record TransferPurchaseResponse(Guid Id, string Status, Guid? CashFlowId);
 
 public class TransferPurchase : ICarterModule
@@ -14,7 +19,13 @@ public class TransferPurchase : ICarterModule
         {
             try
             {
-                var command = new TransferPurchaseCommand(id, request.BoutiqueId);
+                var command = new TransferPurchaseCommand(
+                    id,
+                    request.BoutiqueId,
+                    request.PaymentMethod,
+                    request.AccountId,
+                    request.CategoryId
+                );
 
                 var result = await sender.Send(command);
 

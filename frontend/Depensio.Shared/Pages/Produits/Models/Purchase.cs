@@ -15,7 +15,12 @@ public record ReopenPurchaseRequest(Guid BoutiqueId);
 public record ReopenPurchaseResponse(Guid Id, string Status);
 public record CancelPurchaseRequest(Guid BoutiqueId, string? Reason);
 public record CancelPurchaseResponse(Guid Id, string Status);
-public record TransferPurchaseRequest(Guid BoutiqueId);
+public record TransferPurchaseRequest(
+    Guid BoutiqueId,
+    string? PaymentMethod = null,
+    Guid? AccountId = null,
+    string? CategoryId = null
+);
 public record TransferPurchaseResponse(Guid Id, string Status, Guid? CashFlowId);
 
 /// <summary>

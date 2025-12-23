@@ -3,9 +3,15 @@ namespace depensio.Application.UseCases.Purchases.Commands.TransferPurchase;
 /// <summary>
 /// Command to manually transfer an approved purchase to treasury
 /// Used when a purchase is approved but the CashFlow creation failed or was not done
+/// Allows overriding the payment method, account, and category at transfer time
 /// </summary>
-public record TransferPurchaseCommand(Guid PurchaseId, Guid BoutiqueId)
-    : ICommand<TransferPurchaseResult>;
+public record TransferPurchaseCommand(
+    Guid PurchaseId,
+    Guid BoutiqueId,
+    string? PaymentMethod = null,
+    Guid? AccountId = null,
+    string? CategoryId = null
+) : ICommand<TransferPurchaseResult>;
 
 public record TransferPurchaseResult(Guid Id, string Status, Guid? CashFlowId);
 
