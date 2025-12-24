@@ -27,9 +27,9 @@
                 </h2>
                 <div class="relative w-full md:w-1/2">
                     <div class="flex items-center">
-                        <input type="text" id="barcode-input" placeholder="Code barre ou nom du produit..."
+                        <input type="text" @bind="searchTerm" @bind:event="oninput" @onkeyup="OnSearchKeyUp" id="barcode-input" placeholder="Code barre ou nom du produit..."
                                class="flex-grow border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-700">
-                        <button type="button" class="bg-primary-700 text-white px-4 py-2 rounded-r-lg hover:bg-amber-700">
+                        <button type="button" @onclick="SearchProducts" class="bg-primary-700 text-white px-4 py-2 rounded-r-lg hover:bg-amber-700">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -57,7 +57,7 @@
             <!-- Product Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[390px] overflow-y-auto">
                 <!-- Product items would be dynamically added here -->
-                @foreach (var prod in products)
+                @foreach (var prod in GetPaginatedProducts())
                 {
                     <div @onclick="() => showAddQuantityModal(prod.Id)"
                          class="product-item bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition"
@@ -72,24 +72,42 @@
             </div>
 
             <!-- Pagination -->
-            <div class="flex justify-center mt-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+                <!-- Page Size Selector -->
+                <div class="flex items-center gap-2">
+                    <label for="pageSize" class="text-sm text-gray-600">Afficher:</label>
+                    <select id="pageSize" @bind="pageSize" @bind:after="OnPageSizeChanged" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-700">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span class="text-sm text-gray-600">éléments</span>
+                </div>
+
+                <!-- Pagination Controls -->
                 <nav class="inline-flex rounded-md shadow">
-                    <button type="button" class="px-3 py-1 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                    <button type="button" @onclick="GoToPreviousPage" disabled="@(currentPage <= 1)"
+                            class="px-3 py-1 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <button type="button" class="px-3 py-1 border-t border-b border-gray-300 bg-primary-700 text-white">
-                        1
-                    </button>
-                    <button type="button"  class="px-3 py-1 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
-                        2
-                    </button>
-                    <button type="button"  class="px-3 py-1 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
-                        3
-                    </button>
-                    <button type="button" class="px-3 py-1 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                    @foreach (var pageNum in GetVisiblePageNumbers())
+                    {
+                        <button type="button" @onclick="() => GoToPage(pageNum)"
+                                class="@GetPageButtonClass(pageNum)">
+                            @pageNum
+                        </button>
+                    }
+                    <button type="button" @onclick="GoToNextPage" disabled="@(currentPage >= TotalPages)"
+                            class="px-3 py-1 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </nav>
+
+                <!-- Page Info -->
+                <div class="text-sm text-gray-600">
+                    Page @currentPage sur @TotalPages (@GetFilteredProducts().Count produits)
+                </div>
             </div>
         </div>
 
@@ -315,6 +333,12 @@
     // Treasury integration
     private bool _envoiAutomatiqueEnabled = false;
     private List<AccountListDto> accounts = new();
+
+    // Search and Pagination
+    private string searchTerm = string.Empty;
+    private int pageSize = 10;
+    private int currentPage = 1;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)GetFilteredProducts().Count / pageSize));
 
     // Variable temporaire pour l'AccountId (car select utilise string)
     private string selectedAccountId
@@ -672,6 +696,104 @@
     {
         ScannedCode = "";
         showModalCodeQR = !showModalCodeQR;
+    }
+
+    // Search and Pagination Methods
+    private List<Product> GetFilteredProducts()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return products;
+
+        var term = searchTerm.Trim().ToLowerInvariant();
+        return products.Where(p =>
+            p.Name.ToLowerInvariant().Contains(term) ||
+            (!string.IsNullOrEmpty(p.Barcode) && p.Barcode.ToLowerInvariant().Contains(term)) ||
+            (p.Barcodes != null && p.Barcodes.Any(b => b.ToLowerInvariant().Contains(term)))
+        ).ToList();
+    }
+
+    private List<Product> GetPaginatedProducts()
+    {
+        var filtered = GetFilteredProducts();
+        return filtered
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private void SearchProducts()
+    {
+        currentPage = 1;
+        StateHasChanged();
+    }
+
+    private void OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            SearchProducts();
+        }
+        else
+        {
+            currentPage = 1;
+        }
+    }
+
+    private void OnPageSizeChanged()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
+    }
+
+    private IEnumerable<int> GetVisiblePageNumbers()
+    {
+        var totalPages = TotalPages;
+        var maxVisiblePages = 5;
+
+        if (totalPages <= maxVisiblePages)
+        {
+            return Enumerable.Range(1, totalPages);
+        }
+
+        var startPage = Math.Max(1, currentPage - maxVisiblePages / 2);
+        var endPage = Math.Min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages)
+        {
+            startPage = Math.Max(1, endPage - maxVisiblePages + 1);
+        }
+
+        return Enumerable.Range(startPage, endPage - startPage + 1);
+    }
+
+    private string GetPageButtonClass(int page)
+    {
+        return page == currentPage
+            ? "px-3 py-1 border-t border-b border-gray-300 bg-primary-700 text-white"
+            : "px-3 py-1 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50";
     }
 
 }
