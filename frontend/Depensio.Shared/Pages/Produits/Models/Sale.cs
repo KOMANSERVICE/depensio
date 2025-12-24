@@ -23,6 +23,11 @@ public record Sale
     public decimal TotalPrice { get; set; }
     public List<SaleItem> Items { get; set; } = new List<SaleItem>();
 
+    // Treasury integration fields
+    public string? PaymentMethodId { get; set; }
+    public Guid? AccountId { get; set; }
+    public string? CategoryId { get; set; }
+
     public bool IsCancelled => Status == (int)SaleStatus.Cancelled;
     public string StatusLabel => Status == (int)SaleStatus.Cancelled ? "Annulée" : "Validée";
 }

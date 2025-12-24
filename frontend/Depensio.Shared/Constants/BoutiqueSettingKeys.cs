@@ -11,6 +11,7 @@ public static class BoutiqueSettingKeys
 
     public const string VENTE_AUTORISER_MODIFICATION_PRIX = "vente.autoriser.modification.prix";
     public const string VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO = "vente.autoriser.vente.avec.stock.zero";
+    public const string VENTE_ENVOI_AUTOMATIQUE_TRESORERIE = "vente.envoi.automatique.tresorerie";
 
     // Gestion des achats
     public const string ACHAT_KEY = "achat.key";
