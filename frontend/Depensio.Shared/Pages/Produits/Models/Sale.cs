@@ -5,6 +5,8 @@ public record CreateSaleRequest(Sale Sale);
 public record CreateSaleResponse(Guid Id);
 public record CancelSaleRequest(Guid SaleId, string? Reason);
 public record CancelSaleResponse(bool Success);
+public record TransferSaleRequest(Guid BoutiqueId, string PaymentMethod, Guid? AccountId, string CategoryId);
+public record TransferSaleResponse(bool Success, Guid? CashFlowId);
 
 public enum SaleStatus
 {
@@ -27,8 +29,10 @@ public record Sale
     public string? PaymentMethodId { get; set; }
     public Guid? AccountId { get; set; }
     public string? CategoryId { get; set; }
+    public Guid? CashFlowId { get; set; }
 
     public bool IsCancelled => Status == (int)SaleStatus.Cancelled;
+    public bool IsTransferred => CashFlowId.HasValue;
     public string StatusLabel => Status == (int)SaleStatus.Cancelled ? "Annulée" : "Validée";
 }
 

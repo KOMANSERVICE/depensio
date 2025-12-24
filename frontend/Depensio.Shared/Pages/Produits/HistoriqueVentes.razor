@@ -1,6 +1,8 @@
 @page "/ventes/{boutiqueId:guid}"
+@using depensio.Shared.Pages.Tresoreries.Models
 @inject ISaleService _saleService
 @inject IProductService _productService
+@inject ITresorerieService _tresorerieService
 @inherits FlowbitePage
 @layout MainLayout
 @inject ToastService ToastService
@@ -41,6 +43,12 @@
                 <option value="validated">Validées uniquement</option>
                 <option value="cancelled">Annulées uniquement</option>
             </select>
+            <select @bind="filterTransfer" @bind:after="ApplyFilter"
+                class="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+                <option value="all">Tous les transferts</option>
+                <option value="transferred">Transférées</option>
+                <option value="not_transferred">Non transférées</option>
+            </select>
         </div>
     </div>
 
@@ -57,6 +65,8 @@
                         Total</th>
                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                         Statut</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                        Trésorerie</th>
                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                         Actions</th>
                 </tr>
@@ -108,6 +118,26 @@
                                     </span>
                                 }
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                @if (sale.IsTransferred)
+                                {
+                                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                                        <i class="fas fa-check-circle mr-1"></i> Transférée
+                                    </span>
+                                }
+                                else if (!sale.IsCancelled)
+                                {
+                                    <button type="button"
+                                            @onclick="() => ShowTransferModal(sale)"
+                                            class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 transition text-sm">
+                                        <i class="fas fa-exchange-alt mr-1"></i> Transférer
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 text-sm">-</span>
+                                }
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                 <div class="flex justify-center gap-2">
                                     <button type="button"
@@ -137,7 +167,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center">
+                        <td colspan="6" class="px-6 py-12 text-center">
                             <i class="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 text-lg">Aucune vente trouvée</p>
                         </td>
@@ -170,6 +200,12 @@
                                         <i class="fas fa-check-circle mr-1"></i> Validée
                                     </span>
                                 }
+                                @if (sale.IsTransferred)
+                                {
+                                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm ml-1">
+                                        <i class="fas fa-check-circle mr-1"></i> Transférée
+                                    </span>
+                                }
                             </div>
                             <span class="font-semibold text-primary-700">@sale.TotalPrice.ToString("N0") FCFA</span>
                         </div>
@@ -183,12 +219,20 @@
                                 <span class="text-xs text-gray-400">+ @(sale.Items.Count - 2) autre(s)...</span>
                             }
                         </div>
-                        <div class="flex justify-end gap-2">
+                        <div class="flex justify-end gap-2 flex-wrap">
                             <button type="button"
                                     @onclick="() => ShowHistoryModal(sale)"
                                     class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition text-sm">
                                 <i class="fas fa-history mr-1"></i> Historique
                             </button>
+                            @if (!sale.IsCancelled && !sale.IsTransferred)
+                            {
+                                <button type="button"
+                                        @onclick="() => ShowTransferModal(sale)"
+                                        class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 transition text-sm">
+                                    <i class="fas fa-exchange-alt mr-1"></i> Transférer
+                                </button>
+                            }
                             @if (!sale.IsCancelled)
                             {
                                 <button type="button"
@@ -384,6 +428,109 @@
     </div>
 }
 
+@if (showTransferModal && saleToTransfer != null)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-xl font-semibold text-orange-600 mb-4">
+                <i class="fas fa-exchange-alt mr-2"></i> Transférer à la trésorerie
+            </h3>
+
+            @if (!string.IsNullOrEmpty(transferErrorMessage))
+            {
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                        <p class="text-red-700 text-sm">@transferErrorMessage</p>
+                    </div>
+                </div>
+            }
+
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-gray-500">Date:</span>
+                        <span class="font-medium text-gray-900 ml-1">@saleToTransfer.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Total:</span>
+                        <span class="font-semibold text-primary-700 ml-1">@saleToTransfer.TotalPrice.ToString("N0") FCFA</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Mode de paiement <span class="text-red-500">*</span>
+                    </label>
+                    <select @bind="transferPaymentMethod"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <option value="">Sélectionnez un mode</option>
+                        <option value="CASH">Espèces</option>
+                        <option value="CARD">Carte bancaire</option>
+                        <option value="MOBILE_MONEY">Mobile Money</option>
+                        <option value="BANK_TRANSFER">Virement bancaire</option>
+                        <option value="CHECK">Chèque</option>
+                        <option value="OTHER">Autre</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Compte <span class="text-red-500">*</span>
+                    </label>
+                    <select @bind="transferAccountId"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <option value="">Sélectionnez un compte</option>
+                        @foreach (var account in accounts.Where(a => a.IsActive))
+                        {
+                            <option value="@account.Id.ToString()">@account.Name (@GetAccountTypeName(account.Type))</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Catégorie <span class="text-red-500">*</span>
+                    </label>
+                    <select @bind="transferCategoryId"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <option value="">Sélectionnez une catégorie</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id.ToString()">@category.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="button"
+                        @onclick="CloseTransferModal"
+                        disabled="@isTransferring"
+                        class="flex-grow bg-gray-200 text-gray-800 p-2 rounded hover:bg-gray-300 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Annuler
+                </button>
+                <button type="button"
+                        @onclick="ConfirmTransfer"
+                        disabled="@isTransferring"
+                        class="flex-grow bg-orange-500 text-white p-2 rounded hover:bg-orange-600 transition disabled:opacity-50">
+                    @if (isTransferring)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-exchange-alt mr-1"></i>
+                    }
+                    Transférer
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid BoutiqueId { get; set; }
@@ -393,7 +540,21 @@
     private List<Product> products = new();
     private bool isLoad = false;
     private string filterStatus = "all";
+    private string filterTransfer = "all";
     private string searchTerm = "";
+
+    // Transfer modal
+    private bool showTransferModal = false;
+    private Sale? saleToTransfer = null;
+    private bool isTransferring = false;
+    private string transferErrorMessage = "";
+    private string transferPaymentMethod = "";
+    private string transferAccountId = "";
+    private string transferCategoryId = "";
+
+    // Treasury data
+    private List<AccountListDto> accounts = new();
+    private List<CategoryDTO> categories = new();
 
     // Pagination
     private int itemsPerPage = 10;
@@ -429,16 +590,35 @@
         isLoad = true;
         try
         {
-            var salesResult = await _saleService.GetSaleByBoutiqueAsync(BoutiqueId);
+            var salesTask = _saleService.GetSaleByBoutiqueAsync(BoutiqueId);
+            var productsTask = _productService.GetProductsByUserAsync(BoutiqueId);
+            var accountsTask = _tresorerieService.GetAccountsAsync(BoutiqueId, false);
+            var categoriesTask = _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.INCOME, false);
+
+            await Task.WhenAll(salesTask, productsTask, accountsTask, categoriesTask);
+
+            var salesResult = await salesTask;
             if (salesResult.Success)
             {
                 sales = salesResult.Data.Sales.OrderByDescending(s => s.Date).ToList();
             }
 
-            var productsResult = await _productService.GetProductsByUserAsync(BoutiqueId);
+            var productsResult = await productsTask;
             if (productsResult.Success)
             {
                 products = productsResult.Data.Products.ToList();
+            }
+
+            var accountsResult = await accountsTask;
+            if (accountsResult.Success && accountsResult.Data != null)
+            {
+                accounts = accountsResult.Data.Accounts.ToList();
+            }
+
+            var categoriesResult = await categoriesTask;
+            if (categoriesResult.Success && categoriesResult.Data != null)
+            {
+                categories = categoriesResult.Data.Categories.ToList();
             }
 
             ApplyFilter();
@@ -460,6 +640,13 @@
             "validated" => sales.Where(s => !s.IsCancelled),
             "cancelled" => sales.Where(s => s.IsCancelled),
             _ => sales.AsEnumerable()
+        };
+
+        filtered = filterTransfer switch
+        {
+            "transferred" => filtered.Where(s => s.IsTransferred),
+            "not_transferred" => filtered.Where(s => !s.IsTransferred),
+            _ => filtered
         };
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -680,4 +867,108 @@
             _ => "bg-gray-100 text-gray-700"
         };
     }
+
+    // Transfer modal methods
+    private void ShowTransferModal(Sale sale)
+    {
+        saleToTransfer = sale;
+        transferErrorMessage = "";
+        transferPaymentMethod = sale.PaymentMethodId ?? "";
+        transferAccountId = sale.AccountId?.ToString() ?? "";
+        transferCategoryId = sale.CategoryId ?? "";
+        showTransferModal = true;
+    }
+
+    private void CloseTransferModal()
+    {
+        showTransferModal = false;
+        saleToTransfer = null;
+        transferErrorMessage = "";
+        transferPaymentMethod = "";
+        transferAccountId = "";
+        transferCategoryId = "";
+    }
+
+    private async Task ConfirmTransfer()
+    {
+        if (saleToTransfer == null) return;
+
+        // Validation
+        if (string.IsNullOrWhiteSpace(transferPaymentMethod))
+        {
+            transferErrorMessage = "Le mode de paiement est obligatoire.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(transferAccountId))
+        {
+            transferErrorMessage = "Le compte est obligatoire.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(transferCategoryId))
+        {
+            transferErrorMessage = "La catégorie est obligatoire.";
+            return;
+        }
+
+        isTransferring = true;
+        transferErrorMessage = "";
+
+        try
+        {
+            var accountId = Guid.TryParse(transferAccountId, out var parsedAccountId) ? parsedAccountId : (Guid?)null;
+            var request = new TransferSaleRequest(
+                BoutiqueId,
+                transferPaymentMethod,
+                accountId,
+                transferCategoryId
+            );
+
+            var result = await _saleService.TransferSaleAsync(saleToTransfer.Id, request);
+
+            if (result.Success)
+            {
+                ShowSuccess("Vente transférée à la trésorerie avec succès");
+                CloseTransferModal();
+                await LoadData();
+            }
+            else
+            {
+                transferErrorMessage = result.Message ?? "Une erreur est survenue lors du transfert.";
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                transferErrorMessage = errorResult?.Detail ?? ex.Message;
+            }
+            catch
+            {
+                transferErrorMessage = "Une erreur est survenue lors du transfert.";
+            }
+        }
+        catch (Exception ex)
+        {
+            transferErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isTransferring = false;
+        }
+    }
+
+    private string GetAccountTypeName(AccountType type) => type switch
+    {
+        AccountType.CASH => "Espèces",
+        AccountType.BANK => "Banque",
+        AccountType.MOBILE_MONEY => "Mobile Money",
+        AccountType.OTHER => "Autre",
+        _ => type.ToString()
+    };
 }

@@ -18,4 +18,7 @@ public interface ISaleService
 
     [Get("/sale/{saleId}/history")]
     Task<BaseResponse<GetSaleHistoryResponse>> GetSaleHistoryAsync(Guid saleId, [Query] Guid boutiqueId);
+
+    [Post("/sale/{saleId}/transfer")]
+    Task<BaseResponse<TransferSaleResponse>> TransferSaleAsync(Guid saleId, TransferSaleRequest request);
 }

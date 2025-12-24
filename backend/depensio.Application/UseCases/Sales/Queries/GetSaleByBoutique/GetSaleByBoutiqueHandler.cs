@@ -36,6 +36,7 @@ public class GetSaleByBoutiqueHandler(
                 Status = (int)p.Status,
                 CancelledAt = p.CancelledAt,
                 CancellationReason = p.CancellationReason,
+                CashFlowId = p.CashFlowId,
                 Items = p.SaleItems.Select(i => new SaleItemDTO(i.Id.Value, i.ProductId.Value, i.Price, i.Quantity, new List<string>())).ToList(),
             })
             .OrderByDescending(p => p.Date)
