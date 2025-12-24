@@ -14,6 +14,7 @@ public class ApprovePurchaseHandler(
     IBoutiqueSettingService _boutiqueSettingService,
     IGenericRepository<PurchaseStatusHistory> _purchaseStatusHistoryRepository,
     IGenericRepository<Purchase> _purchaseRepository,
+    IGenericRepository<Product> _productRepository,
     ILogger<ApprovePurchaseHandler> _logger
     )
     : ICommandHandler<ApprovePurchaseCommand, ApprovePurchaseResult>
@@ -151,6 +152,13 @@ public class ApprovePurchaseHandler(
             Comment = envoiAutomatiqueEnabled ? "Achat approuvé et transféré à la trésorerie" : "Achat approuvé"
         };
 
+        // BUG FIX #503: Augmenter le stock des produits associés à l'achat approuvé
+        // Seulement si le stock n'est pas en mode automatique
+        var stockIsAuto = await IsStockAutomatiqueEnabledAsync(command.BoutiqueId);
+        if (!stockIsAuto)
+        {
+            await UpdateProductStockAsync(purchase.PurchaseItems, cancellationToken);
+        }
 
         await _purchaseStatusHistoryRepository.AddDataAsync(statusHistory, cancellationToken);
         _purchaseRepository.UpdateData(purchase);
@@ -183,6 +191,48 @@ public class ApprovePurchaseHandler(
             _logger.LogWarning(ex, "Error reading purchase setting for boutique {BoutiqueId}. Defaulting to false.", boutiqueId);
         }
         return false;
+    }
+
+    private async Task<bool> IsStockAutomatiqueEnabledAsync(Guid boutiqueId)
+    {
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingAsync(boutiqueId, BoutiqueSettingKeys.PRODUCT_KEY);
+            if (setting?.Value is string json && !string.IsNullOrEmpty(json))
+            {
+                var settingValues = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+                var stockAutoSetting = settingValues?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
+                if (stockAutoSetting != null)
+                {
+                    return stockAutoSetting.Value?.ToString()?.ToLower() == "true";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error reading product setting for boutique {BoutiqueId}. Defaulting to false.", boutiqueId);
+        }
+        return false;
+    }
+
+    private async Task UpdateProductStockAsync(ICollection<PurchaseItem> purchaseItems, CancellationToken cancellationToken)
+    {
+        var productIds = purchaseItems.Select(pi => pi.ProductId).ToList();
+        var products = await _depensioDbContext.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        foreach (var purchaseItem in purchaseItems)
+        {
+            var product = products.FirstOrDefault(p => p.Id == purchaseItem.ProductId);
+            if (product != null)
+            {
+                product.Stock += purchaseItem.Quantity;
+                _productRepository.UpdateData(product);
+                _logger.LogInformation("Stock updated for Product {ProductId}: +{Quantity} (new stock: {NewStock})",
+                    product.Id.Value, purchaseItem.Quantity, product.Stock);
+            }
+        }
     }
 }
 
