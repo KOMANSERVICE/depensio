@@ -223,6 +223,18 @@
                         }
                     </select>
                 </div>
+
+                <div class="mb-4">
+                    <label for="categoryId" class="font-medium text-gray-700 mb-2 text-primary-700 block">Catégorie <span class="text-red-500">*</span></label>
+                    <select @bind="selectedCategoryId" id="categoryId"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <option value="">Sélectionnez une catégorie</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id.ToString()">@category.Name</option>
+                        }
+                    </select>
+                </div>
             }
             else
             {
@@ -333,6 +345,14 @@
     // Treasury integration
     private bool _envoiAutomatiqueEnabled = false;
     private List<AccountListDto> accounts = new();
+    private List<CategoryDTO> categories = new();
+
+    // Variable temporaire pour le CategoryId (car select utilise string)
+    private string selectedCategoryId
+    {
+        get => sale.CategoryId ?? string.Empty;
+        set => sale.CategoryId = string.IsNullOrEmpty(value) ? null : value;
+    }
 
     // Search and Pagination
     private string searchTerm = string.Empty;
@@ -391,15 +411,27 @@
     {
         try
         {
-            var accountsResponse = await _tresorerieService.GetAccountsAsync(BoutiqueId, false);
+            var accountsTask = _tresorerieService.GetAccountsAsync(BoutiqueId, false);
+            var categoriesTask = _tresorerieService.GetCategoriesAsync(BoutiqueId, CategoryType.INCOME, false);
+
+            await Task.WhenAll(accountsTask, categoriesTask);
+
+            var accountsResponse = await accountsTask;
             if (accountsResponse.Success && accountsResponse.Data != null)
             {
                 accounts = accountsResponse.Data.Accounts.ToList();
+            }
+
+            var categoriesResponse = await categoriesTask;
+            if (categoriesResponse.Success && categoriesResponse.Data != null)
+            {
+                categories = categoriesResponse.Data.Categories.ToList();
             }
         }
         catch
         {
             accounts = new List<AccountListDto>();
+            categories = new List<CategoryDTO>();
         }
     }
 
@@ -459,6 +491,12 @@
             if (!sale.AccountId.HasValue)
             {
                 ShowError("Le compte est obligatoire.");
+                hasErrors = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(sale.CategoryId))
+            {
+                ShowError("La catégorie est obligatoire.");
                 hasErrors = true;
             }
 

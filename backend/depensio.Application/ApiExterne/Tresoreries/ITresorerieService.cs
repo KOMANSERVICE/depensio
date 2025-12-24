@@ -550,7 +550,7 @@ public record CreateCashFlowFromSaleRequest(
     DateTime SaleDate,
     string? CustomerName,
     string? CustomerId,
-    string CategoryId
+    string? CategoryId
 );
 
 public record CreateCashFlowFromSaleResponse(
