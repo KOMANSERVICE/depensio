@@ -11,9 +11,9 @@ public class Sale : Entity<SaleId>
     public string? CancellationReason { get; set; }
 
     // Treasury integration fields (no SQL FK - references external Treasury microservice)
-    public Guid? PaymentMethodId { get; set; }
+    public string? PaymentMethodId { get; set; }
     public Guid? AccountId { get; set; }
-    public Guid? CategoryId { get; set; }
+    public string? CategoryId { get; set; }
     public Guid? CashFlowId { get; set; }
     public decimal TotalAmount { get; set; }
 

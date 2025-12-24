@@ -46,7 +46,7 @@ public class CancelSaleHandler(
 
         // AC-5: Si CashFlowId existe -> Contre-passation Trésorerie
         // Create a contra-entry (EXPENSE) to reverse the original sale (INCOME)
-        if (sale.CashFlowId.HasValue && sale.AccountId.HasValue && sale.CategoryId.HasValue)
+        if (sale.CashFlowId.HasValue && sale.AccountId.HasValue && !string.IsNullOrEmpty(sale.CategoryId))
         {
             await CreateContraEntryAsync(sale, command.Reason);
         }
@@ -92,7 +92,7 @@ public class CancelSaleHandler(
         {
             var contraEntryRequest = new CreateCashFlowRequest(
                 Type: CashFlowTypeExtended.EXPENSE,
-                CategoryId: sale.CategoryId!.Value.ToString(),
+                CategoryId: sale.CategoryId!,
                 Label: $"Annulation vente VTE-{sale.Id.Value.ToString()[..8].ToUpper()}",
                 Description: $"Contre-passation suite à annulation. {(string.IsNullOrWhiteSpace(cancellationReason) ? "" : $"Motif: {cancellationReason}")}",
                 Amount: sale.TotalAmount,

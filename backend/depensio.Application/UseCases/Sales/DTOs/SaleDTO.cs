@@ -10,9 +10,9 @@ public record SaleDTO
     public string? CancellationReason { get; set; }
 
     // Treasury integration fields (optional - if provided, CashFlow will be created)
-    public Guid? PaymentMethodId { get; set; }
+    public string? PaymentMethodId { get; set; }
     public Guid? AccountId { get; set; }
-    public Guid? CategoryId { get; set; }
+    public string? CategoryId { get; set; }
     public Guid? CashFlowId { get; set; }
     public decimal TotalAmount { get; set; }
 
