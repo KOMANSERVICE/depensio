@@ -2,10 +2,10 @@ namespace depensio.Shared.Pages.Tresoreries.Models;
 
 public enum AccountType
 {
-    Cash = 0,
-    Bank = 1,
-    MobileMoney = 2,
-    Other = 3
+    Cash = 1,
+    Bank = 2,
+    MobileMoney = 3,
+    Other = 4
 }
 
 public record GetAccountsResponse(
