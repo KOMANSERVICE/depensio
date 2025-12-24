@@ -1,8 +1,6 @@
 using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Infrastructure.Filters;
 using IDR.Library.BuildingBlocks.Exceptions;
-using Microsoft.Extensions.Logging;
-using Refit;
 
 namespace depensio.Api.Endpoints.Tresoreries;
 

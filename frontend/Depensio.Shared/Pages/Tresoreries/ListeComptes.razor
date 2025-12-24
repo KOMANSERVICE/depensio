@@ -441,19 +441,19 @@
 
     private string GetTypeLabel(AccountType type) => type switch
     {
-        AccountType.Cash => "Especes",
-        AccountType.Bank => "Banque",
-        AccountType.MobileMoney => "Mobile Money",
-        AccountType.Other => "Autre",
+        AccountType.CASH => "Especes",
+        AccountType.BANK => "Banque",
+        AccountType.MOBILE_MONEY => "Mobile Money",
+        AccountType.OTHER => "Autre",
         _ => "Inconnu"
     };
 
     private string GetTypeColor(AccountType type) => type switch
     {
-        AccountType.Cash => "bg-green-100 text-green-800",
-        AccountType.Bank => "bg-blue-100 text-blue-800",
-        AccountType.MobileMoney => "bg-orange-100 text-orange-800",
-        AccountType.Other => "bg-gray-100 text-gray-800",
+        AccountType.CASH => "bg-green-100 text-green-800",
+        AccountType.BANK => "bg-blue-100 text-blue-800",
+        AccountType.MOBILE_MONEY => "bg-orange-100 text-orange-800",
+        AccountType.OTHER => "bg-gray-100 text-gray-800",
         _ => "bg-gray-100 text-gray-800"
     };
 

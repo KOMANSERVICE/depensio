@@ -1,5 +1,4 @@
-using IDR.Library.Shared.Responses;
-using Refit;
+
 
 namespace depensio.Application.ApiExterne.Tresoreries;
 
@@ -179,13 +178,6 @@ public interface ITresorerieService
         [Query] DateTime? endDate = null);
 }
 
-public enum AccountType
-{
-    CASH = 1,           // Caisse
-    BANK = 2,           // Compte bancaire
-    MOBILE_MONEY = 3,    // Mobile Money,
-    OTHER = 4
-}
 
 
 public record CreateAccountRequest
@@ -322,12 +314,6 @@ public record AccountBalanceDto(
     DateTime CalculatedAt
 );
 
-// Category DTOs
-public enum CategoryType
-{
-    INCOME = 1,
-    EXPENSE = 2
-}
 
 public record CreateCategoryRequest(
     string Name,

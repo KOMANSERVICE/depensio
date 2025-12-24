@@ -31,4 +31,7 @@ global using IDR.Library.BuildingBlocks.Contexts.Services;
 global using IDR.Library.BuildingBlocks.Repositories;
 global using Microsoft.Extensions.Caching.Memory;
 global using System.Text.Json;
+global using IDR.Library.Shared.Enums;
+global using IDR.Library.Shared.Responses;
+global using Refit;
 

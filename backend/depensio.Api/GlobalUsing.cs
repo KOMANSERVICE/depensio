@@ -13,3 +13,4 @@ global using IDR.Library.BuildingBlocks.Security.Interfaces;
 global using IDR.Library.BuildingBlocks.Responses;
 global using IDR.Library.Shared.Responses;
 global using IDR.Library.BuildingBlocks.CQRS;
+global using IDR.Library.Shared.Enums;

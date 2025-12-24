@@ -1,11 +1,5 @@
 namespace depensio.Shared.Pages.Tresoreries.Models;
 
-public enum CategoryType
-{
-    INCOME = 1,   // Catégorie de revenus
-    EXPENSE = 2   // Catégorie de dépenses
-}
-
 public record CreateCategoryRequest(
     string Name,
     CategoryType Type,

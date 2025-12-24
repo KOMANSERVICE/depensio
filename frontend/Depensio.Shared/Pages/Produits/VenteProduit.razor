@@ -415,10 +415,10 @@
 
     private string GetAccountTypeName(AccountType type) => type switch
     {
-        AccountType.Cash => "Espèces",
-        AccountType.Bank => "Banque",
-        AccountType.MobileMoney => "Mobile Money",
-        AccountType.Other => "Autre",
+        AccountType.CASH => "Espèces",
+        AccountType.BANK => "Banque",
+        AccountType.MOBILE_MONEY => "Mobile Money",
+        AccountType.OTHER => "Autre",
         _ => type.ToString()
     };
 

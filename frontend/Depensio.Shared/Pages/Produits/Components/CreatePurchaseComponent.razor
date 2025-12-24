@@ -468,10 +468,10 @@ else
 
     private string GetAccountTypeName(AccountType type) => type switch
     {
-        AccountType.Cash => "Especes",
-        AccountType.Bank => "Banque",
-        AccountType.MobileMoney => "Mobile Money",
-        AccountType.Other => "Autre",
+        AccountType.CASH => "Especes",
+        AccountType.BANK => "Banque",
+        AccountType.MOBILE_MONEY => "Mobile Money",
+        AccountType.OTHER => "Autre",
         _ => type.ToString()
     };
 

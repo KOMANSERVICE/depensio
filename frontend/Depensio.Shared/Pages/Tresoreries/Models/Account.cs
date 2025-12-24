@@ -1,12 +1,7 @@
+
+
 namespace depensio.Shared.Pages.Tresoreries.Models;
 
-public enum AccountType
-{
-    Cash = 1,
-    Bank = 2,
-    MobileMoney = 3,
-    Other = 4
-}
 
 public record GetAccountsResponse(
     IReadOnlyList<AccountListDto> Accounts,
@@ -156,7 +151,7 @@ public class AccountCreateDTO
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public AccountType Type { get; set; } = AccountType.Cash;
+    public AccountType Type { get; set; } = AccountType.CASH;
     public decimal InitialBalance { get; set; }
     public decimal? AlertThreshold { get; set; }
     public decimal? OverdraftLimit { get; set; }
@@ -410,15 +405,6 @@ public record PendingCashFlowDto(
     DateTime? SubmittedAt,
     string? SubmittedBy
 );
-
-// RecurringCashFlow DTOs
-public enum RecurringFrequency
-{
-    DAILY = 1,
-    WEEKLY = 2,
-    MONTHLY = 3,
-    YEARLY = 4
-}
 
 public record CreateRecurringCashFlowRequest(
     CashFlowTypeExtended Type,
