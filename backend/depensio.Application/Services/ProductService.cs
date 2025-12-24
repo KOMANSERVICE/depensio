@@ -27,7 +27,7 @@ public class ProductService(
             Price = p.Price,
             CostPrice = p.CostPrice,
             Stock = (stockIsAuto
-                ? p.PurchaseItems.Sum(pi => pi.Quantity) - p.SaleItems.Where(si => si.Sale.Status != SaleStatus.Cancelled).Sum(si => si.Quantity) :
+                ? p.PurchaseItems.Where(pi => pi.Purchase.Status == (int)PurchaseStatus.Approved).Sum(pi => pi.Quantity) - p.SaleItems.Where(si => si.Sale.Status != SaleStatus.Cancelled).Sum(si => si.Quantity) :
                 p.Stock),
             ProductItems = p.ProductItems.Where(pi => pi.Status == ProductStatus.Available)
             .ToList()
@@ -45,6 +45,7 @@ public class ProductService(
                                && b.UsersBoutiques.Any(ub => ub.UserId == userId))
                    .Include(b => b.Products)
                        .ThenInclude(p => p.PurchaseItems)
+                           .ThenInclude(pi => pi.Purchase)
                    .Include(b => b.Products)
                        .ThenInclude(p => p.SaleItems)
                            .ThenInclude(si => si.Sale)
