@@ -2,18 +2,22 @@
 using depensio.Application.ApiExterne.Tresoreries;
 using depensio.Application.UseCases.Purchases.Commands.CreatePurchase;
 using depensio.Application.UseCases.Purchases.DTOs;
+using depensio.Domain.Constants;
 using depensio.Domain.Enums;
 using depensio.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace depensio.Application.UseCases.Purchases.Commands.CreatePurchase;
 
 public class CreatePurchaseHandler(
     IDepensioDbContext _depensioRepository,
     IGenericRepository<Purchase> _purchaseRepository,
+    IGenericRepository<Product> _productRepository,
     IUnitOfWork _unitOfWork,
     IUserContextService _userContextService,
     ITresorerieService _tresorerieService,
+    IBoutiqueSettingService _boutiqueSettingService,
     ILogger<CreatePurchaseHandler> _logger
     )
     : ICommandHandler<CreatePurchaseCommand, CreatePurchaseResult>
@@ -47,6 +51,18 @@ public class CreatePurchaseHandler(
         var purchase = CreateNewPurchase(command.Purchase, email);
 
         await _purchaseRepository.AddDataAsync(purchase, cancellationToken);
+
+        // BUG FIX #503: Augmenter le stock des produits si l'achat est directement approuvé
+        // Seulement si le stock n'est pas en mode automatique
+        if (purchase.Status == (int)PurchaseStatus.Approved)
+        {
+            var stockIsAuto = await IsStockAutomatiqueEnabledAsync(command.Purchase.BoutiqueId);
+            if (!stockIsAuto)
+            {
+                await UpdateProductStockAsync(purchase.PurchaseItems, command.Purchase.BoutiqueId, cancellationToken);
+            }
+        }
+
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
         // AC-3: If PaymentMethod + AccountId provided AND status is Approved → Call Trésorerie to create CashFlow
@@ -160,4 +176,56 @@ public class CreatePurchaseHandler(
             _logger.LogError(ex, "Error creating CashFlow for Purchase {PurchaseId}", purchase.Id.Value);
         }
     }
+
+    private async Task<bool> IsStockAutomatiqueEnabledAsync(Guid boutiqueId)
+    {
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingAsync(boutiqueId, BoutiqueSettingKeys.PRODUCT_KEY);
+            if (setting?.Value is string json && !string.IsNullOrEmpty(json))
+            {
+                var settingValues = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+                var stockAutoSetting = settingValues?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
+                if (stockAutoSetting != null)
+                {
+                    return stockAutoSetting.Value?.ToString()?.ToLower() == "true";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error reading product setting for boutique {BoutiqueId}. Defaulting to false.", boutiqueId);
+        }
+        return false;
+    }
+
+    private async Task UpdateProductStockAsync(ICollection<PurchaseItem> purchaseItems, Guid boutiqueId, CancellationToken cancellationToken)
+    {
+        var productIds = purchaseItems.Select(pi => pi.ProductId).ToList();
+        var products = await _depensioRepository.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        foreach (var purchaseItem in purchaseItems)
+        {
+            var product = products.FirstOrDefault(p => p.Id == purchaseItem.ProductId);
+            if (product != null)
+            {
+                product.Stock += purchaseItem.Quantity;
+                _productRepository.UpdateData(product);
+                _logger.LogInformation("Stock updated for Product {ProductId}: +{Quantity} (new stock: {NewStock})",
+                    product.Id.Value, purchaseItem.Quantity, product.Stock);
+            }
+        }
+    }
+}
+
+internal class BoutiqueSettingValue
+{
+    public string Id { get; set; } = string.Empty;
+    public string LabelValue { get; set; } = string.Empty;
+    public object? Value { get; set; }
+    public string LabelText { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 }
