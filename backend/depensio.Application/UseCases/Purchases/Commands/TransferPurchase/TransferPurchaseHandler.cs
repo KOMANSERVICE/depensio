@@ -76,6 +76,14 @@ public class TransferPurchaseHandler(
         purchase.PaymentMethod = paymentMethod;
         purchase.CategoryId = categoryId;
 
+        // Calculate total amount from items if not set (for backwards compatibility with old purchases)
+        var totalAmount = purchase.TotalAmount;
+        if (totalAmount == 0 && purchase.PurchaseItems.Any())
+        {
+            totalAmount = purchase.PurchaseItems.Sum(i => i.Price * i.Quantity);
+            purchase.TotalAmount = totalAmount; // Update the stored value
+        }
+
         var userId = _userContextService.GetUserId();
 
         // Call ITresorerieService.CreateCashFlowFromPurchaseAsync()
@@ -85,7 +93,7 @@ public class TransferPurchaseHandler(
             var request = new CreateCashFlowFromPurchaseRequest(
                 PurchaseId: purchase.Id.Value,
                 PurchaseReference: $"ACH-{purchase.Id.Value.ToString()[..8].ToUpper()}",
-                Amount: purchase.TotalAmount,
+                Amount: totalAmount,
                 AccountId: accountId!.Value,
                 PaymentMethod: paymentMethod!,
                 PurchaseDate: purchase.Date,

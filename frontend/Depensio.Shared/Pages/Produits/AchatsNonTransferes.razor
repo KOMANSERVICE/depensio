@@ -5,8 +5,10 @@
 @inject IPurchaseService _purchaseService
 @inject IProductService _productService
 @inject ITresorerieService _tresorerieService
+@inject ToastService ToastService
 
 <PageTitleComponent Title="Achats non transférés" />
+<ToastContainer />
 
 <HeaderPage
             Title="Achats non transférés"
@@ -685,6 +687,7 @@
 
             if (result.Success)
             {
+                ShowSuccess("Achat transféré à la trésorerie avec succès");
                 // Refresh the list
                 await GetPurchaseAsync();
                 ApplyFilter();
@@ -693,6 +696,7 @@
             else
             {
                 transferErrorMessage = result.Message ?? "Une erreur est survenue lors du transfert.";
+                ShowError(transferErrorMessage);
             }
         }
         catch (Refit.ApiException ex)
@@ -709,10 +713,12 @@
             {
                 transferErrorMessage = "Une erreur est survenue lors du transfert.";
             }
+            ShowError(transferErrorMessage);
         }
         catch (Exception ex)
         {
             transferErrorMessage = ex.Message;
+            ShowError(transferErrorMessage);
         }
         finally
         {
@@ -803,9 +809,11 @@
             if (failedTransfers.Any())
             {
                 bulkTransferErrorMessage = $"Certains transferts ont échoué : {string.Join(", ", failedTransfers)}";
+                ShowError(bulkTransferErrorMessage);
             }
             else
             {
+                ShowSuccess($"{purchaseIds.Count} achat(s) transféré(s) à la trésorerie avec succès");
                 CloseBulkTransferModal();
             }
 
@@ -817,6 +825,7 @@
         catch (Exception ex)
         {
             bulkTransferErrorMessage = $"Une erreur est survenue : {ex.Message}";
+            ShowError(bulkTransferErrorMessage);
         }
         finally
         {
@@ -863,4 +872,14 @@
         AccountType.OTHER => "Autre",
         _ => type.ToString()
     };
+
+    private void ShowSuccess(string message)
+    {
+        ToastService.ShowToast("Succès", message, "success");
+    }
+
+    private void ShowError(string message)
+    {
+        ToastService.ShowToast("Erreur", message, "error");
+    }
 }
