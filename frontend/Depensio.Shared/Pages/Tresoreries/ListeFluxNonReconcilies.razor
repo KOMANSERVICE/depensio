@@ -158,7 +158,7 @@
                                         class="text-blue-600 hover:text-blue-800 mr-3" title="Voir le detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <button @onclick="() => ReconcileCashFlow(cashFlow.Id)"
+                                    <button @onclick="() => OpenReconcileModal(cashFlow.Id)"
                                         class="text-green-600 hover:text-green-800" title="Marquer comme reconcilie">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
@@ -215,7 +215,7 @@
                                         class="text-blue-600 hover:text-blue-800 p-2" title="Voir le detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <button @onclick="() => ReconcileCashFlow(cashFlow.Id)"
+                                    <button @onclick="() => OpenReconcileModal(cashFlow.Id)"
                                         class="text-green-600 hover:text-green-800 p-2" title="Reconcilier">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
@@ -247,6 +247,53 @@
     }
 </div>
 
+<!-- Modal de reconciliation -->
+@if (showReconcileModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-check-double text-blue-600 mr-2"></i>Marquer comme reconcilie
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    Confirmez que ce flux apparait sur votre releve bancaire.
+                </p>
+                <div class="mb-4">
+                    <label for="bankStatementReference" class="block text-sm font-medium text-gray-700 mb-1">
+                        Reference du releve bancaire (optionnel)
+                    </label>
+                    <input type="text" id="bankStatementReference" @bind="bankStatementReference"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Ex: RELEVE-2024-12-001" />
+                </div>
+                <p class="text-sm text-blue-600">
+                    <i class="fas fa-info-circle mr-1"></i>Cette action permet de rapprocher vos flux avec vos releves bancaires.
+                </p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t">
+                <button type="button" @onclick="CloseReconcileModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="button" @onclick="HandleReconcileCashFlow" disabled="@isReconciling"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                    @if (isReconciling)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-2"></i>@("Reconciliation...")
+                    }
+                    else
+                    {
+                        <i class="fas fa-check-double mr-2"></i>@("Confirmer")
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -265,6 +312,12 @@
     private decimal totalUnreconciledAmount = 0;
     private decimal totalIncomeAmount = 0;
     private decimal totalExpenseAmount = 0;
+
+    // Reconcile modal
+    private bool showReconcileModal = false;
+    private Guid? selectedCashFlowId = null;
+    private string bankStatementReference = string.Empty;
+    private bool isReconciling = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -327,23 +380,52 @@
         }
     }
 
-    private async Task ReconcileCashFlow(Guid cashFlowId)
+    private void OpenReconcileModal(Guid cashFlowId)
     {
+        selectedCashFlowId = cashFlowId;
+        bankStatementReference = string.Empty;
+        showReconcileModal = true;
+    }
+
+    private void CloseReconcileModal()
+    {
+        showReconcileModal = false;
+        selectedCashFlowId = null;
+        bankStatementReference = string.Empty;
+    }
+
+    private async Task HandleReconcileCashFlow()
+    {
+        if (selectedCashFlowId == null)
+            return;
+
+        isReconciling = true;
+        StateHasChanged();
+
         try
         {
+            var request = string.IsNullOrWhiteSpace(bankStatementReference)
+                ? null
+                : new ReconcileCashFlowRequest(bankStatementReference);
             var response = await _tresorerieService.ReconcileCashFlowAsync(
                 boutiqueId,
-                cashFlowId,
-                null);
+                selectedCashFlowId.Value,
+                request);
 
             if (response.Success)
             {
+                CloseReconcileModal();
                 await GetUnreconciledCashFlowsAsync();
             }
         }
         catch (Exception)
         {
             // Handle error silently or show toast
+        }
+        finally
+        {
+            isReconciling = false;
+            StateHasChanged();
         }
     }
 

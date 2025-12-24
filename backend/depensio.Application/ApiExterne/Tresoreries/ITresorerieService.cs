@@ -181,11 +181,12 @@ public interface ITresorerieService
 
 public enum AccountType
 {
-    Cash = 0,
-    Bank = 1,
-    MobileMoney = 2,
-    Other = 3
+    CASH = 1,           // Caisse
+    BANK = 2,           // Compte bancaire
+    MOBILE_MONEY = 3,    // Mobile Money,
+    OTHER = 4
 }
+
 
 public record CreateAccountRequest
 {
