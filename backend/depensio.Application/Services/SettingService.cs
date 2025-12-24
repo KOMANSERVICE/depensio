@@ -53,6 +53,13 @@ public class SettingService : ISettingService
                 "LabelText": "Préfixe Code Bar.",
                 "Text": "",
                 "Description": "Lors de la vente, à la caisse, vous ou vos employer pourrons selectionner un produit en rupture de stock"
+            },{
+                "Id": "{{BoutiqueSettingKeys.VENTE_ENVOI_AUTOMATIQUE_TRESORERIE}}",
+                "LabelValue": "Envoi automatique des ventes à la trésorerie",
+                "Value": "false",
+                "LabelText": "",
+                "Text": "",
+                "Description": "Coché pour rendre l'envoi des ventes approuvées à la trésorerie."
             }
         ]
         """ },

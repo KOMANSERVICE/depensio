@@ -49,8 +49,9 @@ public class CreateSaleHandler(
         await _saleRepository.AddDataAsync(sale, cancellationToken);
         await _unitOfWork.SaveChangesDataAsync(cancellationToken);
 
-        // Create CashFlow if payment info is provided (Treasury integration)
-        if (command.Sale.AccountId.HasValue && command.Sale.CategoryId.HasValue)
+        // Create CashFlow if automatic treasury sending is enabled and payment info is provided
+        var envoiAutoEnabled = await GetEnvoiAutomatiqueConfigAsync(command.Sale.BoutiqueId);
+        if (envoiAutoEnabled && command.Sale.AccountId.HasValue)
         {
             await CreateCashFlowFromSaleAsync(sale, command.Sale.BoutiqueId);
         }
@@ -155,7 +156,7 @@ public class CreateSaleHandler(
                 SaleDate: sale.Date,
                 CustomerName: null,
                 CustomerId: null,
-                CategoryId: sale.CategoryId!.Value.ToString()
+                CategoryId: sale.CategoryId?.ToString()
             );
 
             var result = await _tresorerieService.CreateCashFlowFromSaleAsync(
@@ -238,6 +239,19 @@ public class CreateSaleHandler(
         var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
         var stockSetting = result.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.PRODUCT_STOCK_AUTOMATIQUE);
         return BoolHelper.ToBool(stockSetting?.Value.ToString());
+    }
+
+    private async Task<bool> GetEnvoiAutomatiqueConfigAsync(Guid boutiqueId)
+    {
+        var config = await _settingService.GetSettingAsync(
+            boutiqueId,
+            BoutiqueSettingKeys.VENTE_KEY
+        );
+
+        var result = JsonSerializer.Deserialize<List<BoutiqueValue>>(config.Value);
+        var envoiAutoSetting = result?.FirstOrDefault(c => c.Id == BoutiqueSettingKeys.VENTE_ENVOI_AUTOMATIQUE_TRESORERIE);
+
+        return BoolHelper.ToBool(envoiAutoSetting?.Value?.ToString());
     }
 
 }

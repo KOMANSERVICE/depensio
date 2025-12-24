@@ -2,6 +2,8 @@
 @using depensio.Shared.Pages.Boutique.Model
 @using depensio.Shared.Pages.Produits.Components
 @using depensio.Shared.Pages.Produits.Models
+@using depensio.Shared.Contants
+@using depensio.Shared.Helpers
 @inject ToastService ToastService
 @inherits FlowbitePage
 @layout MainLayout
@@ -11,12 +13,16 @@
 <PageTitle>Depensio - Paramètres des ventes</PageTitle>
 
 <ToastContainer />
-
-
+<LoadingComponent IsLoad="@isLoad" />
 
 <HeaderPanel Tabs="@headerTabs" />
 
-<div class="grid grid-cols-1 px-4 xl:grid-cols-2 xl:gap-4">
+<div class="grid grid-cols-1 px-4 pt-6 xl:grid-cols-2 xl:gap-4 dark:bg-gray-900">
+    <div class="mb-4 col-span-full xl:mb-2">
+        <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Paramètres des ventes</h1>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Configurez les options liées aux ventes et à la trésorerie.</p>
+    </div>
+
     <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800 xl:mb-0">
         @if (@settingSaisiePrix != null)
         {
@@ -25,8 +31,6 @@
                 <DataAnnotationsValidator />
                 <ErrorsSummary editContext="@editContext" />
                 <div class="flow-root">
-                    @* <h3 class="text-xl font-semibold dark:text-white">Alerts & Notifications</h3>
-                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">You can set up Themesberg to get notifications</p> *@
                     <div class="divide-y divide-gray-200 dark:divide-gray-700">
 
                         <div class="flex items-center justify-between py-4">
@@ -89,6 +93,85 @@
         }
 
     </div>
+
+    <!-- Nouvelle section pour l'envoi automatique vers la trésorerie -->
+    <div class="col-span-full p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800 xl:mb-0">
+        @if (settingEnvoiAuto != null)
+        {
+            <EditForm Model="formModel" OnValidSubmit="HandleEnvoiAutoSubmit">
+                <DataAnnotationsValidator />
+                <div class="flow-root">
+                    <h3 class="text-xl font-semibold dark:text-white mb-4">Intégration Trésorerie</h3>
+                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <div class="flex items-center justify-between py-4">
+                            <div class="flex flex-col flex-grow pr-4">
+                                <div class="text-lg font-semibold text-gray-900 dark:text-white">@settingEnvoiAuto.LabelValue</div>
+                                <div class="text-base font-normal text-gray-500 dark:text-gray-400">@settingEnvoiAuto.Description</div>
+                            </div>
+                            <div class="relative inline-block w-11 h-5">
+                                <input id="switch-envoi-auto" @bind="formModel.EnvoiAutomatiqueTresorerie" type="checkbox"
+                                       class="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-primary-800 cursor-pointer transition-colors duration-300" />
+                                <label for="switch-envoi-auto"
+                                       class="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (formModel.EnvoiAutomatiqueTresorerie)
+                    {
+                        <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <div class="text-sm text-blue-700 dark:text-blue-300">
+                                    <p class="font-medium">Cette option activée implique :</p>
+                                    <ul class="mt-1 list-disc list-inside space-y-1">
+                                        <li>Les champs <strong>Mode de paiement</strong> et <strong>Compte</strong> seront obligatoires lors de la création d'une vente</li>
+                                        <li>Lors de la validation d'une vente, l'écriture sera automatiquement envoyée à la trésorerie</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-gray-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    <p class="font-medium">Cette option désactivée implique :</p>
+                                    <ul class="mt-1 list-disc list-inside space-y-1">
+                                        <li>Les champs Mode de paiement et Compte ne seront pas affichés lors de la création d'une vente</li>
+                                        <li>Lors de la validation d'une vente, aucune écriture ne sera envoyée à la trésorerie</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mt-6">
+                        <button type="submit"
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+                            Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <div class="text-center py-8">
+                <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400">Chargement des paramètres...</p>
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -96,10 +179,11 @@
     public Guid boutiqueId { get; set; }
     private bool isLoad = false;
 
-    private BoutiqueSettingValue settingSaisiePrix;
-    private BoutiqueSettingValue settingVenteStockZero;
+    private BoutiqueSettingValue? settingSaisiePrix;
+    private BoutiqueSettingValue? settingVenteStockZero;
+    private BoutiqueSettingValue? settingEnvoiAuto;
 
-    private ProductFormModel formModel = new();
+    private SaleSettingFormModel formModel = new();
 
     private EditContext editContext;
     private ValidationMessageStore messageStore;
@@ -107,43 +191,61 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var setting = await _boutiqueSettingService.GetSettingByBoutique(boutiqueId, BoutiqueSettingKeys.VENTE_KEY);
-        var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);
+        isLoad = true;
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingByBoutique(boutiqueId, BoutiqueSettingKeys.VENTE_KEY);
+            if (setting?.Data?.Settings?.Value is string json)
+            {
+                var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
 
-        settingSaisiePrix = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
-        settingVenteStockZero = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO);
+                settingSaisiePrix = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
+                settingVenteStockZero = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO);
+                settingEnvoiAuto = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_ENVOI_AUTOMATIQUE_TRESORERIE);
 
-        formModel.AutoSaisiPrix = BoolHelper.ToBool(settingSaisiePrix.Value.ToString());
-        formModel.AutoVenteProduitSkockZero = BoolHelper.ToBool(settingVenteStockZero.Value.ToString());
+                if (settingSaisiePrix != null)
+                    formModel.AutoSaisiPrix = BoolHelper.ToBool(settingSaisiePrix.Value?.ToString() ?? "false");
+                if (settingVenteStockZero != null)
+                    formModel.AutoVenteProduitSkockZero = BoolHelper.ToBool(settingVenteStockZero.Value?.ToString() ?? "false");
+                if (settingEnvoiAuto != null)
+                    formModel.EnvoiAutomatiqueTresorerie = BoolHelper.ToBool(settingEnvoiAuto.Value?.ToString() ?? "false");
+            }
 
-        headerTabs = _headerTabService.GetHeaderTabs(boutiqueId);
-
+            headerTabs = _headerTabService.GetHeaderTabs(boutiqueId);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erreur lors du chargement des paramètres: {ex.Message}");
+        }
+        finally
+        {
+            isLoad = false;
+        }
     }
 
     private async void HandleStockSubmit()
     {
-        //isLoad = true;
         try
         {
             var setting = await _boutiqueSettingService.GetSettingByBoutique(boutiqueId, BoutiqueSettingKeys.VENTE_KEY);
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                ShowError();
+                ShowError("Erreur lors de la récupération des paramètres");
                 return;
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                ShowError();
+                ShowError("Erreur de désérialisation des paramètres");
                 return;
             }
 
             var stockSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_VENTE_AVEC_STOCK_ZERO);
             if (stockSetting is not null)
             {
-                stockSetting.Value = formModel.AutoVenteProduitSkockZero.ToString();
+                stockSetting.Value = formModel.AutoVenteProduitSkockZero.ToString().ToLower();
             }
 
             setting.Data.Settings.Value = JsonSerializer.Serialize(result);
@@ -156,40 +258,33 @@
         }
         catch
         {
-            ShowError();
+            ShowError("Une erreur est survenue lors de l'enregistrement");
         }
-        finally
-        {
-            //isLoad = false;
-        }
-
-
     }
 
     private async void HandleBarCodeSubmit()
     {
-        //isLoad = true;
         try
         {
             var setting = await _boutiqueSettingService.GetSettingByBoutique(boutiqueId, BoutiqueSettingKeys.VENTE_KEY);
 
             if (setting?.Data?.Settings?.Value is not string json)
             {
-                ShowError();
+                ShowError("Erreur lors de la récupération des paramètres");
                 return;
             }
 
             var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
             if (result is null)
             {
-                ShowError();
+                ShowError("Erreur de désérialisation des paramètres");
                 return;
             }
 
             var barcodeSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
             if (barcodeSetting is not null)
             {
-                barcodeSetting.Value = formModel.AutoSaisiPrix.ToString();
+                barcodeSetting.Value = formModel.AutoSaisiPrix.ToString().ToLower();
             }
 
             setting.Data.Settings.Value = JsonSerializer.Serialize(result);
@@ -203,16 +298,49 @@
         }
         catch
         {
-            ShowError();
+            ShowError("Une erreur est survenue lors de l'enregistrement");
         }
-        finally
-        {
-            //isLoad = false;
-        }
-
-
     }
 
+    private async void HandleEnvoiAutoSubmit()
+    {
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingByBoutique(boutiqueId, BoutiqueSettingKeys.VENTE_KEY);
+
+            if (setting?.Data?.Settings?.Value is not string json)
+            {
+                ShowError("Erreur lors de la récupération des paramètres");
+                return;
+            }
+
+            var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+            if (result is null)
+            {
+                ShowError("Erreur de désérialisation des paramètres");
+                return;
+            }
+
+            var envoiAutoSetting = result.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_ENVOI_AUTOMATIQUE_TRESORERIE);
+            if (envoiAutoSetting is not null)
+            {
+                envoiAutoSetting.Value = formModel.EnvoiAutomatiqueTresorerie.ToString().ToLower();
+            }
+
+            setting.Data.Settings.Value = JsonSerializer.Serialize(result);
+            setting.Data.Settings.BoutiqueId = boutiqueId;
+
+            var saveResult = await _boutiqueSettingService.UpsetSettingByBoutique(
+                new UpsetSettingByBoutiqueRequest(setting.Data.Settings)
+            );
+
+            ShowSuccess();
+        }
+        catch
+        {
+            ShowError("Une erreur est survenue lors de l'enregistrement");
+        }
+    }
 
     private string GetDisplayName(Enum value)
     {
@@ -226,9 +354,15 @@
         ToastService.ShowToast("Succès", "Paramètre enregistré avec succès", "success");
     }
 
-    private void ShowError()
+    private void ShowError(string message)
     {
-        ToastService.ShowToast("Erreur", "Une erreur est survenue", "error");
+        ToastService.ShowToast("Erreur", message, "error");
     }
 
+    public class SaleSettingFormModel
+    {
+        public bool AutoSaisiPrix { get; set; } = false;
+        public bool AutoVenteProduitSkockZero { get; set; } = false;
+        public bool EnvoiAutomatiqueTresorerie { get; set; } = false;
+    }
 }

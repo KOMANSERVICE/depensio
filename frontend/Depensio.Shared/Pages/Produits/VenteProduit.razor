@@ -1,9 +1,13 @@
 ﻿@page "/caisse/{boutiqueId:guid}"
+@using depensio.Shared.Contants
+@using depensio.Shared.Helpers
+@using depensio.Shared.Pages.Tresoreries.Models
 @inject IProductService _productService
 @inherits FlowbitePage
 @layout MainLayout
 @inject ISaleService _saleService;
 @inject IBoutiqueSettingService _boutiqueSettingService
+@inject ITresorerieService _tresorerieService
 @inject ToastService ToastService
 @inject IJSRuntime JSRuntime
 
@@ -169,22 +173,57 @@
                 </div>
             </div>
 
-            <!-- Payment Options -->
-            <div class="mb-4">
-                <h3 class="font-medium text-gray-700 mb-2 text-primary-700 ">Moyen de paiement</h3>
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" class="payment-btn bg-gray-100   p-2 rounded hover:bg-primary-500 transition" data-method="cash">
-                        <i class="fas fa-money-bill-wave mr-1 text-primary-700"></i> Espèces
-                    </button>
-                    <button type="button" class="payment-btn bg-gray-100 p-2 rounded hover:bg-primary-500 transition" data-method="card">
-                        <i class="fas fa-credit-card mr-1 text-primary-700"></i> Carte
-                    </button>
-                    <button type="button" class="payment-btn bg-gray-100  p-2 rounded hover:bg-primary-500 transition" data-method="check">
-                        <i class="fas fa-mobile-alt text-primary-700"></i>
-                        Mobile
-                    </button>
+            <!-- Payment Options - Visible only when Treasury integration is enabled -->
+            @if (_envoiAutomatiqueEnabled)
+            {
+                <div class="mb-4">
+                    <h3 class="font-medium text-gray-700 mb-2 text-primary-700">Mode de paiement <span class="text-red-500">*</span></h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" @onclick="@(() => SelectPaymentMethod(PAYMENT_CASH))"
+                                class="@GetPaymentButtonClass(PAYMENT_CASH)">
+                            <i class="fas fa-money-bill-wave mr-1 @GetPaymentIconClass(PAYMENT_CASH)"></i> Espèces
+                        </button>
+                        <button type="button" @onclick="@(() => SelectPaymentMethod(PAYMENT_CARD))"
+                                class="@GetPaymentButtonClass(PAYMENT_CARD)">
+                            <i class="fas fa-credit-card mr-1 @GetPaymentIconClass(PAYMENT_CARD)"></i> Carte
+                        </button>
+                        <button type="button" @onclick="@(() => SelectPaymentMethod(PAYMENT_MOBILE))"
+                                class="@GetPaymentButtonClass(PAYMENT_MOBILE)">
+                            <i class="fas fa-mobile-alt @GetPaymentIconClass(PAYMENT_MOBILE)"></i> Mobile
+                        </button>
+                    </div>
                 </div>
-            </div>
+
+                <div class="mb-4">
+                    <label for="accountId" class="font-medium text-gray-700 mb-2 text-primary-700 block">Compte <span class="text-red-500">*</span></label>
+                    <select @bind="selectedAccountId" id="accountId"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <option value="">Sélectionnez un compte</option>
+                        @foreach (var account in accounts.Where(a => a.IsActive))
+                        {
+                            <option value="@account.Id.ToString()">@account.Name (@GetAccountTypeName(account.Type))</option>
+                        }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <div class="mb-4">
+                    <h3 class="font-medium text-gray-700 mb-2 text-primary-700 ">Moyen de paiement</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" class="payment-btn bg-gray-100   p-2 rounded hover:bg-primary-500 transition" data-method="cash">
+                            <i class="fas fa-money-bill-wave mr-1 text-primary-700"></i> Espèces
+                        </button>
+                        <button type="button" class="payment-btn bg-gray-100 p-2 rounded hover:bg-primary-500 transition" data-method="card">
+                            <i class="fas fa-credit-card mr-1 text-primary-700"></i> Carte
+                        </button>
+                        <button type="button" class="payment-btn bg-gray-100  p-2 rounded hover:bg-primary-500 transition" data-method="check">
+                            <i class="fas fa-mobile-alt text-primary-700"></i>
+                            Mobile
+                        </button>
+                    </div>
+                </div>
+            }
 
             <!-- Action Buttons -->
             <div class="grid grid-cols-2 gap-3">
@@ -273,6 +312,17 @@
 
     private bool showModalCodeQR = false;
 
+    // Treasury integration
+    private bool _envoiAutomatiqueEnabled = false;
+    private List<AccountListDto> accounts = new();
+
+    // Variable temporaire pour l'AccountId (car select utilise string)
+    private string selectedAccountId
+    {
+        get => sale.AccountId?.ToString() ?? string.Empty;
+        set => sale.AccountId = string.IsNullOrEmpty(value) ? null : Guid.Parse(value);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         editContext = new EditContext(sale);
@@ -282,11 +332,84 @@
         editContext.OnFieldChanged += (s, e) => messageStore.Clear(e.FieldIdentifier);
 
         await GetProductsAsync();
+        await LoadSettingsAsync();
+    }
 
-        var setting = await _boutiqueSettingService.GetSettingByBoutique(BoutiqueId, BoutiqueSettingKeys.VENTE_KEY);
-        var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(setting.Data.Settings.Value);
-        var settingSaisiePrix = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
-        displayPrixVente = BoolHelper.ToBool(settingSaisiePrix?.Value.ToString());
+    private async Task LoadSettingsAsync()
+    {
+        try
+        {
+            var setting = await _boutiqueSettingService.GetSettingByBoutique(BoutiqueId, BoutiqueSettingKeys.VENTE_KEY);
+            if (setting?.Data?.Settings?.Value is string json)
+            {
+                var result = JsonSerializer.Deserialize<List<BoutiqueSettingValue>>(json);
+
+                var settingSaisiePrix = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_AUTORISER_MODIFICATION_PRIX);
+                displayPrixVente = BoolHelper.ToBool(settingSaisiePrix?.Value?.ToString() ?? "false");
+
+                var settingEnvoiAuto = result?.FirstOrDefault(x => x.Id == BoutiqueSettingKeys.VENTE_ENVOI_AUTOMATIQUE_TRESORERIE);
+                _envoiAutomatiqueEnabled = BoolHelper.ToBool(settingEnvoiAuto?.Value?.ToString() ?? "false");
+            }
+
+            // Load accounts only if treasury integration is enabled
+            if (_envoiAutomatiqueEnabled)
+            {
+                await LoadAccountsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erreur lors du chargement des paramètres: {ex.Message}");
+        }
+    }
+
+    private async Task LoadAccountsAsync()
+    {
+        try
+        {
+            var accountsResponse = await _tresorerieService.GetAccountsAsync(BoutiqueId, false);
+            if (accountsResponse.Success && accountsResponse.Data != null)
+            {
+                accounts = accountsResponse.Data.Accounts.ToList();
+            }
+        }
+        catch
+        {
+            accounts = new List<AccountListDto>();
+        }
+    }
+
+    private void SelectPaymentMethod(string method)
+    {
+        sale.PaymentMethodId = method;
+    }
+
+    // Payment method constants
+    private const string PAYMENT_CASH = "CASH";
+    private const string PAYMENT_CARD = "CARD";
+    private const string PAYMENT_MOBILE = "MOBILE_MONEY";
+
+    private string GetAccountTypeName(AccountType type) => type switch
+    {
+        AccountType.Cash => "Espèces",
+        AccountType.Bank => "Banque",
+        AccountType.MobileMoney => "Mobile Money",
+        AccountType.Other => "Autre",
+        _ => type.ToString()
+    };
+
+    private string GetPaymentButtonClass(string method)
+    {
+        var isSelected = sale.PaymentMethodId == method;
+        return isSelected
+            ? "payment-btn p-2 rounded transition bg-primary-700 text-white"
+            : "payment-btn p-2 rounded transition bg-gray-100 hover:bg-primary-500";
+    }
+
+    private string GetPaymentIconClass(string method)
+    {
+        var isSelected = sale.PaymentMethodId == method;
+        return isSelected ? "" : "text-primary-700";
     }
 
     private async Task GetProductsAsync()
@@ -297,6 +420,30 @@
 
     private async Task HandleCreateSale()
     {
+        // Validation des champs obligatoires si l'envoi automatique est activé
+        if (_envoiAutomatiqueEnabled)
+        {
+            messageStore.Clear();
+            bool hasErrors = false;
+
+            if (string.IsNullOrWhiteSpace(sale.PaymentMethodId))
+            {
+                ShowError("Le mode de paiement est obligatoire.");
+                hasErrors = true;
+            }
+
+            if (!sale.AccountId.HasValue)
+            {
+                ShowError("Le compte est obligatoire.");
+                hasErrors = true;
+            }
+
+            if (hasErrors)
+            {
+                return;
+            }
+        }
+
         isLoad = true;
         try
         {
@@ -324,16 +471,11 @@
                 if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
                 {
                     ShowError(errorResult.Detail);
-                    // messageStore.Add(new FieldIdentifier(sale, string.Empty), errorResult.Detail);
-                    // editContext.NotifyValidationStateChanged();
                 }
             }
             catch
             {
-
                 ShowError("Une erreur est survenue.");
-                // messageStore.Add(new FieldIdentifier(sale, string.Empty), "Une erreur est survenue.");
-                // editContext.NotifyValidationStateChanged();
             }
 
         }
