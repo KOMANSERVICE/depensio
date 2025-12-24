@@ -49,15 +49,17 @@ public class AccountEditDTO
 public enum CashFlowType
 {
     INCOME = 1,
-    EXPENSE = 2
+    EXPENSE = 2,
+    TRANSFER = 3
 }
 
 public enum CashFlowStatus
 {
-    Pending = 0,
-    Approved = 1,
-    Rejected = 2,
-    Cancelled = 3
+    DRAFT = 1,
+    PENDING = 2,
+    APPROVED = 3,
+    REJECTED = 4,
+    CANCELLED = 5
 }
 
 public record GetAccountDetailResponse(
@@ -285,7 +287,9 @@ public record TransferDto(
     string Label,
     string? Description,
     decimal SourceAccountBalance,
-    decimal DestinationAccountBalance
+    decimal DestinationAccountBalance,
+    DateTime CreatedAt,
+    string CreatedBy
 );
 
 public class TransferCreateDTO
