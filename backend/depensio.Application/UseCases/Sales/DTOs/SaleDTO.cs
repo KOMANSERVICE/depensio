@@ -14,6 +14,10 @@ public record SaleDTO
     public Guid? AccountId { get; set; }
     public string? CategoryId { get; set; }
     public Guid? CashFlowId { get; set; }
+    /// <summary>
+    /// Reference to the reversal CashFlow created when the sale is cancelled (contre-passation)
+    /// </summary>
+    public Guid? ReversalCashFlowId { get; set; }
     public decimal TotalAmount { get; set; }
 
     public decimal TotalPrice => Items.Sum(item => item.Price * item.Quantity);

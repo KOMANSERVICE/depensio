@@ -35,6 +35,7 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
         builder.Property(e => e.AccountId);
         builder.Property(e => e.CategoryId);
         builder.Property(e => e.CashFlowId);
+        builder.Property(e => e.ReversalCashFlowId);
         builder.Property(e => e.TotalAmount)
             .HasPrecision(18, 2);
 
