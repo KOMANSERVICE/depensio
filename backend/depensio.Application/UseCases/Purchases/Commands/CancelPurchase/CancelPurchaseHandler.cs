@@ -77,28 +77,37 @@ public class CancelPurchaseHandler(
 
         var userId = _userContextService.GetUserId();
 
-        // AC-3 (US-PUR-008): Si CashFlowId non null -> Appel annulation/contre-passation Tresorerie
+        // AC-3 (US-PUR-008): Si CashFlowId non null -> Appel contre-passation Tresorerie (US-TRS-003)
         // AC-3 (US-PUR-009): Aucun appel Tresorerie pour Draft/PendingApproval/Rejected
+        Guid? reversalCashFlowId = null;
         if (currentStatus == PurchaseStatus.Approved && purchase.CashFlowId.HasValue)
         {
             try
             {
-                var response = await _tresorerieService.DeleteCashFlowAsync(
-                    purchase.CashFlowId.Value,
-                    "depensio",
-                    command.BoutiqueId.ToString()
+                var reverseRequest = new ReverseCashFlowRequest(
+                    Reason: command.Reason ?? "Annulation achat",
+                    SourceType: "Purchase",
+                    SourceId: purchase.Id.Value
                 );
 
-                if (!response.IsSuccessStatusCode)
+                var response = await _tresorerieService.ReverseCashFlowAsync(
+                    purchase.CashFlowId.Value,
+                    "depensio",
+                    command.BoutiqueId.ToString(),
+                    reverseRequest
+                );
+
+                if (!response.Success || response.Data == null)
                 {
-                    _logger.LogError("Failed to delete CashFlow {CashFlowId} for Purchase {PurchaseId}",
-                        purchase.CashFlowId.Value, purchase.Id.Value);
+                    _logger.LogError("Failed to reverse CashFlow {CashFlowId} for Purchase {PurchaseId}. Message: {Message}",
+                        purchase.CashFlowId.Value, purchase.Id.Value, response.Message);
                     throw new ExternalServiceException("Tresorerie",
-                        $"Échec de l'annulation du mouvement de trésorerie associé. Veuillez réessayer.");
+                        $"Échec de la contre-passation du mouvement de trésorerie associé. Veuillez réessayer.");
                 }
 
-                _logger.LogInformation("CashFlow {CashFlowId} deleted for Purchase {PurchaseId}",
-                    purchase.CashFlowId.Value, purchase.Id.Value);
+                reversalCashFlowId = response.Data.ReversalCashFlowId;
+                _logger.LogInformation("CashFlow {CashFlowId} reversed for Purchase {PurchaseId}. Reversal CashFlowId: {ReversalCashFlowId}",
+                    purchase.CashFlowId.Value, purchase.Id.Value, reversalCashFlowId);
             }
             catch (ExternalServiceException)
             {
@@ -106,10 +115,10 @@ public class CancelPurchaseHandler(
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting CashFlow {CashFlowId} for Purchase {PurchaseId}",
+                _logger.LogError(ex, "Error reversing CashFlow {CashFlowId} for Purchase {PurchaseId}",
                     purchase.CashFlowId, purchase.Id.Value);
                 throw new ExternalServiceException("Tresorerie",
-                    $"Erreur lors de l'annulation du mouvement de trésorerie: {ex.Message}", ex);
+                    $"Erreur lors de la contre-passation du mouvement de trésorerie: {ex.Message}", ex);
             }
         }
 
@@ -123,11 +132,11 @@ public class CancelPurchaseHandler(
             purchase.RejectionReason = command.Reason;
         }
 
-        // Clear CashFlowId since the CashFlow has been deleted (si applicable)
-        if (purchase.CashFlowId.HasValue)
+        // Store the reversal CashFlowId for audit trail (contre-passation)
+        // Keep the original CashFlowId for reference (audit trail)
+        if (reversalCashFlowId.HasValue)
         {
-            purchase.CashFlowId = null;
-            purchase.IsTransferred = false;
+            purchase.ReversalCashFlowId = reversalCashFlowId;
         }
 
         // BUG FIX #503: Diminuer le stock des produits si l'achat approuvé est annulé
