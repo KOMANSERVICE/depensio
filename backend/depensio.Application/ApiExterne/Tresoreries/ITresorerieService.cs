@@ -82,6 +82,13 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
 
+    [Post("/api/cash-flows/{id}/reverse")]
+    Task<BaseResponse<ReverseCashFlowResult>> ReverseCashFlowAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] ReverseCashFlowRequest request);
+
     [Post("/api/cash-flows/{id}/submit")]
     Task<BaseResponse<SubmitCashFlowResponse>> SubmitCashFlowAsync(
         Guid id,
@@ -750,4 +757,17 @@ public record UnreconciledCashFlowDto(
     string? ThirdPartyName,
     DateTime? ValidatedAt,
     string? ValidatedBy
+);
+
+// ReverseCashFlow DTOs (Contre-passation)
+public record ReverseCashFlowRequest(
+    string Reason,
+    string? SourceType = null,
+    Guid? SourceId = null
+);
+
+public record ReverseCashFlowResult(
+    Guid ReversalCashFlowId,
+    Guid OriginalCashFlowId,
+    bool Success
 );

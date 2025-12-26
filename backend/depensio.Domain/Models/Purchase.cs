@@ -16,6 +16,10 @@ public class Purchase : Entity<PurchaseId>
     public string? CategoryId { get; set; }
     public Guid? CashFlowId { get; set; }
     /// <summary>
+    /// Reference to the reversal CashFlow created when the purchase is cancelled (contre-passation)
+    /// </summary>
+    public Guid? ReversalCashFlowId { get; set; }
+    /// <summary>
     /// Indicates whether the purchase has been successfully transferred to the treasury (CashFlow created)
     /// </summary>
     public bool IsTransferred { get; set; }
