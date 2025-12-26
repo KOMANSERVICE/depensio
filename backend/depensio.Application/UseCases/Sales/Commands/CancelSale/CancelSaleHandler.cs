@@ -1,13 +1,15 @@
 using depensio.Application.ApiExterne.Tresoreries;
+using depensio.Application.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace depensio.Application.UseCases.Sales.Commands.CancelSale;
 
 /// <summary>
 /// Handler for cancelling a sale
-/// US-SAL-002: Annuler une vente avec contre-passation
+/// US-TRS-003: Annuler une vente avec contre-passation via API reverse
 /// - Transition: Validated -> Cancelled
-/// - If CashFlowId exists -> Create contra-entry (contre-passation) in Treasury
+/// - If CashFlowId exists -> Call ReverseCashFlowAsync endpoint for contra-entry (contre-passation)
+/// - Store ReversalCashFlowId for audit trail
 /// - Restore stock if not auto-managed
 /// - Restore ProductItems to Available
 /// - Create status history with FromStatus=Validated, ToStatus=Cancelled
@@ -44,11 +46,12 @@ public class CancelSaleHandler(
             throw new BadRequestException("Cette vente a déjà été annulée.");
         }
 
-        // AC-5: Si CashFlowId existe -> Contre-passation Trésorerie
-        // Create a contra-entry (EXPENSE) to reverse the original sale (INCOME)
-        if (sale.CashFlowId.HasValue && sale.AccountId.HasValue && !string.IsNullOrEmpty(sale.CategoryId))
+        // AC-5: Si CashFlowId existe -> Contre-passation Trésorerie via API reverse
+        // Call ReverseCashFlowAsync endpoint to create a contra-entry (OUTFLOW) to reverse the original sale (INFLOW)
+        Guid? reversalCashFlowId = null;
+        if (sale.CashFlowId.HasValue)
         {
-            await CreateContraEntryAsync(sale, command.Reason);
+            reversalCashFlowId = await ReverseCashFlowAsync(sale, command.Reason);
         }
 
         // AC-7: Historique créé avec FromStatus=Validated, ToStatus=Cancelled
@@ -57,6 +60,12 @@ public class CancelSaleHandler(
         sale.CancelledAt = DateTime.UtcNow;
         sale.CancellationReason = command.Reason;
         // Note: We keep CashFlowId as reference to the original CashFlow
+
+        // Store the reversal CashFlowId for audit trail (contre-passation)
+        if (reversalCashFlowId.HasValue)
+        {
+            sale.ReversalCashFlowId = reversalCashFlowId;
+        }
 
         // AC-3 & AC-4: Restore stock and ProductItems
         var stockIsAuto = await GetStockAuto(sale.BoutiqueId.Value);
@@ -83,52 +92,51 @@ public class CancelSaleHandler(
     }
 
     /// <summary>
-    /// AC-5: Create contra-entry (contre-passation) in Treasury
-    /// Original sale was INCOME, contra-entry is EXPENSE to reverse it
+    /// AC-5: Create contra-entry (contre-passation) in Treasury via ReverseCashFlowAsync
+    /// Original sale was INFLOW, contra-entry is OUTFLOW to reverse it
+    /// Uses POST /api/cash-flows/{id}/reverse endpoint
     /// </summary>
-    private async Task CreateContraEntryAsync(Sale sale, string? cancellationReason)
+    private async Task<Guid?> ReverseCashFlowAsync(Sale sale, string? cancellationReason)
     {
         try
         {
-            var contraEntryRequest = new CreateCashFlowRequest(
-                Type: CashFlowTypeExtended.EXPENSE,
-                CategoryId: sale.CategoryId!,
-                Label: $"Annulation vente VTE-{sale.Id.Value.ToString()[..8].ToUpper()}",
-                Description: $"Contre-passation suite à annulation. {(string.IsNullOrWhiteSpace(cancellationReason) ? "" : $"Motif: {cancellationReason}")}",
-                Amount: sale.TotalAmount,
-                AccountId: sale.AccountId!.Value,
-                PaymentMethod: sale.PaymentMethodId?.ToString() ?? "CASH",
-                Date: DateTime.UtcNow,
-                CustomerName: null,
-                SupplierName: null,
-                AttachmentUrl: null
+            var reverseRequest = new ReverseCashFlowRequest(
+                Reason: cancellationReason ?? "Annulation vente",
+                SourceType: "Sale",
+                SourceId: sale.Id.Value
             );
 
-            var result = await _tresorerieService.CreateCashFlowAsync(
+            var response = await _tresorerieService.ReverseCashFlowAsync(
+                sale.CashFlowId!.Value,
                 "depensio",
                 sale.BoutiqueId.Value.ToString(),
-                contraEntryRequest
+                reverseRequest
             );
 
-            if (result.Success && result.Data != null)
+            if (!response.Success || response.Data == null)
             {
-                _logger.LogInformation(
-                    "Contra-entry CashFlow {ContraCashFlowId} created for cancelled Sale {SaleId}. Original CashFlow: {OriginalCashFlowId}",
-                    result.Data.CashFlow.Id, sale.Id.Value, sale.CashFlowId);
+                _logger.LogError("Failed to reverse CashFlow {CashFlowId} for Sale {SaleId}. Message: {Message}",
+                    sale.CashFlowId.Value, sale.Id.Value, response.Message);
+                throw new ExternalServiceException("Tresorerie",
+                    $"Échec de la contre-passation du mouvement de trésorerie associé. Veuillez réessayer.");
             }
-            else
-            {
-                _logger.LogWarning(
-                    "Failed to create contra-entry CashFlow for Sale {SaleId}: {Message}",
-                    sale.Id.Value, result.Message);
-            }
+
+            var reversalCashFlowId = response.Data.ReversalCashFlowId;
+            _logger.LogInformation("CashFlow {CashFlowId} reversed for Sale {SaleId}. Reversal CashFlowId: {ReversalCashFlowId}",
+                sale.CashFlowId.Value, sale.Id.Value, reversalCashFlowId);
+
+            return reversalCashFlowId;
+        }
+        catch (ExternalServiceException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            // Log error but don't fail the sale cancellation
-            _logger.LogError(ex,
-                "Error creating contra-entry CashFlow for Sale {SaleId}. Original CashFlow: {CashFlowId}",
-                sale.Id.Value, sale.CashFlowId);
+            _logger.LogError(ex, "Error reversing CashFlow {CashFlowId} for Sale {SaleId}",
+                sale.CashFlowId, sale.Id.Value);
+            throw new ExternalServiceException("Tresorerie",
+                $"Erreur lors de la contre-passation du mouvement de trésorerie: {ex.Message}", ex);
         }
     }
 
