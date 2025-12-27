@@ -183,6 +183,12 @@ public interface ITresorerieService
         [Query] Guid? accountId = null,
         [Query] DateTime? startDate = null,
         [Query] DateTime? endDate = null);
+
+    [Post("/api/budgets")]
+    Task<BaseResponse<CreateBudgetResponse>> CreateBudgetAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] CreateBudgetRequest request);
 }
 
 
@@ -770,4 +776,44 @@ public record ReverseCashFlowResult(
     Guid ReversalCashFlowId,
     Guid OriginalCashFlowId,
     bool Success
+);
+
+// Budget DTOs
+public enum BudgetType
+{
+    GLOBAL = 1,
+    CATEGORY = 2,
+    PROJECT = 3
+}
+
+public record CreateBudgetRequest(
+    string Name,
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal AllocatedAmount,
+    List<Guid>? CategoryIds,
+    int AlertThreshold,
+    BudgetType Type
+);
+
+public record CreateBudgetResponse(BudgetDTO Budget);
+
+public record BudgetDTO(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    string Name,
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal AllocatedAmount,
+    decimal SpentAmount,
+    decimal RemainingAmount,
+    string Currency,
+    BudgetType Type,
+    int AlertThreshold,
+    bool IsExceeded,
+    bool IsActive,
+    List<Guid> CategoryIds,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
 );
