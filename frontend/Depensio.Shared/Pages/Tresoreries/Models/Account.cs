@@ -701,3 +701,53 @@ public record BudgetListDto(
     bool IsActive,
     DateTime CreatedAt
 );
+
+// UpdateBudget DTOs
+public record UpdateBudgetRequest(
+    string? Name,
+    DateTime? StartDate,
+    DateTime? EndDate,
+    decimal? AllocatedAmount,
+    List<Guid>? CategoryIds,
+    int? AlertThreshold,
+    BudgetType? Type,
+    bool? IsActive
+);
+
+public record UpdateBudgetResponse(
+    BudgetDTO Budget,
+    string? Warning
+);
+
+public record BudgetDTO(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    string Name,
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal AllocatedAmount,
+    decimal SpentAmount,
+    decimal RemainingAmount,
+    string Currency,
+    BudgetType Type,
+    int AlertThreshold,
+    bool IsExceeded,
+    bool IsActive,
+    List<Guid> CategoryIds,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);
+
+public class BudgetEditDTO
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; } = DateTime.UtcNow;
+    public DateTime EndDate { get; set; } = DateTime.UtcNow.AddMonths(1);
+    public decimal AllocatedAmount { get; set; }
+    public List<Guid> CategoryIds { get; set; } = new();
+    public int AlertThreshold { get; set; } = 80;
+    public BudgetType Type { get; set; } = BudgetType.GLOBAL;
+    public bool IsActive { get; set; } = true;
+}

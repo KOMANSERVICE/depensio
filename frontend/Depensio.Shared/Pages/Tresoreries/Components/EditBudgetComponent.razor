@@ -1,0 +1,278 @@
+@using depensio.Shared.Pages.Tresoreries.Models
+@inject ITresorerieService _tresorerieService
+
+<LoadingComponent IsLoad="@(isLoad || isLoadingDetails)" />
+
+<EditForm EditContext="@editContext" OnValidSubmit="HandleUpdate">
+    <DataAnnotationsValidator />
+    <ErrorsSummary editContext="@editContext" />
+
+    <div class="p-6">
+        <div class="mb-4">
+            <label for="budgetName" class="block text-sm font-medium text-gray-700 mb-1">Nom du budget</label>
+            <InputText @bind-Value="localBudget.Name" id="budgetName"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            <div class="error-message">
+                <ValidationMessage For="@(() => localBudget.Name)" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">Date de debut</label>
+                <InputDate @bind-Value="localBudget.StartDate" id="startDate"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+            <div>
+                <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                <InputDate @bind-Value="localBudget.EndDate" id="endDate"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="allocatedAmount" class="block text-sm font-medium text-gray-700 mb-1">Montant alloue (FCFA)</label>
+                <InputNumber @bind-Value="localBudget.AllocatedAmount" id="allocatedAmount"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+            </div>
+            <div>
+                <label for="alertThreshold" class="block text-sm font-medium text-gray-700 mb-1">Seuil d'alerte (%)</label>
+                <InputNumber @bind-Value="localBudget.AlertThreshold" id="alertThreshold"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700" />
+                <p class="text-xs text-gray-500 mt-1">Alerte quand l'utilisation depasse ce pourcentage</p>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="budgetType" class="block text-sm font-medium text-gray-700 mb-1">Type de budget</label>
+            <InputSelect @bind-Value="localBudget.Type" id="budgetType"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-700 focus:border-primary-700">
+                <option value="@BudgetType.GLOBAL">Global</option>
+                <option value="@BudgetType.CATEGORY">Par categorie</option>
+                <option value="@BudgetType.PROJECT">Projet</option>
+            </InputSelect>
+        </div>
+
+        <div class="mb-4">
+            <label class="flex items-center cursor-pointer">
+                <InputCheckbox @bind-Value="localBudget.IsActive"
+                    class="rounded text-primary-700 focus:ring-primary-700 mr-2" />
+                <span class="text-sm font-medium text-gray-700">Budget actif</span>
+            </label>
+            <p class="text-xs text-gray-500 mt-1 ml-6">Un budget inactif n'est plus suivi</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(warningMessage))
+        {
+            <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-center gap-2 text-yellow-800">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="text-sm">@warningMessage</span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t">
+        <button type="button" @onclick="CancelSave"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+            Annuler
+        </button>
+        <button type="submit"
+            class="px-4 py-2 bg-primary-700 hover:bg-amber-800 text-white rounded-lg">
+            Modifier
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnAfterSave { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelSave { get; set; }
+
+    [Parameter]
+    public Guid BoutiqueId { get; set; }
+
+    [Parameter]
+    public BudgetListDto? Budget { get; set; }
+
+    private bool isLoad = false;
+    private bool isLoadingDetails = true;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+    private BudgetEditDTO localBudget = new();
+    private string? warningMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBudgetDetailsAsync();
+        InitializeEditContext();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Budget != null && Budget.Id != localBudget.Id)
+        {
+            await LoadBudgetDetailsAsync();
+            InitializeEditContext();
+        }
+    }
+
+    private async Task LoadBudgetDetailsAsync()
+    {
+        if (Budget == null)
+        {
+            localBudget = new BudgetEditDTO();
+            isLoadingDetails = false;
+            return;
+        }
+
+        isLoadingDetails = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetBudgetByIdAsync(BoutiqueId, Budget.Id);
+            if (response.Success && response.Data != null)
+            {
+                var detail = response.Data.Budget;
+                localBudget = new BudgetEditDTO
+                {
+                    Id = detail.Id,
+                    Name = detail.Name,
+                    StartDate = detail.StartDate,
+                    EndDate = detail.EndDate,
+                    AllocatedAmount = detail.AllocatedAmount,
+                    AlertThreshold = detail.AlertThreshold,
+                    Type = detail.Type,
+                    IsActive = detail.IsActive
+                };
+            }
+            else
+            {
+                localBudget = new BudgetEditDTO
+                {
+                    Id = Budget.Id,
+                    Name = Budget.Name,
+                    StartDate = Budget.StartDate,
+                    EndDate = Budget.EndDate,
+                    AllocatedAmount = Budget.AllocatedAmount,
+                    AlertThreshold = Budget.AlertThreshold,
+                    Type = Budget.Type,
+                    IsActive = Budget.IsActive
+                };
+            }
+        }
+        catch
+        {
+            localBudget = new BudgetEditDTO
+            {
+                Id = Budget.Id,
+                Name = Budget.Name,
+                StartDate = Budget.StartDate,
+                EndDate = Budget.EndDate,
+                AllocatedAmount = Budget.AllocatedAmount,
+                AlertThreshold = Budget.AlertThreshold,
+                Type = Budget.Type,
+                IsActive = Budget.IsActive
+            };
+        }
+        finally
+        {
+            isLoadingDetails = false;
+            StateHasChanged();
+        }
+    }
+
+    private void InitializeEditContext()
+    {
+        editContext = new EditContext(localBudget);
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationRequested += (s, e) => messageStore?.Clear();
+        editContext.OnFieldChanged += (s, e) => messageStore?.Clear(e.FieldIdentifier);
+    }
+
+    private void CancelSave()
+    {
+        OnCancelSave.InvokeAsync(null);
+    }
+
+    private async Task HandleUpdate()
+    {
+        if (Budget == null) return;
+
+        isLoad = true;
+        warningMessage = null;
+        try
+        {
+            var request = new UpdateBudgetRequest(
+                localBudget.Name,
+                localBudget.StartDate,
+                localBudget.EndDate,
+                localBudget.AllocatedAmount,
+                localBudget.CategoryIds.Any() ? localBudget.CategoryIds : null,
+                localBudget.AlertThreshold,
+                localBudget.Type,
+                localBudget.IsActive
+            );
+
+            var result = await _tresorerieService.UpdateBudgetAsync(BoutiqueId, Budget.Id, request);
+
+            if (result.Success)
+            {
+                if (!string.IsNullOrEmpty(result.Data?.Warning))
+                {
+                    warningMessage = result.Data.Warning;
+                }
+                messageStore?.Clear();
+                editContext?.NotifyValidationStateChanged();
+                await OnAfterSave.InvokeAsync(null);
+            }
+        }
+        catch (ApiException ex)
+        {
+            try
+            {
+                var errorResult = JsonSerializer.Deserialize<ErrorMessage>(ex.Content!, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                messageStore?.Clear();
+
+                if (errorResult?.ValidationErrors != null && errorResult.ValidationErrors.Any())
+                {
+                    foreach (var validationError in errorResult.ValidationErrors)
+                    {
+                        var propertyName = validationError.PropertyName;
+                        if (propertyName.Contains('.'))
+                            propertyName = propertyName.Split('.').Last();
+
+                        var fieldIdentifier = new FieldIdentifier(localBudget, propertyName);
+                        messageStore?.Add(fieldIdentifier, validationError.ErrorMessage);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(errorResult?.Detail))
+                {
+                    var fieldIdentifier = new FieldIdentifier(localBudget, string.Empty);
+                    messageStore?.Add(fieldIdentifier, errorResult.Detail);
+                }
+
+                editContext?.NotifyValidationStateChanged();
+            }
+            catch
+            {
+                messageStore?.Add(new FieldIdentifier(localBudget, string.Empty), "Une erreur est survenue.");
+                editContext?.NotifyValidationStateChanged();
+            }
+        }
+        finally
+        {
+            isLoad = false;
+            StateHasChanged();
+        }
+    }
+}
