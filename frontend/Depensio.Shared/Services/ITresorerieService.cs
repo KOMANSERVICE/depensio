@@ -159,4 +159,8 @@ public interface ITresorerieService
         Guid boutiqueId,
         Guid budgetId,
         [Body] UpdateBudgetRequest request);
+
+    [Get("/tresorerie/{boutiqueId}/budgets/alerts")]
+    Task<BaseResponse<GetBudgetAlertsResponse>> GetBudgetAlertsAsync(
+        Guid boutiqueId);
 }

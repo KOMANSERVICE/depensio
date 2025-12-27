@@ -210,6 +210,11 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] UpdateBudgetRequest request);
+
+    [Get("/api/budgets/alerts")]
+    Task<BaseResponse<GetBudgetAlertsResponse>> GetBudgetAlertsAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 
@@ -936,4 +941,28 @@ public record UpdateBudgetRequest(
 public record UpdateBudgetResponse(
     BudgetDTO Budget,
     string? Warning
+);
+
+// GetBudgetAlerts DTOs
+public record GetBudgetAlertsResponse(
+    IReadOnlyList<BudgetAlertDto> Alerts,
+    int TotalCount,
+    int ExceededCount,
+    int ApproachingCount
+);
+
+public record BudgetAlertDto(
+    Guid BudgetId,
+    string BudgetName,
+    BudgetType Type,
+    decimal AllocatedAmount,
+    decimal SpentAmount,
+    decimal RemainingAmount,
+    int AlertThreshold,
+    bool IsExceeded,
+    decimal ConsumptionRate,
+    string AlertLevel,
+    string Currency,
+    DateTime StartDate,
+    DateTime EndDate
 );
