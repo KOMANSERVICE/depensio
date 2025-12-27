@@ -1,5 +1,6 @@
 using depensio.Application.UseCases.Purchases.DTOs;
 using depensio.Domain.Enums;
+using depensio.Domain.Models;
 using depensio.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using System.Threading;
@@ -77,12 +78,6 @@ public class UpdatePurchaseHandler(
 
     private async Task UpdatePurchaseFields(Purchase purchase, PurchaseDTO purchaseDTO, string email, CancellationToken cancellationToken)
     {
-        await _purchaseItemRepository.DeleteRangeDataAsync(purchase.PurchaseItems);
-
-
-        // Clear the collection
-        purchase.PurchaseItems.Clear();
-
         // AC-2: All fields can be modified
         purchase.Title = purchaseDTO.Title;
         purchase.Description = purchaseDTO.Description;
@@ -93,14 +88,22 @@ public class UpdatePurchaseHandler(
         purchase.PaymentMethod = purchaseDTO.PaymentMethod;
         purchase.AccountId = purchaseDTO.AccountId;
         purchase.CategoryId = purchaseDTO.CategoryId;
-        purchase.PurchaseItems = purchaseDTO.Items.Select(itemDto => new PurchaseItem
+
+        var _purchaseItems = new List<PurchaseItem>();
+        foreach (var itemDto in purchaseDTO.Items)
         {
-            Id = PurchaseItemId.Of(Guid.NewGuid()),
-            PurchaseId = purchase.Id,
-            ProductId = ProductId.Of(itemDto.ProductId),
-            Price = itemDto.Price,
-            Quantity = itemDto.Quantity
-        }).ToList();
+            var newItem = new PurchaseItem
+            {
+                Id = PurchaseItemId.Of(Guid.NewGuid()),
+                PurchaseId = purchase.Id,
+                ProductId = ProductId.Of(itemDto.ProductId),
+                Price = itemDto.Price,
+                Quantity = itemDto.Quantity
+            };
+
+            _purchaseItems.Add(newItem);
+
+        }
 
         // AC-5: UpdatedAt is handled by Entity framework auditing
         // If Status was Rejected and we're modifying, it stays as Draft
@@ -110,6 +113,10 @@ public class UpdatePurchaseHandler(
             purchase.Status = (int)PurchaseStatus.Draft;
             purchase.RejectionReason = null;
         }
+
+
+        await _purchaseItemRepository.DeleteRangeDataAsync(purchase.PurchaseItems);
+        await _purchaseItemRepository.AddRangeDataAsync(_purchaseItems, cancellationToken);
     }
 
     private async Task UpdatePurchaseItems(Purchase purchase, IEnumerable<PurchaseItemDTO> newItems, CancellationToken cancellationToken)
