@@ -141,4 +141,9 @@ public interface ITresorerieService
         Guid? accountId = null,
         DateTime? startDate = null,
         DateTime? endDate = null);
+
+    [Get("/tresorerie/{boutiqueId}/budgets/{budgetId}")]
+    Task<BaseResponse<GetBudgetByIdResponse>> GetBudgetByIdAsync(
+        Guid boutiqueId,
+        Guid budgetId);
 }
