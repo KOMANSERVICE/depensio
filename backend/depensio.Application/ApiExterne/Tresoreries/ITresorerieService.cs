@@ -215,6 +215,11 @@ public interface ITresorerieService
     Task<BaseResponse<GetBudgetAlertsResponse>> GetBudgetAlertsAsync(
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Get("/api/reports/treasury-dashboard")]
+    Task<BaseResponse<TreasuryDashboardDto>> GetTreasuryDashboardAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 
@@ -965,4 +970,27 @@ public record BudgetAlertDto(
     string Currency,
     DateTime StartDate,
     DateTime EndDate
+);
+
+// Treasury Dashboard DTOs
+public record TreasuryDashboardDto(
+    decimal TotalBalance,
+    Dictionary<AccountType, decimal> BalanceByType,
+    decimal MonthlyIncome,
+    decimal MonthlyExpense,
+    decimal NetBalance,
+    int PendingCount,
+    decimal PendingAmount,
+    IReadOnlyList<AccountAlertDto> Alerts,
+    IReadOnlyList<BalanceEvolutionDto> Evolution,
+    DateTime CalculatedAt
+);
+
+public record AccountAlertDto(
+    Guid AccountId,
+    string AccountName,
+    AccountType Type,
+    decimal CurrentBalance,
+    decimal? AlertThreshold,
+    string AlertType
 );

@@ -775,3 +775,26 @@ public record BudgetAlertDto(
     DateTime StartDate,
     DateTime EndDate
 );
+
+// Treasury Dashboard DTOs
+public record TreasuryDashboardDto(
+    decimal TotalBalance,
+    Dictionary<AccountType, decimal> BalanceByType,
+    decimal MonthlyIncome,
+    decimal MonthlyExpense,
+    decimal NetBalance,
+    int PendingCount,
+    decimal PendingAmount,
+    IReadOnlyList<AccountAlertDto> Alerts,
+    IReadOnlyList<BalanceEvolutionDto> Evolution,
+    DateTime CalculatedAt
+);
+
+public record AccountAlertDto(
+    Guid AccountId,
+    string AccountName,
+    AccountType Type,
+    decimal CurrentBalance,
+    decimal? AlertThreshold,
+    string AlertType
+);
