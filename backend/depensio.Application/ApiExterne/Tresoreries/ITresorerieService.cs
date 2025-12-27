@@ -189,6 +189,12 @@ public interface ITresorerieService
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId,
         [Body] CreateBudgetRequest request);
+
+    [Get("/api/budgets/{id}")]
+    Task<BaseResponse<GetBudgetByIdResponse>> GetBudgetByIdAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId);
 }
 
 
@@ -816,4 +822,60 @@ public record BudgetDTO(
     List<Guid> CategoryIds,
     DateTime CreatedAt,
     DateTime UpdatedAt
+);
+
+// GetBudgetById DTOs
+public record GetBudgetByIdResponse(BudgetDetailDto Budget);
+
+public record BudgetDetailDto(
+    Guid Id,
+    string ApplicationId,
+    string BoutiqueId,
+    string Name,
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal AllocatedAmount,
+    decimal SpentAmount,
+    decimal RemainingAmount,
+    decimal PercentUsed,
+    string Currency,
+    BudgetType Type,
+    int AlertThreshold,
+    bool IsExceeded,
+    bool IsActive,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    IReadOnlyList<BudgetExpenseDto> Expenses,
+    IReadOnlyList<CategoryBreakdownDto> CategoryBreakdown,
+    IReadOnlyList<TimeSeriesDto> TimeEvolution
+);
+
+public record BudgetExpenseDto(
+    Guid Id,
+    string Label,
+    string? Description,
+    decimal Amount,
+    string Currency,
+    DateTime Date,
+    string CategoryId,
+    string CategoryName,
+    CashFlowStatus Status,
+    string? ThirdPartyName
+);
+
+public record CategoryBreakdownDto(
+    Guid CategoryId,
+    string CategoryName,
+    string? CategoryIcon,
+    decimal Amount,
+    decimal Percentage,
+    int TransactionCount
+);
+
+public record TimeSeriesDto(
+    int Year,
+    int Month,
+    string MonthLabel,
+    decimal Amount,
+    decimal CumulativeAmount
 );
