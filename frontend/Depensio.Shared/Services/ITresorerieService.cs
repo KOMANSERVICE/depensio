@@ -180,4 +180,17 @@ public interface ITresorerieService
         Guid boutiqueId,
         int days = 30,
         bool includePending = true);
+
+    [Get("/tresorerie/{boutiqueId}/cash-flows/export")]
+    Task<HttpResponseMessage> ExportCashFlowsAsync(
+        Guid boutiqueId,
+        string format = "csv",
+        string? columns = null,
+        CashFlowTypeExtended? type = null,
+        CashFlowStatusExtended? status = null,
+        Guid? accountId = null,
+        Guid? categoryId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? search = null);
 }

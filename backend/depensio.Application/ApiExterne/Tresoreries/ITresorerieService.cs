@@ -235,6 +235,20 @@ public interface ITresorerieService
         [Header("X-Boutique-Id")] string boutiqueId,
         [Query] int days = 30,
         [Query] bool includePending = true);
+
+    [Get("/api/cash-flows/export")]
+    Task<HttpResponseMessage> ExportCashFlowsAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Query] string format = "csv",
+        [Query] string? columns = null,
+        [Query] CashFlowTypeExtended? type = null,
+        [Query] CashFlowStatusExtended? status = null,
+        [Query] Guid? accountId = null,
+        [Query] Guid? categoryId = null,
+        [Query] DateTime? startDate = null,
+        [Query] DateTime? endDate = null,
+        [Query] string? search = null);
 }
 
 
