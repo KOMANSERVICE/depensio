@@ -163,4 +163,8 @@ public interface ITresorerieService
     [Get("/tresorerie/{boutiqueId}/budgets/alerts")]
     Task<BaseResponse<GetBudgetAlertsResponse>> GetBudgetAlertsAsync(
         Guid boutiqueId);
+
+    [Get("/tresorerie/{boutiqueId}/dashboard")]
+    Task<BaseResponse<TreasuryDashboardDto>> GetTreasuryDashboardAsync(
+        Guid boutiqueId);
 }
