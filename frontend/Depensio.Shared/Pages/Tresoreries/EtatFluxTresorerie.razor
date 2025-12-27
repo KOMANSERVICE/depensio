@@ -1,0 +1,460 @@
+@page "/tresorerie/{boutiqueId:guid}/reports/cash-flow-statement"
+@using depensio.Shared.Pages.Tresoreries.Models
+@inherits FlowbitePage
+@layout MainLayout
+@inject ITresorerieService _tresorerieService
+@inject NavigationManager NavigationManager
+
+<PageTitleComponent Title="Etat des flux de tresorerie" />
+
+<HeaderPage
+    Title="Etat des flux de tresorerie"
+    SubTitle="Analyse des revenus et depenses par categorie"/>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <!-- Filtres de periode -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+                <label for="startDate" class="text-sm text-gray-600">Du</label>
+                <input type="date" id="startDate" @bind="startDate"
+                    class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="endDate" class="text-sm text-gray-600">Au</label>
+                <input type="date" id="endDate" @bind="endDate"
+                    class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent">
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="comparePrevious" @bind="comparePrevious"
+                    class="h-4 w-4 text-primary-700 focus:ring-primary-700 border-gray-300 rounded">
+                <label for="comparePrevious" class="text-sm text-gray-600">Comparer a la periode precedente</label>
+            </div>
+            <button @onclick="LoadCashFlowStatementAsync"
+                class="px-4 py-2 bg-primary-700 text-white rounded-lg hover:bg-amber-800 flex items-center gap-2">
+                <i class="fas fa-search"></i>
+                Rechercher
+            </button>
+        </div>
+        <div class="flex gap-3 items-center">
+            <a href="/tresorerie/@boutiqueId/dashboard"
+                class="text-primary-700 hover:text-primary-800 text-sm flex items-center gap-1">
+                <i class="fas fa-arrow-left"></i>
+                Tableau de bord
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick period buttons -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        <button @onclick="() => SetPeriod(PeriodType.CurrentMonth)"
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 @(selectedPeriod == PeriodType.CurrentMonth ? "bg-primary-700 text-white border-primary-700" : "")">
+            Mois en cours
+        </button>
+        <button @onclick="() => SetPeriod(PeriodType.LastMonth)"
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 @(selectedPeriod == PeriodType.LastMonth ? "bg-primary-700 text-white border-primary-700" : "")">
+            Mois dernier
+        </button>
+        <button @onclick="() => SetPeriod(PeriodType.CurrentQuarter)"
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 @(selectedPeriod == PeriodType.CurrentQuarter ? "bg-primary-700 text-white border-primary-700" : "")">
+            Trimestre en cours
+        </button>
+        <button @onclick="() => SetPeriod(PeriodType.CurrentYear)"
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 @(selectedPeriod == PeriodType.CurrentYear ? "bg-primary-700 text-white border-primary-700" : "")">
+            Annee en cours
+        </button>
+        <button @onclick="() => SetPeriod(PeriodType.Last12Months)"
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 @(selectedPeriod == PeriodType.Last12Months ? "bg-primary-700 text-white border-primary-700" : "")">
+            12 derniers mois
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingDataComponent />
+    }
+    else if (statement == null)
+    {
+        <div class="text-center py-12">
+            <i class="fas fa-chart-bar text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">Selectionnez une periode pour afficher l'etat des flux</p>
+        </div>
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- Revenus -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Total Revenus</p>
+                        <p class="text-3xl font-bold text-green-600">
+                            +@statement.TotalIncome.ToString("N0") FCFA
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">@statement.IncomeCount flux</p>
+                    </div>
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center bg-green-100">
+                        <i class="fas fa-arrow-down text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+                @if (statement.Comparison != null)
+                {
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fas @GetVariationIcon(statement.Comparison.IncomeVariation) @GetVariationColor(statement.Comparison.IncomeVariation)"></i>
+                            <span class="text-sm @GetVariationColor(statement.Comparison.IncomeVariation)">
+                                @GetVariationText(statement.Comparison.IncomeVariation) vs periode precedente
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Depenses -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Total Depenses</p>
+                        <p class="text-3xl font-bold text-red-600">
+                            -@statement.TotalExpense.ToString("N0") FCFA
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">@statement.ExpenseCount flux</p>
+                    </div>
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-100">
+                        <i class="fas fa-arrow-up text-red-600 text-2xl"></i>
+                    </div>
+                </div>
+                @if (statement.Comparison != null)
+                {
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fas @GetVariationIcon(statement.Comparison.ExpenseVariation, true) @GetVariationColor(statement.Comparison.ExpenseVariation, true)"></i>
+                            <span class="text-sm @GetVariationColor(statement.Comparison.ExpenseVariation, true)">
+                                @GetVariationText(statement.Comparison.ExpenseVariation) vs periode precedente
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Solde net -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 @(statement.NetBalance >= 0 ? "border-green-500" : "border-red-500")">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Solde Net</p>
+                        <p class="text-3xl font-bold @(statement.NetBalance >= 0 ? "text-green-600" : "text-red-600")">
+                            @(statement.NetBalance >= 0 ? "+" : "")@statement.NetBalance.ToString("N0") FCFA
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">Revenus - Depenses</p>
+                    </div>
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center @(statement.NetBalance >= 0 ? "bg-green-100" : "bg-red-100")">
+                        <i class="fas @(statement.NetBalance >= 0 ? "fa-chart-line text-green-600" : "fa-chart-line-down text-red-600") text-2xl"></i>
+                    </div>
+                </div>
+                @if (statement.Comparison != null)
+                {
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fas @GetVariationIcon(statement.Comparison.NetBalanceVariation) @GetVariationColor(statement.Comparison.NetBalanceVariation)"></i>
+                            <span class="text-sm @GetVariationColor(statement.Comparison.NetBalanceVariation)">
+                                @GetVariationText(statement.Comparison.NetBalanceVariation) vs periode precedente
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Period info -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-primary-700"></i>
+                    <span class="text-sm text-gray-600">Periode: </span>
+                    <span class="font-medium">@statement.StartDate.ToString("dd/MM/yyyy") - @statement.EndDate.ToString("dd/MM/yyyy")</span>
+                </div>
+                @if (statement.Comparison != null)
+                {
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-balance-scale text-primary-700"></i>
+                        <span class="text-sm text-gray-600">Comparaison: </span>
+                        <span class="font-medium">@statement.Comparison.PreviousStartDate.ToString("dd/MM/yyyy") - @statement.Comparison.PreviousEndDate.ToString("dd/MM/yyyy")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Comparison with previous period -->
+        @if (statement.Comparison != null)
+        {
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-balance-scale mr-2 text-primary-700"></i>Comparaison avec la periode precedente
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"></th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Periode actuelle</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Periode precedente</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Variation</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900">Revenus</td>
+                                <td class="px-4 py-3 text-sm text-right text-green-600">+@statement.TotalIncome.ToString("N0")</td>
+                                <td class="px-4 py-3 text-sm text-right text-green-600">+@statement.Comparison.PreviousTotalIncome.ToString("N0")</td>
+                                <td class="px-4 py-3 text-sm text-right @GetVariationColor(statement.Comparison.IncomeVariation)">
+                                    @GetVariationText(statement.Comparison.IncomeVariation)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900">Depenses</td>
+                                <td class="px-4 py-3 text-sm text-right text-red-600">-@statement.TotalExpense.ToString("N0")</td>
+                                <td class="px-4 py-3 text-sm text-right text-red-600">-@statement.Comparison.PreviousTotalExpense.ToString("N0")</td>
+                                <td class="px-4 py-3 text-sm text-right @GetVariationColor(statement.Comparison.ExpenseVariation, true)">
+                                    @GetVariationText(statement.Comparison.ExpenseVariation)
+                                </td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900">Solde Net</td>
+                                <td class="px-4 py-3 text-sm text-right font-bold @(statement.NetBalance >= 0 ? "text-green-600" : "text-red-600")">
+                                    @(statement.NetBalance >= 0 ? "+" : "")@statement.NetBalance.ToString("N0")
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right font-bold @(statement.Comparison.PreviousNetBalance >= 0 ? "text-green-600" : "text-red-600")">
+                                    @(statement.Comparison.PreviousNetBalance >= 0 ? "+" : "")@statement.Comparison.PreviousNetBalance.ToString("N0")
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right font-bold @GetVariationColor(statement.Comparison.NetBalanceVariation)">
+                                    @GetVariationText(statement.Comparison.NetBalanceVariation)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- Breakdown by category -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Revenus par categorie -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-arrow-down mr-2 text-green-600"></i>Revenus par categorie
+                </h3>
+                @if (statement.IncomeByCategory.Any())
+                {
+                    <div class="space-y-4">
+                        @foreach (var category in statement.IncomeByCategory.OrderByDescending(c => c.Amount))
+                        {
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-sm font-medium text-gray-700">@category.CategoryName</span>
+                                        <span class="text-sm font-semibold text-green-600">@category.Amount.ToString("N0") FCFA</span>
+                                    </div>
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div style="width:@category.Percentage.ToString(System.Globalization.CultureInfo.InvariantCulture)%"
+                                             class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500">
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between mt-1">
+                                        <span class="text-xs text-gray-400">@category.TransactionCount flux</span>
+                                        <span class="text-xs text-gray-500">@category.Percentage.ToString("N1")%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-8">
+                        <i class="fas fa-inbox text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-gray-500">Aucun revenu sur cette periode</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Depenses par categorie -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-arrow-up mr-2 text-red-600"></i>Depenses par categorie
+                </h3>
+                @if (statement.ExpenseByCategory.Any())
+                {
+                    <div class="space-y-4">
+                        @foreach (var category in statement.ExpenseByCategory.OrderByDescending(c => c.Amount))
+                        {
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-sm font-medium text-gray-700">@category.CategoryName</span>
+                                        <span class="text-sm font-semibold text-red-600">@category.Amount.ToString("N0") FCFA</span>
+                                    </div>
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div style="width:@category.Percentage.ToString(System.Globalization.CultureInfo.InvariantCulture)%"
+                                             class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500">
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between mt-1">
+                                        <span class="text-xs text-gray-400">@category.TransactionCount flux</span>
+                                        <span class="text-xs text-gray-500">@category.Percentage.ToString("N1")%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-8">
+                        <i class="fas fa-inbox text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-gray-500">Aucune depense sur cette periode</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-bolt mr-2 text-primary-700"></i>Actions rapides
+            </h3>
+            <div class="flex flex-wrap gap-3">
+                <a href="/tresorerie/@boutiqueId/flux"
+                   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+                    <i class="fas fa-exchange-alt mr-2"></i>Voir les flux
+                </a>
+                <a href="/tresorerie/@boutiqueId/categories"
+                   class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center">
+                    <i class="fas fa-tags mr-2"></i>Gerer les categories
+                </a>
+                <a href="/tresorerie/@boutiqueId/budgets"
+                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center">
+                    <i class="fas fa-chart-pie mr-2"></i>Budgets
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid boutiqueId { get; set; }
+
+    private GetCashFlowStatementResponse? statement;
+    private bool isLoading = false;
+    private DateTime startDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
+    private DateTime endDate = DateTime.UtcNow.Date;
+    private bool comparePrevious = false;
+    private PeriodType selectedPeriod = PeriodType.CurrentMonth;
+
+    private enum PeriodType
+    {
+        None,
+        CurrentMonth,
+        LastMonth,
+        CurrentQuarter,
+        CurrentYear,
+        Last12Months
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        SetPeriod(PeriodType.CurrentMonth);
+        await LoadCashFlowStatementAsync();
+    }
+
+    private void SetPeriod(PeriodType period)
+    {
+        selectedPeriod = period;
+        var now = DateTime.UtcNow.Date;
+
+        switch (period)
+        {
+            case PeriodType.CurrentMonth:
+                startDate = new DateTime(now.Year, now.Month, 1);
+                endDate = now;
+                break;
+            case PeriodType.LastMonth:
+                var lastMonth = now.AddMonths(-1);
+                startDate = new DateTime(lastMonth.Year, lastMonth.Month, 1);
+                endDate = new DateTime(lastMonth.Year, lastMonth.Month, DateTime.DaysInMonth(lastMonth.Year, lastMonth.Month));
+                break;
+            case PeriodType.CurrentQuarter:
+                var currentQuarter = (now.Month - 1) / 3;
+                startDate = new DateTime(now.Year, currentQuarter * 3 + 1, 1);
+                endDate = now;
+                break;
+            case PeriodType.CurrentYear:
+                startDate = new DateTime(now.Year, 1, 1);
+                endDate = now;
+                break;
+            case PeriodType.Last12Months:
+                startDate = now.AddMonths(-12);
+                endDate = now;
+                break;
+        }
+    }
+
+    private async Task LoadCashFlowStatementAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.GetCashFlowStatementAsync(
+                boutiqueId,
+                startDate,
+                endDate,
+                comparePrevious);
+
+            if (response.Success && response.Data != null)
+            {
+                statement = response.Data;
+            }
+            else
+            {
+                statement = null;
+            }
+        }
+        catch (Exception)
+        {
+            statement = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetVariationIcon(decimal variation, bool inverseColors = false)
+    {
+        if (variation > 0)
+            return inverseColors ? "fa-arrow-up" : "fa-arrow-up";
+        if (variation < 0)
+            return inverseColors ? "fa-arrow-down" : "fa-arrow-down";
+        return "fa-minus";
+    }
+
+    private string GetVariationColor(decimal variation, bool inverseColors = false)
+    {
+        if (variation > 0)
+            return inverseColors ? "text-red-600" : "text-green-600";
+        if (variation < 0)
+            return inverseColors ? "text-green-600" : "text-red-600";
+        return "text-gray-500";
+    }
+
+    private string GetVariationText(decimal variation)
+    {
+        if (variation == 0)
+            return "0%";
+        return $"{(variation > 0 ? "+" : "")}{variation:N1}%";
+    }
+}

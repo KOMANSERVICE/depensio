@@ -798,3 +798,36 @@ public record AccountAlertDto(
     decimal? AlertThreshold,
     string AlertType
 );
+
+// Cash Flow Statement DTOs
+public record GetCashFlowStatementResponse(
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal TotalIncome,
+    decimal TotalExpense,
+    decimal NetBalance,
+    int IncomeCount,
+    int ExpenseCount,
+    IReadOnlyList<CashFlowCategoryBreakdownDto> IncomeByCategory,
+    IReadOnlyList<CashFlowCategoryBreakdownDto> ExpenseByCategory,
+    PeriodComparisonDto? Comparison
+);
+
+public record CashFlowCategoryBreakdownDto(
+    Guid CategoryId,
+    string CategoryName,
+    decimal Amount,
+    decimal Percentage,
+    int TransactionCount
+);
+
+public record PeriodComparisonDto(
+    DateTime PreviousStartDate,
+    DateTime PreviousEndDate,
+    decimal PreviousTotalIncome,
+    decimal PreviousTotalExpense,
+    decimal PreviousNetBalance,
+    decimal IncomeVariation,
+    decimal ExpenseVariation,
+    decimal NetBalanceVariation
+);
