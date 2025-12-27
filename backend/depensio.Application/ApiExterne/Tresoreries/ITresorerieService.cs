@@ -203,6 +203,13 @@ public interface ITresorerieService
         [Query] bool? isActive = null,
         [Query] DateTime? startDate = null,
         [Query] DateTime? endDate = null);
+
+    [Put("/api/budgets/{id}")]
+    Task<BaseResponse<UpdateBudgetResponse>> UpdateBudgetAsync(
+        Guid id,
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Body] UpdateBudgetRequest request);
 }
 
 
@@ -912,4 +919,21 @@ public record BudgetListDto(
     bool IsNearAlert,
     bool IsActive,
     DateTime CreatedAt
+);
+
+// UpdateBudget DTOs
+public record UpdateBudgetRequest(
+    string? Name,
+    DateTime? StartDate,
+    DateTime? EndDate,
+    decimal? AllocatedAmount,
+    List<Guid>? CategoryIds,
+    int? AlertThreshold,
+    BudgetType? Type,
+    bool? IsActive
+);
+
+public record UpdateBudgetResponse(
+    BudgetDTO Budget,
+    string? Warning
 );

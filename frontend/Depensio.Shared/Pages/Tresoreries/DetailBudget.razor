@@ -71,6 +71,9 @@ else
                         <i class="fas fa-exclamation-circle mr-1"></i>Alerte (@budget.AlertThreshold%)
                     </span>
                 }
+                <button @onclick="OpenEditModal" class="px-3 py-1 text-sm font-semibold rounded-full bg-amber-100 text-amber-800 hover:bg-amber-200">
+                    <i class="fas fa-edit mr-1"></i>Modifier
+                </button>
             </div>
         </div>
 
@@ -354,6 +357,28 @@ else
     </div>
 }
 
+<!-- Modal Edition Budget -->
+@if (showEditModal && budgetForEdit != null)
+{
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-edit mr-2 text-primary-700"></i>Modifier le budget
+                </h3>
+                <button @onclick="CloseEditModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <EditBudgetComponent
+                BoutiqueId="@boutiqueId"
+                Budget="@budgetForEdit"
+                OnAfterSave="HandleAfterSave"
+                OnCancelSave="CloseEditModal" />
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -363,6 +388,10 @@ else
 
     private BudgetDetailDto? budget;
     private bool isLoading = true;
+
+    // Modal edition
+    private bool showEditModal = false;
+    private BudgetListDto? budgetForEdit;
 
     protected override async Task OnInitializedAsync()
     {
@@ -482,4 +511,40 @@ else
         percent >= 50 ? "border-red-500" :
         percent >= 25 ? "border-yellow-500" :
         "border-green-500";
+
+    private void OpenEditModal()
+    {
+        if (budget == null) return;
+
+        budgetForEdit = new BudgetListDto(
+            budget.Id,
+            budget.Name,
+            budget.StartDate,
+            budget.EndDate,
+            budget.AllocatedAmount,
+            budget.SpentAmount,
+            budget.RemainingAmount,
+            budget.PercentUsed,
+            budget.Currency,
+            budget.Type,
+            budget.AlertThreshold,
+            budget.IsExceeded,
+            budget.PercentUsed >= budget.AlertThreshold,
+            budget.IsActive,
+            budget.CreatedAt
+        );
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        budgetForEdit = null;
+    }
+
+    private async Task HandleAfterSave()
+    {
+        CloseEditModal();
+        await LoadBudgetDetailAsync();
+    }
 }

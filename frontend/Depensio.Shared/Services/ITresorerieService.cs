@@ -153,4 +153,10 @@ public interface ITresorerieService
         bool? isActive = null,
         DateTime? startDate = null,
         DateTime? endDate = null);
+
+    [Put("/tresorerie/{boutiqueId}/budgets/{budgetId}")]
+    Task<BaseResponse<UpdateBudgetResponse>> UpdateBudgetAsync(
+        Guid boutiqueId,
+        Guid budgetId,
+        [Body] UpdateBudgetRequest request);
 }

@@ -185,10 +185,16 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <a href="/tresorerie/@boutiqueId/budgets/@budget.Id"
-                                        class="text-blue-600 hover:text-blue-800" title="Voir le detail">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
+                                    <div class="flex gap-2">
+                                        <a href="/tresorerie/@boutiqueId/budgets/@budget.Id"
+                                            class="text-blue-600 hover:text-blue-800" title="Voir le detail">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button @onclick="() => OpenEditModal(budget)"
+                                            class="text-amber-600 hover:text-amber-800" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -276,11 +282,15 @@
                                 </div>
                             </div>
 
-                            <div class="flex justify-end">
+                            <div class="flex justify-end gap-2">
                                 <a href="/tresorerie/@boutiqueId/budgets/@budget.Id"
                                     class="text-blue-600 hover:text-blue-800 p-2" title="Voir le detail">
                                     <i class="fas fa-eye mr-1"></i> Detail
                                 </a>
+                                <button @onclick="() => OpenEditModal(budget)"
+                                    class="text-amber-600 hover:text-amber-800 p-2" title="Modifier">
+                                    <i class="fas fa-edit mr-1"></i> Modifier
+                                </button>
                             </div>
                         </div>
                     }
@@ -327,6 +337,28 @@
     }
 </div>
 
+<!-- Modal Edition Budget -->
+@if (showEditModal && selectedBudget != null)
+{
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-edit mr-2 text-primary-700"></i>Modifier le budget
+                </h3>
+                <button @onclick="CloseEditModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <EditBudgetComponent
+                BoutiqueId="@boutiqueId"
+                Budget="@selectedBudget"
+                OnAfterSave="HandleAfterSave"
+                OnCancelSave="CloseEditModal" />
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public Guid boutiqueId { get; set; }
@@ -344,6 +376,10 @@
     // Pagination
     private int itemsPerPage = 10;
     private int currentPage = 1;
+
+    // Modal edition
+    private bool showEditModal = false;
+    private BudgetListDto? selectedBudget;
 
     private List<BudgetListDto> paginatedBudgets => filteredBudgets
         .Skip((currentPage - 1) * itemsPerPage)
@@ -488,4 +524,22 @@
         budget.IsExceeded ? "border-l-4 border-red-500" :
         budget.IsNearAlert ? "border-l-4 border-yellow-500" :
         "";
+
+    private void OpenEditModal(BudgetListDto budget)
+    {
+        selectedBudget = budget;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        selectedBudget = null;
+    }
+
+    private async Task HandleAfterSave()
+    {
+        CloseEditModal();
+        await GetBudgetsAsync();
+    }
 }
