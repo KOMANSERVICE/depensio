@@ -174,4 +174,10 @@ public interface ITresorerieService
         DateTime? startDate = null,
         DateTime? endDate = null,
         bool comparePrevious = false);
+
+    [Get("/tresorerie/{boutiqueId}/reports/cash-flow-forecast")]
+    Task<BaseResponse<CashFlowForecastDto>> GetCashFlowForecastAsync(
+        Guid boutiqueId,
+        int days = 30,
+        bool includePending = true);
 }

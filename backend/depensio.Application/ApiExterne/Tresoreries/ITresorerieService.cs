@@ -228,6 +228,13 @@ public interface ITresorerieService
         [Query] DateTime? startDate = null,
         [Query] DateTime? endDate = null,
         [Query] bool comparePrevious = false);
+
+    [Get("/api/reports/cash-flow-forecast")]
+    Task<BaseResponse<CashFlowForecastDto>> GetCashFlowForecastAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Query] int days = 30,
+        [Query] bool includePending = true);
 }
 
 
@@ -1034,4 +1041,52 @@ public record PeriodComparisonDto(
     decimal IncomeVariation,
     decimal ExpenseVariation,
     decimal NetBalanceVariation
+);
+
+// Cash Flow Forecast DTOs
+public record CashFlowForecastDto(
+    DateTime StartDate,
+    DateTime EndDate,
+    int Days,
+    string Currency,
+    decimal CurrentBalance,
+    decimal ForecastedEndBalance,
+    bool HasNegativeRisk,
+    IReadOnlyList<CriticalDateDto> CriticalDates,
+    IReadOnlyList<DailyForecastDto> DailyForecast,
+    ForecastSummaryDto Summary,
+    bool IncludePending,
+    DateTime CalculatedAt
+);
+
+public record CriticalDateDto(
+    DateTime Date,
+    decimal ForecastedBalance,
+    string Reason
+);
+
+public record DailyForecastDto(
+    DateTime Date,
+    decimal OpeningBalance,
+    decimal Income,
+    decimal Expense,
+    decimal PendingIncome,
+    decimal PendingExpense,
+    decimal RecurringIncome,
+    decimal RecurringExpense,
+    decimal ClosingBalance,
+    bool IsNegative,
+    bool IsCritical
+);
+
+public record ForecastSummaryDto(
+    decimal TotalForecastedIncome,
+    decimal TotalForecastedExpense,
+    decimal TotalRecurringIncome,
+    decimal TotalRecurringExpense,
+    decimal TotalPendingIncome,
+    decimal TotalPendingExpense,
+    decimal NetChange,
+    int DaysWithNegativeBalance,
+    int CriticalDaysCount
 );
