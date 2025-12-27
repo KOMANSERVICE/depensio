@@ -195,6 +195,14 @@ public interface ITresorerieService
         Guid id,
         [Header("X-Application-Id")] string applicationId,
         [Header("X-Boutique-Id")] string boutiqueId);
+
+    [Get("/api/budgets")]
+    Task<BaseResponse<GetBudgetsResponse>> GetBudgetsAsync(
+        [Header("X-Application-Id")] string applicationId,
+        [Header("X-Boutique-Id")] string boutiqueId,
+        [Query] bool? isActive = null,
+        [Query] DateTime? startDate = null,
+        [Query] DateTime? endDate = null);
 }
 
 
@@ -878,4 +886,30 @@ public record TimeSeriesDto(
     string MonthLabel,
     decimal Amount,
     decimal CumulativeAmount
+);
+
+// GetBudgets DTOs
+public record GetBudgetsResponse(
+    IReadOnlyList<BudgetListDto> Budgets,
+    int TotalCount,
+    int ExceededCount,
+    int NearAlertCount
+);
+
+public record BudgetListDto(
+    Guid Id,
+    string Name,
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal AllocatedAmount,
+    decimal SpentAmount,
+    decimal RemainingAmount,
+    decimal PercentUsed,
+    string Currency,
+    BudgetType Type,
+    int AlertThreshold,
+    bool IsExceeded,
+    bool IsNearAlert,
+    bool IsActive,
+    DateTime CreatedAt
 );
