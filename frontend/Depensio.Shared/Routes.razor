@@ -1,5 +1,6 @@
 ﻿
-<AuthInitializer PInvokeVoid=@JsMethode RedirectToLogin="/login" >
+<AuthInitializer PInvokeVoid=@JsMethode RedirectToLogin="/login" 
+                 PublicRoutes="@PublicRoutes">
     <Router AppAssembly="typeof(Layout.SecondaryLayout).Assembly" NotFoundPage="typeof(Pages.Errors.NotFound)">
         <Found Context="routeData">
             <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.SecondaryLayout)" />            
@@ -12,4 +13,10 @@
     {
         "depensio.initialized"
     };
+
+    public List<string> PublicRoutes = new List<string>()
+    {
+        "/register", "/verifier-mail", "/forgot-password", "/reset-password"
+    };
+
 }
