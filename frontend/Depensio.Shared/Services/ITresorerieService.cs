@@ -167,4 +167,11 @@ public interface ITresorerieService
     [Get("/tresorerie/{boutiqueId}/dashboard")]
     Task<BaseResponse<TreasuryDashboardDto>> GetTreasuryDashboardAsync(
         Guid boutiqueId);
+
+    [Get("/tresorerie/{boutiqueId}/reports/cash-flow-statement")]
+    Task<BaseResponse<GetCashFlowStatementResponse>> GetCashFlowStatementAsync(
+        Guid boutiqueId,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        bool comparePrevious = false);
 }
