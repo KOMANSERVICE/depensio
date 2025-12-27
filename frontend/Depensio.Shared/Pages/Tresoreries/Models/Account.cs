@@ -752,6 +752,29 @@ public class BudgetEditDTO
     public bool IsActive { get; set; } = true;
 }
 
+public class BudgetCreateDTO
+{
+    public string Name { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; } = DateTime.UtcNow;
+    public DateTime EndDate { get; set; } = DateTime.UtcNow.AddMonths(1);
+    public decimal AllocatedAmount { get; set; }
+    public List<Guid> CategoryIds { get; set; } = new();
+    public int AlertThreshold { get; set; } = 80;
+    public BudgetType Type { get; set; } = BudgetType.GLOBAL;
+}
+
+public record CreateBudgetRequest(
+    string Name,
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal AllocatedAmount,
+    List<Guid>? CategoryIds,
+    int AlertThreshold,
+    BudgetType Type
+);
+
+public record CreateBudgetResponse(BudgetDTO Budget);
+
 // GetBudgetAlerts DTOs
 public record GetBudgetAlertsResponse(
     IReadOnlyList<BudgetAlertDto> Alerts,
