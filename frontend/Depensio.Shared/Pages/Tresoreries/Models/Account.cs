@@ -675,3 +675,29 @@ public record TimeSeriesDto(
     decimal Amount,
     decimal CumulativeAmount
 );
+
+// GetBudgets DTOs
+public record GetBudgetsResponse(
+    IReadOnlyList<BudgetListDto> Budgets,
+    int TotalCount,
+    int ExceededCount,
+    int NearAlertCount
+);
+
+public record BudgetListDto(
+    Guid Id,
+    string Name,
+    DateTime StartDate,
+    DateTime EndDate,
+    decimal AllocatedAmount,
+    decimal SpentAmount,
+    decimal RemainingAmount,
+    decimal PercentUsed,
+    string Currency,
+    BudgetType Type,
+    int AlertThreshold,
+    bool IsExceeded,
+    bool IsNearAlert,
+    bool IsActive,
+    DateTime CreatedAt
+);

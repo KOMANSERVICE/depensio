@@ -146,4 +146,11 @@ public interface ITresorerieService
     Task<BaseResponse<GetBudgetByIdResponse>> GetBudgetByIdAsync(
         Guid boutiqueId,
         Guid budgetId);
+
+    [Get("/tresorerie/{boutiqueId}/budgets")]
+    Task<BaseResponse<GetBudgetsResponse>> GetBudgetsAsync(
+        Guid boutiqueId,
+        bool? isActive = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null);
 }
