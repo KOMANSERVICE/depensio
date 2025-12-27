@@ -751,3 +751,27 @@ public class BudgetEditDTO
     public BudgetType Type { get; set; } = BudgetType.GLOBAL;
     public bool IsActive { get; set; } = true;
 }
+
+// GetBudgetAlerts DTOs
+public record GetBudgetAlertsResponse(
+    IReadOnlyList<BudgetAlertDto> Alerts,
+    int TotalCount,
+    int ExceededCount,
+    int ApproachingCount
+);
+
+public record BudgetAlertDto(
+    Guid BudgetId,
+    string BudgetName,
+    BudgetType Type,
+    decimal AllocatedAmount,
+    decimal SpentAmount,
+    decimal RemainingAmount,
+    int AlertThreshold,
+    bool IsExceeded,
+    decimal ConsumptionRate,
+    string AlertLevel,
+    string Currency,
+    DateTime StartDate,
+    DateTime EndDate
+);
