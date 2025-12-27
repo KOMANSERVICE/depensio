@@ -89,6 +89,25 @@ window.depensio = {
         if (el) {
             el.scrollTop = el.scrollHeight;
         }
+    },
+    downloadFile: function (fileName, contentType, base64Content) {
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = `data:${contentType};base64,${base64Content}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    },
+    downloadFileFromBytes: function (fileName, contentType, byteArray) {
+        const blob = new Blob([new Uint8Array(byteArray)], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
     //chatbot: function () {
 

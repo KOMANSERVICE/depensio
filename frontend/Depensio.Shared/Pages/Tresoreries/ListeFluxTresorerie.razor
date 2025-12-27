@@ -4,6 +4,7 @@
 @layout MainLayout
 @inject ITresorerieService _tresorerieService
 @inject NavigationManager _navigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitleComponent Title="Flux de tresorerie" />
 
@@ -67,7 +68,20 @@
         <button @onclick="ResetFilters" class="text-sm text-gray-500 hover:text-gray-700 underline">
             Reinitialiser
         </button>
-        <div class="ml-auto">
+        <div class="ml-auto flex items-center gap-2">
+            <button @onclick="ExportCashFlowsAsync"
+                    disabled="@isExporting"
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (isExporting)
+                {
+                    <i class="fas fa-spinner fa-spin"></i>
+                }
+                else
+                {
+                    <i class="fas fa-file-export"></i>
+                }
+                <span class="hidden md:inline">Exporter CSV</span>
+            </button>
            @*  <a href="/tresorerie/@boutiqueId/flux/nouveau"
                 class="px-4 py-2 bg-primary-700 hover:bg-amber-800 text-white rounded-lg flex items-center gap-2">
                 <i class="fas fa-plus"></i>
@@ -304,6 +318,7 @@
 
     private List<CashFlowListDto> cashFlows = new();
     private bool isLoading = true;
+    private bool isExporting = false;
     private string searchTerm = "";
 
     // Filters
@@ -430,6 +445,46 @@
         searchTerm = "";
         currentPage = 1;
         await GetCashFlowsAsync();
+    }
+
+    private async Task ExportCashFlowsAsync()
+    {
+        isExporting = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await _tresorerieService.ExportCashFlowsAsync(
+                boutiqueId,
+                "csv",
+                null,
+                selectedType,
+                selectedStatus,
+                null,
+                null,
+                startDate,
+                endDate,
+                string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm.Trim());
+
+            if (response.IsSuccessStatusCode)
+            {
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                var contentDisposition = response.Content.Headers.ContentDisposition;
+                var fileName = contentDisposition?.FileName?.Trim('"') ?? $"flux-tresorerie-{DateTime.Now:yyyyMMdd}.csv";
+                var contentType = response.Content.Headers.ContentType?.MediaType ?? "text/csv";
+
+                await JSRuntime.InvokeVoidAsync("depensio.downloadFileFromBytes", fileName, contentType, bytes);
+            }
+        }
+        catch (Exception)
+        {
+            // Handle error silently or show toast notification
+        }
+        finally
+        {
+            isExporting = false;
+            StateHasChanged();
+        }
     }
 
     private string GetTypeLabel(CashFlowTypeExtended type) => type switch
